@@ -6,12 +6,10 @@
 require(ggplot2)
 require(reshape2)
 require(maptools)
-require(plyr)
+library(plyr)
 #Setwd
 setwd("E:/FieldWork2013/Data2013")
 
-#load in data
-load("E://Fieldwork2013//Data2013//Scripts//FlowerTransect.Rdata")
 #Read in Flower Transect Data
 fl<-read.csv(file="csv/FlowerTransects.csv")
 
