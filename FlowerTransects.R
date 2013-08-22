@@ -1,7 +1,7 @@
 #Flower Diversity Transects and Nectar
 #Data Collected by K. Lohman and B. Weinstein
 #R script Ben Weinstein - Stony Brook University 7/7/2013
-#Under Git repository - Maqui
+#Under Git repository - Maquipucuna
 
 require(ggplot2)
 require(reshape2)
