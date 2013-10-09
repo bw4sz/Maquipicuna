@@ -9,6 +9,7 @@ require(ggplot2)
 require(ape)
 require(reshape)
 require(sna)
+require(stringr)
 
 #############################
 #Set Dropbox Location
@@ -60,6 +61,9 @@ dat$Flower<-factor(sapply(dat$Flower,function(x) {.simpleCap(as.character(x))}))
 
 #Caps Hummingbird
 dat$Hummingbird<-factor(sapply(dat$Hummingbird,function(x) {.simpleCap(as.character(x))}))
+
+#Take our any bad data
+dat<-droplevels(dat[!dat$Hummingbird %in% c("","NANA"),])
 
 #Overall statistics
 #How many flowers Species
@@ -118,16 +122,12 @@ write.csv(P.species.prop,"PlantMetrics.csv")
 ##################################################
 #Specialization for each species
 ##################################################
-#nodespec(F_H)
-
-#For plants
-#dfun(F_H)
-
+  
 #For birds
 birds.special<-dfun(t(F_H))
 birds.spl<-data.frame(lapply(birds.special,data.frame))
 colnames(birds.spl)<-names(birds.special)
-ggplot(birds.spl,aes(x=rownames(birds.spl),y=dprime)) + geom_point() + theme_bw() + theme(axis.text.x=element_text(angle=90))
+ggplot(birds.spl[1:22,],aes(x=rownames(birds.spl)[1:22],y=dprime)) + geom_point() + theme_bw() + theme(axis.text.x=element_text(angle=90))
 ggsave("Specialization.svg",height=8,width=9)
 
 #############################################
@@ -137,10 +137,11 @@ ggsave("Specialization.svg",height=8,width=9)
 #Collapse Matrix into Hummingbird by Hummingbird Matrix
 #Hummingbird
 H_H<-as.one.mode(F_H,project="higher")
-
 diag(H_H)<-NA
 H_H[upper.tri(H_H)]<-NA
 m.HH<-melt(H_H)
+  
+#Plot Resource overlap between hummingbird Species
 ggplot(m.HH,aes(X1,X2,fill=value)) + geom_tile() + scale_fill_continuous(low="blue",high="red",na.value="white") + theme(axis.text.x = element_text(angle = 90, hjust = 1),panel.background=element_rect(color="white"))
 ggsave("ResourceOverlap.svg",height=8,width=11)
 
@@ -148,7 +149,6 @@ ggsave("ResourceOverlap.svg",height=8,width=11)
 ctrx<-cophenetic(tree)
          
     ER<-function(x){
-      print(x)
     y<-m.HH[x,]
     if(sum(clades$English %in% y[[1]])==0) {return("NA")}
     if(sum(clades$English %in% y[[2]])==0) {return("NA")}
@@ -163,7 +163,7 @@ m.HH$Relatedness<-sapply(1:nrow(m.HH),ER)
 
 #Relatedness and plant overlap
 ggplot(m.HH[m.HH$value>0,],aes(y=value,x=as.numeric(Relatedness),)) + geom_point() + geom_smooth(method="lm") + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness")
-ggsave("Network/Relatedness_Overlap.svg",height=8,width=11)
+ggsave("Relatedness_Overlap.svg",height=8,width=11)
 
 #Plants 
 P_P<-as.one.mode(F_H,project="lower")
@@ -173,11 +173,9 @@ m.PP<-melt(P_P)
 
 #
 ggplot(m.PP,aes(X1,X2,fill=value)) + geom_tile() + scale_fill_continuous(low="blue",high="red",na.value="white") + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
+ggsave("PollinatorOverlap.svg",height=8,width=11)
+  
 #In the future this is where you consider relatedness among species among plants
-
-
-#package sna, gplot produces some nice networks
 #Plot 3d visualization of the hummingbird network
 svg("Hummingbird3d.jpeg")
 gplot(H_H)
@@ -202,5 +200,37 @@ for (x in 1:length(dat.split)){
   NetworkC(dat.split[[x]],names(dat.split)[[x]])
 }
 
+#Retrieve Classes, name them, melt 
+
+#Start with networkwide properties
+netPath<-paste(home,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
+
+#Get the desired files from paths
+fil.list<-list.files(netPath,pattern="NetworkProperties.csv",recursive=TRUE,full.names=TRUE)
+#I'm terrible at regex, the strsplit statement, may need to change depending on your path
+
+
+fil<-list()
+#Read and name each file
+for (x in 1:length(fil.list)){
+  fil[[x]]<-read.csv(fil.list[[x]])
+  names(fil)[x]<-strsplit(fil.list[[x]],"/")[[1]][10]
+}
+
+#melt the outputs to a single dataframe
+m.Prop<-melt(fil)
+colnames(m.Prop)<-c("Metric","Level","value","Time")
+
+#If you want to remove overall metrics
+month.Prop<-m.Prop[!m.Prop$Time=="Total",]
+
+#For each metric plot them with time
+dir.create(paste(netPath,"TimeFigures",sep=""))
+
+#Quick and dirty 
+p<-ggplot(na.omit(month.Prop),aes(x=Time,y=value,col=Level)) + geom_point() + geom_line(aes(group=1,col=Level)) + facet_wrap(~Metric,scales="free_y")
+p
+
+#Individual plots
 setwd(home)
 save.image("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
