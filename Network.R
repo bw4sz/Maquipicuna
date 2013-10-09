@@ -221,16 +221,63 @@ for (x in 1:length(fil.list)){
 m.Prop<-melt(fil)
 colnames(m.Prop)<-c("Metric","Level","value","Time")
 
+#Correct the naming of levels
+levels(m.Prop$Level)<-c("Hummingbirds","Plants")
+
 #If you want to remove overall metrics
 month.Prop<-m.Prop[!m.Prop$Time=="Total",]
 
 #For each metric plot them with time
 dir.create(paste(netPath,"TimeFigures",sep=""))
+setwd(paste(netPath,"TimeFigures",sep=""))
 
-#Quick and dirty 
-p<-ggplot(na.omit(month.Prop),aes(x=Time,y=value,col=Level)) + geom_point() + geom_line(aes(group=1,col=Level)) + facet_wrap(~Metric,scales="free_y")
-p
+#Quick and dirty look at all metrics
+p<-ggplot(na.omit(month.Prop),aes(x=Time,y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level)) + facet_wrap(~Metric,scales="free_y")
+p + theme_bw()
+ggsave("MetricsFacet.svg",height=8,width=11)
+
+dir.create("Metric_TimePlots")
+setwd("Metric_TimePlots")
 
 #Individual plots
+for(x in levels(month.Prop$Metric)) {
+  print(x)
+  toplot<-na.omit(month.Prop[month.Prop$Metric %in% x,])
+  
+  #If there are no records, go to next metric
+  if(nrow(toplot)==0) next
+  
+  #Plot and Save
+  p<-ggplot(toplot,aes(x=Time,y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level))
+  p + theme_bw() + ylab(x)
+  ggsave(paste(x,".svg",sep=""),height=8,width=11)
+}
+
+#Compute Metrics for each Humminbird species
+
+#Get the desired files from paths
+fil.list<-list.files(netPath,pattern="HummingbirdMetrics.csv",recursive=TRUE,full.names=TRUE)
+
+fil<-list()
+#Read and name each file
+for (x in 1:length(fil.list)){
+  fil[[x]]<-read.csv(fil.list[[x]])
+  names(fil)[x]<-strsplit(fil.list[[x]],"/")[[1]][10]
+}
+
+Hum.Time<-melt(fil)
+colnames(Hum.Time)<-c("Species","Metric","value","Time")
+
+#Quick and dirty look across species 
+ggplot(Hum.Time,aes(Time,value)) + facet_grid(Species~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
+ggsave(paste(netPath,"TimeFigures/HumSpecies_Time.svg",sep=""),height=8,width=11)
+
+#Clearly in the future, need to zoom in on the metrics we actually care about.
+
+#Plot for each species, or for each metric?
+
+
 setwd(home)
+
+
 save.image("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
