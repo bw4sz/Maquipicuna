@@ -14,6 +14,9 @@ require(reshape)
 #Set DropBox Working Directory
 setwd("C:/Users/Ben/Dropbox/")
 
+#Read in workspace if desired for quick access
+load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+
 #Read in Flower Transect Data from summer field season
 fl<-read.csv(file="Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerTransects.csv")
 

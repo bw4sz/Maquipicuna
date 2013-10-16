@@ -16,7 +16,14 @@ require(stringr)
 #Read in flower videos
 home<-"C:/Users/Ben/Dropbox/"
 setwd(home)
+
+#Set Gitpath
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 #############################
+
+#Load image for convienance
+
+load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
 #############
 #Read in Data
@@ -100,6 +107,10 @@ jpeg(filename="MatrixPlot.jpeg",height=8,width=8,units="in",res=300)
 visweb(F_H)
 dev.off()
 
+jpeg(filename="MatrixPlotCompartments.jpeg",height=8,width=8,units="in",res=300)
+  visweb(F_H,"compartment")
+  dev.off()
+  
 #Metrics across entire
 birds.prop<-data.frame(HummingbirdNetwork=networklevel(F_H,level="higher"))
 plants.prop<-data.frame(PlantNetwork=networklevel(F_H,level="lower"))
@@ -231,9 +242,15 @@ month.Prop<-m.Prop[!m.Prop$Time=="Total",]
 dir.create(paste(netPath,"TimeFigures",sep=""))
 setwd(paste(netPath,"TimeFigures",sep=""))
 
+#Which metrics are desired?
+droplevels(month.Prop)
+
+metricskeep<-c("connectance","links per species","nestedness","Shannon diversity","H2","niche overlap","robustness.HL","number of compartments","robustness.LL","number.of.species.HL")
+
+month.Prop<-droplevels(month.Prop[month.Prop$Metric %in% metricskeep,])
 #Quick and dirty look at all metrics
 p<-ggplot(na.omit(month.Prop),aes(x=Time,y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level)) + facet_wrap(~Metric,scales="free_y")
-p + theme_bw()
+p + theme_bw() 
 ggsave("MetricsFacet.svg",height=8,width=11)
 
 dir.create("Metric_TimePlots")
@@ -268,16 +285,40 @@ for (x in 1:length(fil.list)){
 Hum.Time<-melt(fil)
 colnames(Hum.Time)<-c("Species","Metric","value","Time")
 
+#Just get the Metrics which make sense for this analysis
+head(Hum.Time)
+
+metricskeep<-c("nestedrank","resource.range","betweenness","d","degree","species.strength")
+  Hum.Time<-droplevels(Hum.Time[Hum.Time$Metric %in% metricskeep ,])
+
+#Probably should exclude rare species?
+H.c<-cast(Hum.Time,...~Metric)
+Hum.Time<-melt(H.c[H.c$degree > 2,])
+
 #Quick and dirty look across species 
-ggplot(Hum.Time,aes(Time,value)) + facet_grid(Species~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
+ggplot(Hum.Time,aes(Time,value,col=Species)) + facet_wrap(~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
 ggsave(paste(netPath,"TimeFigures/HumSpecies_Time.svg",sep=""),height=8,width=11)
 
-#Clearly in the future, need to zoom in on the metrics we actually care about.
-
 #Plot for each species, or for each metric?
+for(x in levels(droplevels(Hum.Time$Species))){
+  print(x)
+  #drop the total column and added a dashed total line
+  p<-ggplot(Hum.Time[Hum.Time$Species %in% x & !Hum.Time$Time %in% "Total",],aes(Time,value)) + facet_wrap(~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
+  ggsave(paste(netPath,paste(x,".svg",sep=""),sep="TimeFigures/"),height=8,width=11) 
+}
+
+#######################################################################
+#Bring in Transect Data and Compare specilization across all Elevations
+#######################################################################
+
+#At first just use the across entire network properies and all flowers from all elevations
+#The next step is to set species ranges and get flower transects across that range
+
+#The script FlowerTransects.R must be run
+source(paste(gitpath),"FlowerTransects.R")
 
 
+
+#Save image to file
 setwd(home)
-
-
 save.image("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
