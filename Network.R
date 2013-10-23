@@ -14,11 +14,11 @@ require(stringr)
 #############################
 #Set Dropbox Location
 #Read in flower videos
-home<-"C:/Users/Ben/Dropbox/"
+home<-"C:/Users/Jorge/Dropbox/"
 setwd(home)
 
 #Set Gitpath
-gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 #############################
 
 #Load image for convienance
