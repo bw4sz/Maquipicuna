@@ -79,6 +79,37 @@ paste("Number of Flower Species:",nlevels(dat$Flower))
 #How many Birds Species
 paste("Number of Hummingbird Species:",nlevels(dat$Hummingbird))
 
+#create datasheet to review videos
+#How many videos for each flower ID
+videoN<-aggregate(dat$Video,list(dat$ID),function(x) nlevels(factor(x)))
+colnames(videoN)<-c("ID","Number.Observed")
+datE<-read.csv("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoempty.csv")
+
+#How many empty videos fgor each flower ID
+videoE<-aggregate(datE$Video,list(datE$ID),function(x) nlevels(factor(x)))
+colnames(videoE)<-c("ID","Number.Empty")
+
+head(videoN)
+head(videoE)
+
+mergeVideo<-merge(videoN,videoE,all=TRUE)
+
+#turn NA to 0
+mergeVideo[is.na(mergeVideo)]<-0
+
+mergeVideo$Total<-mergeVideo$Number.Observed + mergeVideo$Number.Empty
+
+##Make uppercase
+mergeVideo$ID<-toupper(mergeVideo$ID)
+
+rownames(mergeVideo)<-sapply(mergeVideo$ID,function(x){
+  as.numeric(strsplit(as.character(x),"FL")[[1]][2])
+})
+
+mergeVideo<-mergeVideo[order(mergeVideo$numb),]
+  
+write.csv(mergeVideo,"C:\\Users\\Ben\\Dropbox\\Thesis\\Maquipucuna_SantaLucia\\Data2013\\csv\\VideoTable.csv")
+
 #Create function to compute network parameters
 #The general strategy is to write all metrics to file, and develop call statements at the end to retrieve them
 NetworkC<-function(datf,naming){
