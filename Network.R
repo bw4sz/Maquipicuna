@@ -23,7 +23,7 @@ gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
 #Load image for convienance
 
-load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
 #############
 #Read in Data
@@ -54,6 +54,28 @@ head(dat)
 clades<-read.csv("Shared Ben and Catherine/DimDivEntire/Files for Analysis/CladeList.txt",header=FALSE)[,-1]
 colnames(clades)<-c("Clade","Genus","Species","double","English")
 clades<-clades[,1:5]
+
+
+#Bring in trait data
+
+###Bring in trait data
+morph <- read.csv(paste(gitpath,"//InputData//MorphologyShort.csv",sep=""),na.strings="9999")
+
+#just get males
+morph.male<-morph[morph$Sex=="Macho",c("SpID","ExpC","Peso","AlCdo")]
+morph.complete<-morph.male[complete.cases(morph.male),]
+
+#aggregate for species
+agg.morph<-aggregate(morph.complete,list(morph.complete$SpID),mean)
+mon<-agg.morph[,-2]
+colnames(mon)<-c("Species","Bill","Mass","WingChord")
+rownames(mon)<-gsub(" ",".",mon[,1])
+mon<-mon[,-1]
+
+#principal component traits and get euclidean distance matrix
+trait_pc<-as.matrix(dist(prcomp(mon)$x))
+
+
 
 ####################################################
 #Analysis of Flower Usage for each Hummingbird Species
