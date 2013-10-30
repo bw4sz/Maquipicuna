@@ -23,7 +23,7 @@ gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 #Load image for convienance
 
-load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
 #############
 #Read in Data
