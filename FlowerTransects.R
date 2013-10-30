@@ -304,7 +304,6 @@ save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
 #Flower bloomign through time
 head(fl.nectar)
-ggplot
 
 #Set holger as observer
 fl.nectar$Observer<-as.character(fl.nectar$Observer)
@@ -313,18 +312,17 @@ fl.nectar$Observer[is.na(fl.nectar$Observer)]<-"Holger"
 
 #Create month column
 fl.nectar$month<-NA
-fl.nectar[fl.nectar$Observer %in% "Karen","month"]<-months(chron(as.character(fl.nectar[fl.nectar$Observer %in% "Karen","Date"])))
-fl.nectar[fl.nectar$Observer %in% "Holger","month"]<-months(chron(as.character(fl.nectar[fl.nectar$Observer %in% "Holger","Date"]),format="d/m/y"))
+for (j in 1:nrow(fl.nectar)){
+  x<-fl.nectar[j,]
+  if(x[["Observer"]] %in% c("Karen","Ben")){
+    fl.nectar[j,"month"]<-months(chron(as.character(x$Date)))
+  }
+    if(x[["Observer"]] %in% "Holger"){
+      fl.nectar[j,"month"]<-months(chron(as.character(x[x$Observer %in% "Holger","Date"]),format="d/m/y"))
+    }
+  }
 
 
+#plot elevation and nectar
+ggplot(fl.nectar,aes(month,Total_Flowers),groups=1) + geom_point() + geom_smooth()
 
-months(chron(sapply(strsplit(as.character(fl.nectar[fl.nectar$Observer %in% "Holger",]$Date),"/"),function(x) x[[2]]))
-
-months(
-  as.character(fl.nectar$Date)
-  )
-
-bloom<-
-  fl.nectar[
-    sapply(strsplit(as.character(fl.nectar$Date),split="/"),function(x) x[[2]])
-    ,]
