@@ -14,11 +14,11 @@ require(stringr)
 #############################
 #Set Dropbox Location
 #Read in flower videos
-home<-"C:/Users/Ben/Dropbox/"
+home<-"C:/Users/Jorge/Dropbox/"
 setwd(home)
 
 #Set Gitpath
-gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 #############################
 
 #Load image for convienance
@@ -55,6 +55,28 @@ clades<-read.csv("Shared Ben and Catherine/DimDivEntire/Files for Analysis/Clade
 colnames(clades)<-c("Clade","Genus","Species","double","English")
 clades<-clades[,1:5]
 
+
+#Bring in trait data
+
+###Bring in trait data
+morph <- read.csv(paste(gitpath,"//InputData//MorphologyShort.csv",sep=""),na.strings="9999")
+
+#just get males
+morph.male<-morph[morph$Sex=="Macho",c("SpID","ExpC","Peso","AlCdo")]
+morph.complete<-morph.male[complete.cases(morph.male),]
+
+#aggregate for species
+agg.morph<-aggregate(morph.complete,list(morph.complete$SpID),mean)
+mon<-agg.morph[,-2]
+colnames(mon)<-c("Species","Bill","Mass","WingChord")
+rownames(mon)<-gsub(" ",".",mon[,1])
+mon<-mon[,-1]
+
+#principal component traits and get euclidean distance matrix
+trait_pc<-as.matrix(dist(prcomp(mon)$x))
+
+
+
 ####################################################
 #Analysis of Flower Usage for each Hummingbird Species
 ####################################################
@@ -78,6 +100,37 @@ paste("Number of Flower Species:",nlevels(dat$Flower))
 
 #How many Birds Species
 paste("Number of Hummingbird Species:",nlevels(dat$Hummingbird))
+
+#create datasheet to review videos
+#How many videos for each flower ID
+videoN<-aggregate(dat$Video,list(dat$ID),function(x) nlevels(factor(x)))
+colnames(videoN)<-c("ID","Number.Observed")
+datE<-read.csv("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoempty.csv")
+
+#How many empty videos fgor each flower ID
+videoE<-aggregate(datE$Video,list(datE$ID),function(x) nlevels(factor(x)))
+colnames(videoE)<-c("ID","Number.Empty")
+
+head(videoN)
+head(videoE)
+
+mergeVideo<-merge(videoN,videoE,all=TRUE)
+
+#turn NA to 0
+mergeVideo[is.na(mergeVideo)]<-0
+
+mergeVideo$Total<-mergeVideo$Number.Observed + mergeVideo$Number.Empty
+
+##Make uppercase
+mergeVideo$ID<-toupper(mergeVideo$ID)
+
+rownames(mergeVideo)<-sapply(mergeVideo$ID,function(x){
+  as.numeric(strsplit(as.character(x),"FL")[[1]][2])
+})
+
+mergeVideo<-mergeVideo[order(mergeVideo$numb),]
+  
+write.csv(mergeVideo,"C:\\Users\\Ben\\Dropbox\\Thesis\\Maquipucuna_SantaLucia\\Data2013\\csv\\VideoTable.csv")
 
 #Create function to compute network parameters
 #The general strategy is to write all metrics to file, and develop call statements at the end to retrieve them
