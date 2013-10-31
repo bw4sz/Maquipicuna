@@ -73,9 +73,16 @@ rownames(mon)<-gsub(" ",".",mon[,1])
 mon<-mon[,-1]
 
 #principal component traits and get euclidean distance matrix
-trait_pc<-as.matrix(dist(prcomp(mon)$x))
+means <- apply(mon, 2, mean)
 
+Bill <- mon$Bill - means["Bill"]/sd(mon$Bill)
+Mass <- mon$Mass - means["Mass"]/sd(mon$Mass)
+WingChord <- (mon$WingChord - means["WingChord"])/sd(mon$WingChord)
 
+z.scores <- data.frame(Bill, Mass, WingChord)
+rownames(z.scores) <- rownames(mon)
+
+trait_pc <- as.matrix(dist(z.scores, method = "euclidean"))
 
 ####################################################
 #Analysis of Flower Usage for each Hummingbird Species
