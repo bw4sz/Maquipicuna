@@ -177,11 +177,13 @@ flwr_bird<-flwr_bird[!is.na(flwr_bird$Observation),]
 
 flwr_bird<-flwr_bird[!flwr_bird$Flower %in% levels(flwr_bird$Flower)[[1]],]
 
-write.csv("flwr_bird","TransectBird_Flower.csv")
-#No idea what to do from here.
+write.csv(flwr_bird,"Thesis/Maquipucuna_SantaLucia/Results/TransectBird_Flower.csv")
+
 GH<-ggplot(flwr_bird,aes(x=Flower,y=Hummingbird,fill=Observation)) + geom_tile() + theme_bw() + scale_fill_continuous(high="red",na.value="white")
 GH + theme(axis.text.x=element_text(angle=90))
 
+#It actually seems like it would make most sense to export the data as rows rather as a contingency table
+write.csv(full.fl[is.finite(full.fl$Hummingbird),],"Thesis/Maquipucuna_SantaLucia/Results/TransectHumRows.csv")
 
 
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/Hummingbird_Genus.jpeg",height=8,width=11)
@@ -326,3 +328,4 @@ for (j in 1:nrow(fl.nectar)){
 #plot elevation and nectar
 ggplot(fl.nectar,aes(month,Total_Flowers),groups=1) + geom_point() + geom_smooth()
 
+#Create interaction matrix for hummingbirds and flowers
