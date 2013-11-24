@@ -30,24 +30,53 @@ holger.hum<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HolgerTransect_
 #Bring in holger transect data
 holgerID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIIDHolger.csv")
 
+#Create ID columns
+holgerID$ID<-factor(paste(holgerID$Transect,holgerID$Date,sep="_"))
+
+holger.fl$ID<-factor(paste(holger.fl$Transect,holger.fl$Date,sep="_"))
+
+holgerID$ID[!holgerID$ID %in% holger.fl$ID]
+levels(droplevels(holger.fl$ID[!holger.fl$ID %in% holgerID$ID]))
+
+holger.full<-merge(holger.fl,holgerID,"ID")
+
 #Fix the column names and rbindfill
 colnames(fl)<-c("Family","Genus","Species","Height","Flowers","Stalks","Inflorescences.Plants","GPS_ID","Accuracy","Hummingbird.Species","Photo","Transect.ID","Comment")
-colnames(holger.fl)<-c("Transect.ID","Date","Time","Family","Genus","Species","Height","Flowers","Stalks","Inflorescences.Plants","Hummingbird.Species","GPS_ID","Comment","Photo")
+
+#Just get the desired columns and rename
+holger.full<-holger.full[,colnames(holger.full) %in% c(colnames(holger.full)[1:15],"Elevation.Begin","Elevation.End") ]
+colnames(holger.full)<-c("ID","Transect.ID","Date","Time","Family","Genus","Species","Height","Flowers","Stalks","Inflorescences.Plants","Hummingbird.Species","GPS_ID","Comment","Photo","Elevation.Begin","Elevation.End")
 
 #To compare transects we need the transect id page
 TID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIID.csv")
-TID$Transect_R<-as.factor(paste(TID$Elevation.Begin,TID$Elevation.End,sep="_"))
 
 #Select the flower transects
 TID.f<-TID[TID$Type=="Flower",]
+
+#Make factors both
+fl$Transect.ID<-factor(fl$Transect.ID)
+TID.f$TransectID<-factor(TID.f$TransectID)
+
+###############################
+#NEEDS TO ADDRESS
+which(!TID.f$TransectID %in% fl$Transect.ID)
+#Missing level?
 fl.id<-merge(fl,TID.f,by.x="Transect.ID",by.y="TransectID")
 
-#view flower data
+
+#How many rows did we lose?
+dim(fl)
+dim(fl.id)
+
 head(fl.id)
 
-full.fl<-rbind.fill(fl.id,holger.fl[,1:14])
+full.fl<-rbind.fill(fl.id,holger.full)
 
 head(full.fl)
+
+#Create elevation ID
+full.fl$Transect_R<-factor(paste(full.fl$Elevation.Begin,full.fl$Elevation.End,sep="_"))
+
 #Data cleaning and check
 #Turn first letter of family to uppercase
 #see toupper?
@@ -137,15 +166,8 @@ for (x in 1:length(f)){
 ##Repeat for first gps
 f<-list.files("F:\\KarenGPS\\KarenFirstgps/",full.names=TRUE)
 
-#loop through input files and find the errors. 
-gpx2<-list()
-for (x in 1:length(f)){
-  print(x)
-  try(
-    gpx2[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
-}
 #Bind together the days taht contain data
-gpx.dat<-rbind(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]))
+gpx.dat<-rbind(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]))
 
 #create  spatial object
 dat.sp<-SpatialPointsDataFrame(coords=cbind(gpx.dat$lon,gpx.dat$lat),gpx.dat)
@@ -182,7 +204,6 @@ fl.elev$Observer[is.na(fl.elev$Observer)]<-"Holger"
 
 fl.elev$Observer<-factor(fl.elev$Observer)
 
-
 #Create month column
 fl.elev$month<-NA
 for (j in 1:nrow(fl.elev)){
@@ -195,21 +216,24 @@ for (j in 1:nrow(fl.elev)){
     }
   }
 
-#cut data into the 200m transects?
-
-bre<-seq(1300,2500,200)
-fl.elev$transectR<-cut(fl.elev$ele,bre,dig.lab=4)
+head(fl.elev[is.na(fl.elev$month),])
 
 #plot total flowers over time?
-fl.totals<-aggregate(fl.elev$Total_Flowers,list(fl.elev$transectR,fl.elev$month,fl.elev$Date),sum)
+fl.totals<-aggregate(fl.elev$Total_Flowers,list(fl.elev$Transect_R,fl.elev$month,fl.elev$Date),sum)
 colnames(fl.totals)<-c("Elev","Month","Date","TotalFlowers")
 
-ggplot(fl.totals,aes(Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=4) + geom_smooth(aes(group=Month)) 
+#Get the average?
+dev.off()
+ggplot(fl.totals,aes(Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=2) + geom_smooth(aes(group=Month),se=FALSE) 
 ##Flowers per month and elevation
 ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point() + geom_smooth(aes(group=Month)) + theme_bw()
+
 #ggsave()
-
-
 ggplot(fl.totals,aes(Elev,TotalFlowers)) + facet_wrap(~Month) + geom_boxplot()
+
+ggplot(fl.totals,aes(as.factor(Month),TotalFlowers,col=Elev)) + geom_boxplot() + theme_bw()
+
+ggplot(fl.totals,aes(as.factor(Month),TotalFlowers,col=Elev)) + geom_boxplot() + theme_bw()
+
 #Create interaction matrix for hummingbirds and flowers
 save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
