@@ -7,8 +7,28 @@
 # A High value resource is placed alongside a low value resource
 #Our goal is measure selectivity of each species at each elevation
 
+#load in packages
+require(ggplot2)
+require(chron)
 #Set working directory
 droppath<-"C:/Users/Jorge/Dropbox/Thesis//Maquipucuna_SantaLucia/"
+
+#Define selectivity function
+selective<-function(y){
+  #Aggregate time by species and treatment
+  Total_Time<-aggregate(y$Time_Feeder_Obs,by=list(y$Species,y$Treatment),sum, na.rm=TRUE)
+  
+  #Divide time on high value resource by total time on feeder
+  melt.time<-melt(Total_Time)
+  cast.time<-as.data.frame(cast(melt.time,Group.1~Group.2 ))
+  
+  #Set the NAs to 0, if bird was not present on one of the resources
+  cast.time[is.na(cast.time)]<- 0
+  selectivity<-cbind(cast.time,cast.time$H/(cast.time$High+cast.time$L))
+  colnames(selectivity)<-c("Species","Time_High","Time_Low","Selectivity")
+  
+  #return output
+  return(selectivity)}
 
 ##Read in data
 dat<-read.csv(paste(droppath,"Data2013/csv/CompetitionFeeders.csv",sep=""))
@@ -24,7 +44,6 @@ m.sp_m<-melt(sp_matrixHL)
 colnames(m.sp_m)<-c("Species","Elevation","Treatment","Presence")
 
 #turn 0's to NA's just for plotting
-
 m.sp_m[m.sp_m$Presence==0,"Presence"]<-NA
 
 #View as tiles
@@ -35,3 +54,39 @@ p + labs(fill="Present",x="Elevation")
 #richness across feeders
 p<-ggplot(m.sp_m,aes(y=Species,x=factor(Elevation),fill=as.factor(Presence)))+ geom_tile() + theme_bw() + scale_fill_discrete(na.value="white")
 p + labs(fill="Present",x="Elevation")
+
+#####################
+#Time on the feeders
+####################
+
+#Create time columns
+dat$Time.End<-times(dat$Time.End)
+dat$Time.Begin<-times(dat$Time.Begin)
+
+#Find time difference 
+dat$Time_Feeder_Obs<-dat$Time.End - dat$Time.Begin
+
+#Get any rownumbers that are negative, these need to be fixed. 
+dat[which(dat$Time_Feeder_Obs < 0),]
+
+#Time per species
+Total_Time_Species<-aggregate(dat$Time_Feeder_Obs,by=list(dat$Species),sum) 
+colnames(Total_Time_Species)<-c("Species","TotalTime")
+ggplot(Total_Time_Species,aes(Species,minutes(TotalTime))) + geom_bar() + theme_bw()
+#ggsave
+
+####Match each trial together, trials are done on the same day at the same elevation
+#Split data into a list, with each compenent being one trial pair
+#In the future, we need to delinate by the same day?
+
+#Trials<-split(dat, list(dat$Elevation,dat$Date),drop=TRUE)
+Trials<-split(dat, list(dat$Elevation),drop=TRUE)
+
+#####Just for data clarity remove any trials that down have high and low value data entered
+#Get number of levels per trial
+levels.trial<-lapply(Trials,function(x) nlevels(factor(x$Treatment)))
+#Only use trials that have a high and low, ie levels=2
+#complete.trial<- Trials[levels.trial ==2]
+
+#Calculate selectivity
+lapply(Trials,selective)
