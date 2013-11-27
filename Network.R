@@ -205,6 +205,7 @@ ggsave("Specialization.svg",height=8,width=9)
 #Resource overlap between Hummingbird species
 #############################################
 
+  #Boris suggest that we consider a distance based framework for the Y axis (consider Niche overlap from Schoener?)
 #Collapse Matrix into Hummingbird by Hummingbird Matrix
 #Hummingbird
 H_H<-as.one.mode(F_H,project="higher")
