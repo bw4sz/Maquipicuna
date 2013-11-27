@@ -13,7 +13,7 @@ require(reshape)
 require(chron)
 
 #Set DropBox Working Directory
-setwd("C:/Users/Ben/Dropbox/")
+setwd("C:/Users/Jorge/Dropbox/")
 
 #Read in workspace if desired for quick access
 #load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
@@ -60,9 +60,9 @@ TID.f$TransectID<-factor(TID.f$TransectID)
 ###############################
 #NEEDS TO ADDRESS
 which(!TID.f$TransectID %in% fl$Transect.ID)
+
 #Missing level?
 fl.id<-merge(fl,TID.f,by.x="Transect.ID",by.y="TransectID")
-
 
 #How many rows did we lose?
 dim(fl)
@@ -72,12 +72,22 @@ head(fl.id)
 
 full.fl<-rbind.fill(fl.id,holger.full)
 
+#Set holger as observer
+full.fl$Observer<-as.character(full.fl$Observer)
+
+full.fl$Observer[is.na(full.fl$Observer)]<-"Holger"
+
+full.fl$Observer<-factor(full.fl$Observer)
+
 head(full.fl)
 
 #Create elevation ID
 full.fl$Transect_R<-factor(paste(full.fl$Elevation.Begin,full.fl$Elevation.End,sep="_"))
 
-#Data cleaning and check
+##############################################
+#Basic Records and Cleaning of Flower Taxonomy
+##############################################
+
 #Turn first letter of family to uppercase
 #see toupper?
 .simpleCap <- function(x) {
@@ -90,14 +100,14 @@ full.fl$Family<-as.factor(sapply(full.fl$Family,function(x) .simpleCap(as.charac
 #How many families do we have?
 fl.t<-melt(table(full.fl$Family))
 names(fl.t)<-c("Family","Count")
-ggplot(fl.t,aes(Family,Count)) + geom_bar() + coord_flip() + theme_bw()
+#ggplot(fl.t,aes(Family,Count)) + geom_bar() + coord_flip() + theme_bw()
 
 #Turn genus to uppercase
 full.fl$Genus<-as.factor(sapply(full.fl$Genus,function(x) .simpleCap(as.character(x))))
 table(full.fl$Genus)
 fl.g<-melt(table(full.fl$Genus))
 names(fl.g)<-c("Genus","Count")
-ggplot(fl.g,aes(Genus,Count)) + geom_bar() + coord_flip() + theme_bw()
+#ggplot(fl.g,aes(Genus,Count)) + geom_bar() + coord_flip() + theme_bw()
 
 #MS species need to be subbed in for the best taxonomy known
 full.fl<-full.fl[!full.fl$Family %in% c("Ms1","Ms2"),]
@@ -106,13 +116,13 @@ full.fl<-full.fl[!full.fl$Family %in% c("Ms1","Ms2"),]
 #Combination of family genus count
 fl.fg<-melt(table(paste(full.fl$Family,full.fl$Genus)))
 names(fl.fg)<-c("F.Genus","Count")
-ggplot(fl.fg,aes(F.Genus,Count)) + geom_bar() + coord_flip() + theme_bw()
+#ggplot(fl.fg,aes(F.Genus,Count)) + geom_bar() + coord_flip() + theme_bw()
 
 #For species, turn all to lowercase
 full.fl$Species<-as.factor(sapply(full.fl$Species,tolower))
 fl.s<-melt(table(full.fl$Species))
 names(fl.s)<-c("Species","Count")
-ggplot(fl.s,aes(Species,Count)) + geom_bar() + coord_flip() + theme_bw()
+#ggplot(fl.s,aes(Species,Count)) + geom_bar() + coord_flip() + theme_bw()
 
 #Family Genus Species, in future, create abreviations
 fl.all<-melt(table(paste(full.fl$Family,full.fl$Genus,full.fl$Species)))
@@ -131,7 +141,12 @@ full.fl$mean_flowerStalk<-sapply(full.fl$Flowers,function(x) {
   mean(as.numeric(strsplit(as.character(as.list(x)[[1]]),",")[[1]]),na.rm=TRUE)
 })
 
+#remove any records that have no flowers info.
 full.fl<-full.fl[!is.na(full.fl$mean_flowerStalk),]
+
+##############################################
+#Calculate Total Number of Flowers per Records
+##############################################
 
 full.fl$mean_Stalk<-sapply(full.fl$Stalks,function(x) {
   mean(as.numeric(strsplit(as.character(as.list(x)[[1]]),",")[[1]]))
@@ -150,8 +165,44 @@ ggplot(data=full.fl,aes(Full,Total_Flowers)) + geom_boxplot() + coord_flip()
 #visualize height by species
 ggplot(data=full.fl,aes(Full,as.numeric(Height))) + geom_boxplot() + coord_flip()
 
-#########################
-#########################
+################################################
+#Number of Flowers at Each Elevation over Time
+################################################
+
+#Create month column
+full.fl$month<-NA
+for (j in 1:nrow(full.fl)){
+  x<-full.fl[j,]
+  if(x[["Observer"]] %in% c("Karen","Ben")){
+    full.fl[j,"month"]<-months(chron(as.character(x$Date)))
+  }
+    if(x[["Observer"]] %in% "Holger"){
+      full.fl[j,"month"]<-months(chron(as.character(x[x$Observer %in% "Holger","Date"]),format="d/m/y"))
+    }
+  }
+
+#There is the one unique transect where holger did the transect with us. 
+
+head(full.fl[is.na(full.fl$month),])
+
+#plot total flowers over time?
+fl.totals<-aggregate(full.fl$Total_Flowers,list(full.fl$Transect_R,full.fl$month,full.fl$Date),sum)
+colnames(fl.totals)<-c("Elev","Month","Date","TotalFlowers")
+
+
+##Flowers per month and elevation
+ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=3) + geom_smooth(aes(group=Month)) + facet_wrap(~Month) + theme_bw() + labs(col="Month")
+#ggsave
+
+#Flowers at each elevation over time
+ggplot(fl.totals,aes(x=Month,TotalFlowers,col=Elev)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free_x")
+#ggsave()
+
+
+##############################################
+#Read in Spatial Data, still needs to be fixed. 
+##############################################
+
 #Read and convert gpx points to a single dataframe and save it as a shapefile
 f<-list.files("Holger/Transect_Protocol_Holger/WayPoints/",full.names=TRUE)
 
@@ -163,30 +214,35 @@ for (x in 1:length(f)){
     gpx[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
 }
 
-##Repeat for first gps
+##Repeat for Karen's GPS data, label Karen
 f<-list.files("F:\\KarenGPS\\KarenFirstgps/",full.names=TRUE)
 
-#Bind together the days taht contain data
-gpx.dat<-rbind(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]))
+gpx2<-list()
+for (x in 1:length(f)){
+  print(x)
+  try(
+    gpx2[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
+}
 
-#create  spatial object
-dat.sp<-SpatialPointsDataFrame(coords=cbind(gpx.dat$lon,gpx.dat$lat),gpx.dat)
+#Bind together the days that contain data
+#Label Observer
+holger.gps<-data.frame(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),Observer="Holger")
+karen.gps<-data.frame(rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]),Observer="Karen")
 
-#Turn GPS ID into factor
+#Combine data
+gpx.dat<-rbind.fill(holger.gps,karen.gps)
+
 full.fl$GPS_ID<-as.numeric(full.fl$GPS_ID)
 
-#add to 00 to anything less than 10
-full.fl$GPS_ID[full.fl$GPS_ID < 10]<-paste("00",full.fl$GPS_ID[full.fl$GPS_ID < 10],sep="")
-full.fl$GPS_ID[as.numeric(full.fl$GPS_ID) < 100 & as.numeric(full.fl$GPS_ID) >= 10 ]<-paste("0",full.fl$GPS_ID[as.numeric(full.fl$GPS_ID) < 100 & as.numeric(full.fl$GPS_ID) >= 10],sep="")
-
 #Match each point with an elevation
-fl.elev<-merge(full.fl,dat.sp,by.x="GPS_ID",by.y="name")
-
-#turn elevation to a number, not a chararacter, and round to the nearest 10m?
-fl.elev$ele<-round(as.numeric(fl.elev$ele),-1)
+fl.elev<-merge(full.fl,gpx.dat,by.x=c("GPS_ID","Observer"),by.y=c("name","Observer"))
 
 #How records were in fl, but not matched
-length(full.fl[!full.fl$GPS_ID %in% fl.elev$GPS_ID,]$GPS_ID)
+full.fl[!full.fl$GPS_ID %in% fl.elev$GPS_ID,]$GPS_ID
+
+
+#spatially
+ggplot(fl.elev,aes(x=coords.x1,y=coords.x2,col=Total_Flowers),size=200) + theme_bw() + geom_point() + scale_color_continuous(high="red",low="blue",limits=c(0,200))
 
 #How many flowers at each elevation
 ggplot(fl.elev,aes(ele,y=Total_Flowers)) + geom_line() + geom_point(aes(color=Family),size=2) + theme_bw() 
@@ -194,46 +250,4 @@ ggplot(fl.elev,aes(ele,y=Total_Flowers)) + geom_line() + geom_point(aes(color=Fa
 p<-ggplot(fl.elev,aes(x=ele,y=Total_Flowers,col=Species),size=2) + geom_point() + theme_bw() + facet_wrap(~Family,scales='free_y') + guides(color="none")
 p+stat_smooth(method='lm',aes(group=Family))
 
-#spatially
-ggplot(fl.elev,aes(x=coords.x1,y=coords.x2,col=Total_Flowers),size=200) + theme_bw() + geom_point() + scale_color_continuous(high="red",low="blue",limits=c(0,200))
-
-#Set holger as observer
-fl.elev$Observer<-as.character(fl.elev$Observer)
-
-fl.elev$Observer[is.na(fl.elev$Observer)]<-"Holger"
-
-fl.elev$Observer<-factor(fl.elev$Observer)
-
-#Create month column
-fl.elev$month<-NA
-for (j in 1:nrow(fl.elev)){
-  x<-fl.elev[j,]
-  if(x[["Observer"]] %in% c("Karen","Ben")){
-    fl.elev[j,"month"]<-months(chron(as.character(x$Date)))
-  }
-    if(x[["Observer"]] %in% "Holger"){
-      fl.elev[j,"month"]<-months(chron(as.character(x[x$Observer %in% "Holger","Date"]),format="d/m/y"))
-    }
-  }
-
-head(fl.elev[is.na(fl.elev$month),])
-
-#plot total flowers over time?
-fl.totals<-aggregate(fl.elev$Total_Flowers,list(fl.elev$Transect_R,fl.elev$month,fl.elev$Date),sum)
-colnames(fl.totals)<-c("Elev","Month","Date","TotalFlowers")
-
-#Get the average?
-dev.off()
-ggplot(fl.totals,aes(Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=2) + geom_smooth(aes(group=Month),se=FALSE) 
-##Flowers per month and elevation
-ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point() + geom_smooth(aes(group=Month)) + theme_bw()
-
-#ggsave()
-ggplot(fl.totals,aes(Elev,TotalFlowers)) + facet_wrap(~Month) + geom_boxplot()
-
-ggplot(fl.totals,aes(as.factor(Month),TotalFlowers,col=Elev)) + geom_boxplot() + theme_bw()
-
-ggplot(fl.totals,aes(as.factor(Month),TotalFlowers,col=Elev)) + geom_boxplot() + theme_bw()
-
-#Create interaction matrix for hummingbirds and flowers
 save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
