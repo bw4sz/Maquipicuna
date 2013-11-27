@@ -24,7 +24,7 @@ selective<-function(y){
   
   #Set the NAs to 0, if bird was not present on one of the resources
   cast.time[is.na(cast.time)]<- 0
-  selectivity<-cbind(cast.time,cast.time$H/(cast.time$High+cast.time$L))
+  selectivity<-cbind(cast.time,cast.time$H/(cast.time$H+cast.time$L))
   colnames(selectivity)<-c("Species","Time_High","Time_Low","Selectivity")
   
   #return output
@@ -89,4 +89,34 @@ levels.trial<-lapply(Trials,function(x) nlevels(factor(x$Treatment)))
 #complete.trial<- Trials[levels.trial ==2]
 
 #Calculate selectivity
-lapply(Trials,selective)
+compet<-lapply(Trials,selective)
+melt.compet<-melt(compet)
+
+#Format table for selectivity across elevations
+selective.matrix<-as.data.frame(cast(melt.compet,L1 + Species ~ variable))
+selective.matrix$Time_High<-times(selective.matrix$Time_High)
+selective.matrix$Time_Low<-times(selective.matrix$Time_Low)
+selective.matrix$Total_Time<-selective.matrix$Time_High + selective.matrix$Time_Low
+
+#add total minutes feeding as a weight
+
+selective.matrix$Minutes_High<-minutes(selective.matrix$Time_High)+minutes(selective.matrix$Time_High)
+selective.matrix$Minutes_Low<-minutes(selective.matrix$Time_Low)+minutes(selective.matrix$Time_Low)
+selective.matrix$Minutes_Total<-selective.matrix$Minutes_Low+selective.matrix$Minutes_High
+
+colnames(selective.matrix)[1]<-"Elevation"
+
+#plot
+
+#unweighted
+p<-ggplot(selective.matrix,aes(x=Elevation,Selectivity,col=Species)) + geom_point(size=3) + facet_wrap(~Species) + geom_smooth(aes(group=1))
+p
+
+#weighted
+p<-ggplot(selective.matrix,aes(x=Elevation,Selectivity,col=Species,size=Minutes_Total)) + geom_point() + facet_wrap(~Species)
+p
+p  + geom_smooth(method="glm",family="binomial",aes(weight=Minutes_Total,group=1))
+
+## Write selectivity tables to file
+#write.csv(selective.final,"Selectivity.csv")
+
