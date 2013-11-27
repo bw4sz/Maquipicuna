@@ -24,6 +24,10 @@ setwd("C:/Users/Jorge/Dropbox/")
 #Read in Flower Transect Data from summer field season
 fl<-read.csv(file="Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerTransects.csv")
 
+#Read in Ben's transect data
+Hum<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HummingbirdTransect.csv")
+head(Hum)
+
 #Load in holger's on going data
 holger.fl<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HolgerTransects.csv")
 
@@ -35,12 +39,9 @@ holgerID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIIDHolger
 
 #Create ID columns
 holgerID$ID<-factor(paste(holgerID$Transect,holgerID$Date,sep="_"))
-
 holger.fl$ID<-factor(paste(holger.fl$Transect,holger.fl$Date,sep="_"))
-
 holgerID$ID[!holgerID$ID %in% holger.fl$ID]
 levels(droplevels(holger.fl$ID[!holger.fl$ID %in% holgerID$ID]))
-
 holger.full<-merge(holger.fl,holgerID,"ID")
 
 #Fix the column names and rbindfill
@@ -70,18 +71,13 @@ fl.id<-merge(fl,TID.f,by.x="Transect.ID",by.y="TransectID")
 #How many rows did we lose?
 dim(fl)
 dim(fl.id)
-
 head(fl.id)
-
 full.fl<-rbind.fill(fl.id,holger.full)
 
 #Set holger as observer
 full.fl$Observer<-as.character(full.fl$Observer)
-
 full.fl$Observer[is.na(full.fl$Observer)]<-"Holger"
-
 full.fl$Observer<-factor(full.fl$Observer)
-
 head(full.fl)
 
 #Create elevation ID
@@ -135,11 +131,6 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/SpeciesCount.jpeg",height
 
 #Use this as the marker for now
 full.fl$Full<-paste(full.fl$Family,full.fl$Genus,full.fl$Species)
-
-
-setwd(dir="E:/Fieldwork2013/Data2013/csv/")
-Hum<-read.csv("HummingbirdTransect.csv")
-head(Hum)
 
 #Data Cleaning
 #check the spelling and factor levels
