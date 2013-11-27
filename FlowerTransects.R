@@ -27,24 +27,56 @@ holger.fl<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HolgerTransects.
 #Bring in holger's hummingbird datasheet.
 holger.hum<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HolgerTransect_Hummingbirds.csv")
 
+#Bring in holger transect data
+holgerID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIIDHolger.csv")
+
+#Create ID columns
+holgerID$ID<-factor(paste(holgerID$Transect,holgerID$Date,sep="_"))
+
+holger.fl$ID<-factor(paste(holger.fl$Transect,holger.fl$Date,sep="_"))
+
+holgerID$ID[!holgerID$ID %in% holger.fl$ID]
+levels(droplevels(holger.fl$ID[!holger.fl$ID %in% holgerID$ID]))
+
+holger.full<-merge(holger.fl,holgerID,"ID")
+
 #Fix the column names and rbindfill
 colnames(fl)<-c("Family","Genus","Species","Height","Flowers","Stalks","Inflorescences.Plants","GPS_ID","Accuracy","Hummingbird.Species","Photo","Transect.ID","Comment")
-colnames(holger.fl)<-c("Transect.ID","Date","Time","Family","Genus","Species","Height","Flowers","Stalks","Inflorescences.Plants","Hummingbird.Species","GPS_ID","Comment","Photo")
+
+#Just get the desired columns and rename
+holger.full<-holger.full[,colnames(holger.full) %in% c(colnames(holger.full)[1:15],"Elevation.Begin","Elevation.End") ]
+colnames(holger.full)<-c("ID","Transect.ID","Date","Time","Family","Genus","Species","Height","Flowers","Stalks","Inflorescences.Plants","Hummingbird.Species","GPS_ID","Comment","Photo","Elevation.Begin","Elevation.End")
 
 #To compare transects we need the transect id page
 TID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIID.csv")
-TID$Transect_R<-as.factor(paste(TID$Elevation.Begin,TID$Elevation.End,sep="_"))
 
 #Select the flower transects
 TID.f<-TID[TID$Type=="Flower",]
+
+#Make factors both
+fl$Transect.ID<-factor(fl$Transect.ID)
+TID.f$TransectID<-factor(TID.f$TransectID)
+
+###############################
+#NEEDS TO ADDRESS
+which(!TID.f$TransectID %in% fl$Transect.ID)
+#Missing level?
 fl.id<-merge(fl,TID.f,by.x="Transect.ID",by.y="TransectID")
 
-#view flower data
+
+#How many rows did we lose?
+dim(fl)
+dim(fl.id)
+
 head(fl.id)
 
-full.fl<-rbind.fill(fl.id,holger.fl[,1:14])
+full.fl<-rbind.fill(fl.id,holger.full)
 
 head(full.fl)
+
+#Create elevation ID
+full.fl$Transect_R<-factor(paste(full.fl$Elevation.Begin,full.fl$Elevation.End,sep="_"))
+
 #Data cleaning and check
 #Turn first letter of family to uppercase
 #see toupper?
@@ -69,7 +101,6 @@ ggplot(fl.g,aes(Genus,Count)) + geom_bar() + coord_flip() + theme_bw()
 
 #MS species need to be subbed in for the best taxonomy known
 full.fl<-full.fl[!full.fl$Family %in% c("Ms1","Ms2"),]
-#for now just remove?
 
 ########################################################
 #Combination of family genus count
@@ -93,10 +124,14 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/SpeciesCount.jpeg",height
 full.fl$Full<-paste(full.fl$Family,full.fl$Genus,full.fl$Species)
 
 #Create total flower column by multiplying the Flowers per stalk, by stalks and total inflorescens
+#For now, remove any rows that have no flowers
+
 #First need to take the average flowers per stalk, and all other columns
 full.fl$mean_flowerStalk<-sapply(full.fl$Flowers,function(x) {
   mean(as.numeric(strsplit(as.character(as.list(x)[[1]]),",")[[1]]),na.rm=TRUE)
 })
+
+full.fl<-full.fl[!is.na(full.fl$mean_flowerStalk),]
 
 full.fl$mean_Stalk<-sapply(full.fl$Stalks,function(x) {
   mean(as.numeric(strsplit(as.character(as.list(x)[[1]]),",")[[1]]))
@@ -107,84 +142,13 @@ full.fl$mean_inflorescences<-sapply(full.fl$Inflorescences.Plants,function(x) {
 })
 
 full.fl$Total_Flowers<-full.fl$mean_flowerStalk*full.fl$mean_Stalk*full.fl$mean_inflorescences
-hist(fl$Total_Flowers)
+hist(full.fl$Total_Flowers)
 
 #Visualize total flowers by species
 ggplot(data=full.fl,aes(Full,Total_Flowers)) + geom_boxplot() + coord_flip()
 
 #visualize height by species
 ggplot(data=full.fl,aes(Full,as.numeric(Height))) + geom_boxplot() + coord_flip()
-
-################################################
-#Data cleaning on hummingbirds
-################################################
-#Needs to be fixed.
-hum.split<-colsplit(as.character(full.fl$Hummingbird.Species),",",c("Hummingbird","Sex"))
-
-full.fl<-data.frame(full.fl,hum.split)
-
-#Count of hummingbird records
-table(full.fl$Hummingbird)
-
-full.fl$Hummingbird<-as.factor(full.fl$Hummingbird)
-
-#Ignore blank cells
-levels(full.fl$Hummingbird)[1]<-NA
-
-#Fix typing errors
-levels(full.fl$Hummingbird)[levels(full.fl$Hummingbird) %in% "Booted Rackettail"]<-"Booted Racket-tail"
-levels(full.fl$Hummingbird)[levels(full.fl$Hummingbird) %in% "Booted Racketail"]<-"Booted Racket-tail"
-levels(full.fl$Hummingbird)[levels(full.fl$Hummingbird) %in% "White-whskered hermit"]<-"White-whiskered Hermit"
-levels(full.fl$Hummingbird)[levels(full.fl$Hummingbird) %in% "Gorgeted Sunangel"]<-"Gorgetted Sunangel"
-levels(full.fl$Hummingbird)[levels(full.fl$Hummingbird) %in% "Violet-tailed Slyph"]<-"Violet-tailed Sylph"
-
-
-levels(full.fl$Hummingbird)
-
-#Hummingbirds on which flowers
-G.hum<-melt(table(full.fl$Full,full.fl$Hummingbird))
-colnames(G.hum)<-c("Flower","Hummingbird","Observation")
-G.hum[G.hum$Observation==0,"Observation"]<-NA
-
-
-############################################
-#Bring in Holger's transect hummingbird data
-############################################
-
-#Create full name flower column
-holger.hum$Family<-as.factor(sapply(holger.hum$Family,function(x) .simpleCap(as.character(x))))
-holger.hum$Genus<-as.factor(sapply(holger.hum$Genus,function(x) .simpleCap(as.character(x))))
-holger.hum$Species<-as.factor(sapply(holger.hum$Species,tolower))
-holger.hum$Full<-with(holger.hum,paste(Family,Genus,Species))
-
-#Check hummingbird levels
-
-head(holger.hum)
-levels(holger.hum$Hummingbird.Species)[levels(holger.hum$Hummingbird.Species) %in% "Booted Racketail"] <- "Booted Racket-tail"
-
-G.hhum<-melt(table(holger.hum$Full,holger.hum$Hummingbird))
-colnames(G.hhum)<-c("Flower","Hummingbird","Observation")
-
-#remove the empty observations
-G.hhum[G.hhum$Observation==0,"Observation"]<-NA
-
-
-#merge dataframes together
-flwr_bird<-merge(G.hhum,G.hum,all=TRUE)
-
-#remove the NA and non flower rows
-flwr_bird<-flwr_bird[!is.na(flwr_bird$Observation),]
-
-flwr_bird<-flwr_bird[!flwr_bird$Flower %in% levels(flwr_bird$Flower)[[1]],]
-
-write.csv("flwr_bird","TransectBird_Flower.csv")
-#No idea what to do from here.
-GH<-ggplot(flwr_bird,aes(x=Flower,y=Hummingbird,fill=Observation)) + geom_tile() + theme_bw() + scale_fill_continuous(high="red",na.value="white")
-GH + theme(axis.text.x=element_text(angle=90))
-
-
-
-ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/Hummingbird_Genus.jpeg",height=8,width=11)
 
 #########################
 #########################
@@ -202,15 +166,8 @@ for (x in 1:length(f)){
 ##Repeat for first gps
 f<-list.files("F:\\KarenGPS\\KarenFirstgps/",full.names=TRUE)
 
-#loop through input files and find the errors. 
-gpx2<-list()
-for (x in 1:length(f)){
-  print(x)
-  try(
-    gpx2[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
-}
 #Bind together the days taht contain data
-gpx.dat<-rbind(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]))
+gpx.dat<-rbind(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]))
 
 #create  spatial object
 dat.sp<-SpatialPointsDataFrame(coords=cbind(gpx.dat$lon,gpx.dat$lat),gpx.dat)
@@ -227,6 +184,7 @@ fl.elev<-merge(full.fl,dat.sp,by.x="GPS_ID",by.y="name")
 
 #turn elevation to a number, not a chararacter, and round to the nearest 10m?
 fl.elev$ele<-round(as.numeric(fl.elev$ele),-1)
+
 #How records were in fl, but not matched
 length(full.fl[!full.fl$GPS_ID %in% fl.elev$GPS_ID,]$GPS_ID)
 
@@ -236,93 +194,46 @@ ggplot(fl.elev,aes(ele,y=Total_Flowers)) + geom_line() + geom_point(aes(color=Fa
 p<-ggplot(fl.elev,aes(x=ele,y=Total_Flowers,col=Species),size=2) + geom_point() + theme_bw() + facet_wrap(~Family,scales='free_y') + guides(color="none")
 p+stat_smooth(method='lm',aes(group=Family))
 
-#spatially?
+#spatially
 ggplot(fl.elev,aes(x=coords.x1,y=coords.x2,col=Total_Flowers),size=200) + theme_bw() + geom_point() + scale_color_continuous(high="red",low="blue",limits=c(0,200))
 
-#Bring in nectar data
-Nectar <- read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/Nectar.csv")
-
-#Fix colnames that are ugly
-colnames(Nectar)[c(8,10,11,12,13)]<-c("Height","TubeLength","Brix","EffectiveCorolla","TotalCorolla")
-
-#Data Cleaning
-#All family and Genus should be capitalized
-Nectar$Family<-as.factor(sapply(Nectar$Family,function(x) .simpleCap(as.character(x))))
-Nectar$Genus<-as.factor(sapply(Nectar$Genus,function(x) .simpleCap(as.character(x))))
-
-#species should be lowercase
-Nectar$Species<-as.factor(sapply(Nectar$Species,function(x) tolower(as.character(x))))
-
-#Create full name column
-Nectar$Full<-paste(Nectar$Family,Nectar$Genus,Nectar$Species)
-
-#Some basic visualizations to check data clarity
-#number of records per species
-m.Nectar<-melt(table(Nectar[!is.na(Nectar$Brix),]$Full))
-
-#No records should be 0? turn these to NA
-Nectar[Nectar$Brix==0 & is.finite(Nectar$Brix),]
-
-#Is the tube given in diameter?
-#tube column needs to have correct math.
-
-as.numeric(Nectar$Tube.Type)/2 * 2*pi * Nectar$TubeLength
-
-ggplot(m.Nectar,aes(x=Var.1,value)) + geom_bar() + coord_flip() + geom_text(aes(label=value),col="red",hjust=1) + theme_bw()
-
-p<-ggplot(Nectar[!is.na(Nectar$Brix),],aes(x=Species,y=Brix)) + geom_point() + facet_wrap(~Family,scales="free_x")
-p+ theme_bw() +theme(axis.text.x = element_text(angle = 90,size=10))
-
-p<-ggplot(Nectar[!is.na(Nectar$TotalCorolla),],aes(x=Species,y=TotalCorolla)) + geom_point() + facet_wrap(~Family,scales="free_x")
-p+ theme_bw() +theme(axis.text.x = element_text(angle = 90,size=10)) + geom_point()
-
-ggplot(Nectar,aes(x=TotalCorolla,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm") + xlim(0,60)
-                    
-ggplot(Nectar,aes(x=EffectiveCorolla,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm") + geom_text(aes(label=Family))
-
-ggplot(Nectar,aes(x=Corolla.Width,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm") + xlim(0,14)
-
-#combine the elevation flower transects with Nectar data 
-
-#First take the average nectar reading by species
-Nectar.mean<-aggregate(Nectar,list(Nectar$Full),mean,na.rm=TRUE)[,c("Group.1","EffectiveCorolla","TotalCorolla","Corolla.Width","Brix")]
-fl.nectar<-merge(fl.elev,Nectar.mean,by.x="Full",by.y="Group.1")
-
-#how many transect rows didn't match nectar rows
-missing<-fl.elev[!fl.elev$Full %in% Nectar.mean$Group.1,]
-dim(missing)
-table(missing$Full)
-
-#okay, before we go crazy with nectar,lets look at corolla length with elevation
-ggplot(fl.nectar,aes(x=ele,y=TotalCorolla,col=Family)) + geom_point(position="jitter") + stat_smooth(aes(group=1),method='lm') 
-
-#Nectar concentration and elevation, there are some odd records that need to be fixed
-ggplot(fl.nectar,aes(x=ele,y=Brix,col=Family)) + geom_point() + stat_smooth(aes(group=1),method='lm') + ylim(5,30)
-
-#create volume calculations
-save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
-
-#Flower bloomign through time
-head(fl.nectar)
-
 #Set holger as observer
-fl.nectar$Observer<-as.character(fl.nectar$Observer)
+fl.elev$Observer<-as.character(fl.elev$Observer)
 
-fl.nectar$Observer[is.na(fl.nectar$Observer)]<-"Holger"
+fl.elev$Observer[is.na(fl.elev$Observer)]<-"Holger"
+
+fl.elev$Observer<-factor(fl.elev$Observer)
 
 #Create month column
-fl.nectar$month<-NA
-for (j in 1:nrow(fl.nectar)){
-  x<-fl.nectar[j,]
+fl.elev$month<-NA
+for (j in 1:nrow(fl.elev)){
+  x<-fl.elev[j,]
   if(x[["Observer"]] %in% c("Karen","Ben")){
-    fl.nectar[j,"month"]<-months(chron(as.character(x$Date)))
+    fl.elev[j,"month"]<-months(chron(as.character(x$Date)))
   }
     if(x[["Observer"]] %in% "Holger"){
-      fl.nectar[j,"month"]<-months(chron(as.character(x[x$Observer %in% "Holger","Date"]),format="d/m/y"))
+      fl.elev[j,"month"]<-months(chron(as.character(x[x$Observer %in% "Holger","Date"]),format="d/m/y"))
     }
   }
 
+head(fl.elev[is.na(fl.elev$month),])
 
-#plot elevation and nectar
-ggplot(fl.nectar,aes(month,Total_Flowers),groups=1) + geom_point() + geom_smooth()
+#plot total flowers over time?
+fl.totals<-aggregate(fl.elev$Total_Flowers,list(fl.elev$Transect_R,fl.elev$month,fl.elev$Date),sum)
+colnames(fl.totals)<-c("Elev","Month","Date","TotalFlowers")
 
+#Get the average?
+dev.off()
+ggplot(fl.totals,aes(Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=2) + geom_smooth(aes(group=Month),se=FALSE) 
+##Flowers per month and elevation
+ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point() + geom_smooth(aes(group=Month)) + theme_bw()
+
+#ggsave()
+ggplot(fl.totals,aes(Elev,TotalFlowers)) + facet_wrap(~Month) + geom_boxplot()
+
+ggplot(fl.totals,aes(as.factor(Month),TotalFlowers,col=Elev)) + geom_boxplot() + theme_bw()
+
+ggplot(fl.totals,aes(as.factor(Month),TotalFlowers,col=Elev)) + geom_boxplot() + theme_bw()
+
+#Create interaction matrix for hummingbirds and flowers
+save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")

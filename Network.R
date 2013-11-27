@@ -14,11 +14,11 @@ require(stringr)
 #############################
 #Set Dropbox Location
 #Read in flower videos
-home<-"C:/Users/Jorge/Dropbox/"
+home<-"C:/Users/Ben/Dropbox/"
 setwd(home)
 
 #Set Gitpath
-gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 #############################
 
 #Load image for convienance
@@ -84,6 +84,14 @@ rownames(z.scores) <- rownames(mon)
 
 trait_pc <- as.matrix(dist(z.scores, method = "euclidean"))
 
+####Bring in interaction matrix for the flower transects, see FlowerTransects.R
+#Ignore first col, old rownames
+
+transect.FL<-read.csv(paste(home,"Thesis/Maquipucuna_SantaLucia/Results/TransectHumRows.csv",sep=""))[,-1]
+
+#Bind in the transect rows to the bottom of dat?
+
+dat.T<-rbind.fill(dat,transect.FL)
 ####################################################
 #Analysis of Flower Usage for each Hummingbird Species
 ####################################################
