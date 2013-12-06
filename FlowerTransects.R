@@ -30,10 +30,32 @@ holger.hum<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HolgerTransect_
 #Bring in holger transect data
 holgerID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIIDHolger.csv")
 
-#Create ID columns
-holgerID$ID<-factor(paste(holgerID$Transect,holgerID$Date,sep="_"))
+#This is causing a real headache, for now just take the last two chracters of the year
+holgerID$Date_F<-sapply(holgerID$Date,function(x){
+  #grab the year
+  d<-strsplit(as.character(x),split="/")[[1]]
+  yr<-d[[3]]
+  #get the last two characters
+  yrsplit<-substr(yr, nchar(yr)-2+1, nchar(yr))
+  dat_f<-as.Date(paste(paste(d[[1]],d[[2]],sep="/"),yrsplit,sep="/"),format="%d/%m/%y")
+  return(as.character(dat_f))
+})
 
-holger.fl$ID<-factor(paste(holger.fl$Transect,holger.fl$Date,sep="_"))
+holger.fl$Date_F<-sapply(holger.fl$Date,function(x){
+  #grab the year
+  d<-strsplit(as.character(x),split="/")[[1]]
+  yr<-d[[3]]
+  #get the last two characters
+  yrsplit<-substr(yr, nchar(yr)-2+1, nchar(yr))
+  dat_f<-as.Date(paste(paste(d[[1]],d[[2]],sep="/"),yrsplit,sep="/"),format="%d/%m/%y")
+  return(as.character(dat_f))
+})
+
+
+#Create ID columns
+holgerID$ID<-factor(paste(holgerID$Transect,holgerID$Date_F,sep="_"))
+
+holger.fl$ID<-factor(paste(holger.fl$Transect,holger.fl$Date_F,sep="_"))
 
 holgerID$ID[!holgerID$ID %in% holger.fl$ID]
 levels(droplevels(holger.fl$ID[!holger.fl$ID %in% holgerID$ID]))
