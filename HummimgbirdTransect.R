@@ -25,12 +25,19 @@ setwd("C:/Users/Jorge/Dropbox/")
 Hum<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HummingbirdTransect.csv")
 head(Hum)
 
+#Transect IDs from Summer 2013 data
+TID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIID.csv")
+
 #Bring in holger's hummingbird datasheet.
 holger.hum<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HolgerTransect_Hummingbirds.csv")
 head(holger.hum)
 
 #Bring in holger transect data
 holgerID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIIDHolger.csv")
+
+####################################
+#Clean Holger's data, begins in 9/2013
+###################################
 
 holgerID$Transect_R<-factor(paste(holgerID$Elevation.Begin,holgerID$Elevation.End,sep="_"))
 
@@ -63,6 +70,7 @@ holgerID$ID<-factor(paste(holgerID$Transect,holgerID$Date_F,sep="_"))
 holger.hum$ID<-factor(paste(holger.hum$Transect,holger.hum$Date_F,sep="_"))
 holgerID$ID[!holgerID$ID %in% holger.hum$ID]
 
+#How many dates are missing?
 levels(droplevels(holger.hum$ID[!holger.hum$ID %in% holgerID$ID]))
 holger.full<-merge(holger.hum,holgerID,"ID")
 
@@ -72,118 +80,83 @@ holgerInter<-holger.full[!holger.full$Full %in% "  " ,]
 
 #get the desired columns
 colnames(holgerInter)
+holgerInter<-holgerInter[,colnames(holgerInter) %in% c("ID","Hummingbird.Species","Full","Way.Point","Month","Date_F.y","Transect_R")]
 
-holgerInter<-holgerInter[,colnames(holgerInter) %in% c("ID","Transect.x","Family","Genus","Species","Hummingbird.Species","Full","Way.Point","Month")]
-
-############################################################################# Data cleaning complete for flowers
-#Data Cleaning
-#check the spelling and factor levels
 monthInter<-melt(table(holgerInter$Hummingbird.Species,holgerInter$Full,holgerInter$Month))
 colnames(monthInter)<-c("Hummingbird","Plant","Month","value")
 
+#visualize holger only data
 #remove no interactions
 monthInter<-monthInter[!monthInter$value==0,]
-
 p<-ggplot(monthInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
 p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-  
-#fix the unknown upper
-levels(Hum$Hummingbird.Species)[levels(Hum$Hummingbird.Species) %in% "UkWN"]<-toupper(levels(Hum$Hummingbird.Species)[levels(Hum$Hummingbird.Species) %in% "UkWN"])
+p
+
+#################################
+#Clean Summer 2013 Data
+#################################
+
+#add in summer transect data
 head(Hum)
 
+#fix the unknown uppercase
+levels(Hum$Hummingbird.Species)[levels(Hum$Hummingbird.Species) %in% "UkWN"]<-toupper(levels(Hum$Hummingbird.Species)[levels(Hum$Hummingbird.Species) %in% "UkWN"])
+
+#Create identical structure to holgers data, we need a data and month column
 # Fix the caps at the plant species
 table(Hum$Plant.Species)
 levels(Hum$Plant.Species)[levels(Hum$Plant.Species) %in% ""]<-NA
 table(Hum$Plant.Species)
-
-#Fix the height column, turn back from factors
-ggplot(Hum,aes(x=Hummingbird.Species,y=as.numeric(Height))) + geom_boxplot() + coord_flip()
-
-#Bring the transect data
-TID<-read.csv("TransectIID.csv")
 
 #Select the flower transects
 TID.f<-TID[TID$Type %in% "Hummingbird",]
 TID$TransectID<-as.factor(TID$TransectID)
 Hum$ID
 hum.id<-merge(Hum,TID.f,by.x="ID",by.y="TransectID")
-hum.id$Range<-paste(hum.id$Elevation.Begin,hum.id$Elevation.End,sep="_")
 
-#Get rid of the NA
-hum.id<-hum.id[!hum.id$Range %in% "NA_NA",]
-#Overal range presence absence
-ggplot(hum.id,aes(x=Range,Hummingbird.Species)) + geom_line(aes(group=Hummingbird.Species)) + geom_point() 
+#Create date column
+hum.id$Date_F<-as.Date(as.character(hum.id$Date),"%m/%d/%Y")
 
-#Broken up by replicate
-ggplot(hum.id,aes(x=Range,Hummingbird.Species)) + geom_line(aes(group=Hummingbird.Species)) + geom_point() + facet_wrap(~Replicate.Number)
+hum.id$Month<-as.numeric(format(as.Date(hum.id$Date_F),"%m"))
+hum.id$Transect_R<-paste(hum.id$Elevation.Begin,hum.id$Elevation.End,sep="_")
 
 ################################################
-#Data cleaning on hummingbirds
+#Interaction table for summer data
 ################################################
-#Needs to be fixed!
-#It looks like there are two hummingbird species columns
-Hummingbird.Species<-sapply(holger.full$Hummingbird.Species,function(x){
-  strsplit(as.character(x),",")[1]
-})
 
-#There are still some with double entries?
-#Needs to be addressed within the data
+#Cap all species names
+levels(hum.id$Hummingbird.Species)<-sapply(levels(hum.id$Hummingbird.Species),function(x){.simpleCap(tolower(x))})
+humInter<-melt(table(hum.id$Hummingbird.Species,hum.id$Plant.Species,hum.id$Month))
+colnames(humInter)<-c("Hummingbird","Plant","Month","value")
 
-holger.full$Hummingbird.Species<-droplevels(as.factor(holger.full$Hummingbird.Species))
+#visualize holger only data
+#remove no interactions
+humInter<-humInter[!humInter$value==0,]
+p<-ggplot(humInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
+p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+p
 
-#Count of hummingbird records
-table(holger.full$Hummingbird.Species)
+################################################
+#Combine Holger's transect data with summer data
+################################################
+fullInter<-rbind(humInter,monthInter)
 
-#Ignore blank cells
-levels(holger.full$Hummingbird)[1]<-NA
+p<-ggplot(fullInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
+p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+p
 
-#Fix typing errors
-levels(holger.full$Hummingbird)[levels(holger.full$Hummingbird) %in% "Booted Rackettail"]<-"Booted Racket-tail"
-levels(holger.full$Hummingbird)[levels(holger.full$Hummingbird) %in% "Booted Racketail"]<-"Booted Racket-tail"
-levels(holger.full$Hummingbird)[levels(holger.full$Hummingbird) %in% "White-whskered hermit"]<-"White-whiskered Hermit"
-levels(holger.full$Hummingbird)[levels(holger.full$Hummingbird) %in% "Gorgeted Sunangel"]<-"Gorgetted Sunangel"
-levels(holger.full$Hummingbird)[levels(holger.full$Hummingbird) %in% "Violet-tailed Slyph"]<-"Violet-tailed Sylph"
+#write this matrix to file
+write.csv(fullInter,"Thesis/Maquipucuna_SantaLucia/Results/HumTransectMatrix.csv")
 
-levels(holger.full$Hummingbird)
+#Okay, but it looks like the network functions just want the raw rows. 
+#Get all the summer rows that have plants
+humNetwork<-hum.id[!is.na(hum.id$Plant.Species),]
 
-#Hummingbirds on which flowers
-G.hum<-melt(table(holger.full$Full,holger.full$Hummingbird))
-colnames(G.hum)<-c("Flower","Hummingbird","Observation")
-G.hum[G.hum$Observation==0,"Observation"]<-NA
+humNetwork<-humNetwork[,colnames(humNetwork) %in% c("ID","Plant.Species","Hummingbird.Species","Month","Date_F","Transect_R","GPS.ID")]
+#match up desired columns with holger's data
 
+colnames(humNetwork)
+colnames(holgerInter)<-c("ID","Hummingbird.Species","GPS.ID","Transect_R","Date_F","Month","Plant.Species")
 
-############################################
-#Bring in Holger's transect hummingbird data
-############################################
-
-#Create full name flower column
-holger.hum$Family<-as.factor(sapply(holger.hum$Family,function(x) .simpleCap(as.character(x))))
-holger.hum$Genus<-as.factor(sapply(holger.hum$Genus,function(x) .simpleCap(as.character(x))))
-holger.hum$Species<-as.factor(sapply(holger.hum$Species,tolower))
-holger.hum$Full<-with(holger.hum,paste(Family,Genus,Species))
-
-#Check hummingbird levels
-head(holger.hum)
-levels(holger.hum$Hummingbird.Species)[levels(holger.hum$Hummingbird.Species) %in% "Booted Racketail"] <- "Booted Racket-tail"
-G.hhum<-melt(table(holger.hum$Full,holger.hum$Hummingbird))
-colnames(G.hhum)<-c("Flower","Hummingbird","Observation")
-
-#remove the empty observations
-G.hhum[G.hhum$Observation==0,"Observation"]<-NA
-
-
-#merge dataframes together
-flwr_bird<-merge(G.hhum,G.hum,all=TRUE)
-
-#remove the NA and non flower rows
-flwr_bird<-flwr_bird[!is.na(flwr_bird$Observation),]
-flwr_bird<-flwr_bird[!flwr_bird$Flower %in% levels(flwr_bird$Flower)[[1]],]
-write.csv(flwr_bird,"Thesis/Maquipucuna_SantaLucia/Results/TransectBird_Flower.csv")
-
-GH<-ggplot(flwr_bird,aes(x=Flower,y=Hummingbird,fill=Observation)) + geom_tile() + theme_bw() + scale_fill_continuous(high="red",na.value="white")
-GH + theme(axis.text.x=element_text(angle=90))
-#It actually seems like it would make most sense to export the data as rows rather as a contingency table
-write.csv(holger.full[is.finite(holger.full$Hummingbird),],"Thesis/Maquipucuna_SantaLucia/Results/TransectHumRows.csv")
-
-
-ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/Hummingbird_Genus.jpeg",height=8,width=11)
+transectRows<-rbind(humNetwork,holgerInter)
+write.csv(transectRows,"Thesis/Maquipucuna_SantaLucia/Results/HumTransectRows.csv")

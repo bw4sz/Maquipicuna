@@ -14,23 +14,30 @@ require(stringr)
 #############################
 #Set Dropbox Location
 #Read in flower videos
-home<-"C:/Users/Ben/Dropbox/"
+home<-"C:/Users/Jorge/Dropbox/"
 setwd(home)
 
 #Set Gitpath
-gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 #############################
-
 #Load image for convienance
 
 #load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
+##############
+#Source Functions
+###################
+
+source(paste(gitpath,"NetworkSource.R",sep=""))
 #############
 #Read in Data
 #############
 
-#Read in Flower Dataset
+#Read in Flower Camera Dataset
 dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideo.csv")
+
+#Read in Transect Dataset, needs to run from the HummingbirdTransect.R script
+humT<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HumTransectMatrix.csv",row.names=1)
 
 #Bring in the phylogeny
 #Read in phylogeny
@@ -55,9 +62,6 @@ clades<-read.csv("Shared Ben and Catherine/DimDivEntire/Files for Analysis/Clade
 colnames(clades)<-c("Clade","Genus","Species","double","English")
 clades<-clades[,1:5]
 
-
-#Bring in trait data
-
 ###Bring in trait data
 morph <- read.csv(paste(gitpath,"//InputData//MorphologyShort.csv",sep=""),na.strings="9999")
 
@@ -74,24 +78,24 @@ mon<-mon[,-1]
 
 #principal component traits and get euclidean distance matrix
 means <- apply(mon, 2, mean)
-
 Bill <- mon$Bill - means["Bill"]/sd(mon$Bill)
 Mass <- mon$Mass - means["Mass"]/sd(mon$Mass)
 WingChord <- (mon$WingChord - means["WingChord"])/sd(mon$WingChord)
-
 z.scores <- data.frame(Bill, Mass, WingChord)
 rownames(z.scores) <- rownames(mon)
-
 trait_pc <- as.matrix(dist(z.scores, method = "euclidean"))
 
 ####Bring in interaction matrix for the flower transects, see FlowerTransects.R
-#Ignore first col, old rownames
+transect.FL<-read.csv(paste(home,"Thesis/Maquipucuna_SantaLucia/Results/HumTransectRows.csv",sep=""))[,-1]
 
-transect.FL<-read.csv(paste(home,"Thesis/Maquipucuna_SantaLucia/Results/TransectHumRows.csv",sep=""))[,-1]
+#make the columns as similiar as possible to videodata
+colnames(transect.FL)<-c("TransectID","Hummingbird","ID","Flower","Date","Month","Transect_R")
+
+#Fix date format
+dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))
 
 #Bind in the transect rows to the bottom of dat?
-
-dat.T<-rbind.fill(dat,transect.FL)
+dat<-rbind.fill(dat,transect.FL)
 ####################################################
 #Analysis of Flower Usage for each Hummingbird Species
 ####################################################
@@ -116,152 +120,6 @@ paste("Number of Flower Species:",nlevels(dat$Flower))
 #How many Birds Species
 paste("Number of Hummingbird Species:",nlevels(dat$Hummingbird))
 
-#create datasheet to review videos
-#How many videos for each flower ID
-videoN<-aggregate(dat$Video,list(dat$ID),function(x) nlevels(factor(x)))
-colnames(videoN)<-c("ID","Number.Observed")
-datE<-read.csv("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoempty.csv")
-
-#How many empty videos fgor each flower ID
-videoE<-aggregate(datE$Video,list(datE$ID),function(x) nlevels(factor(x)))
-colnames(videoE)<-c("ID","Number.Empty")
-
-head(videoN)
-head(videoE)
-
-mergeVideo<-merge(videoN,videoE,all=TRUE)
-
-#turn NA to 0
-mergeVideo[is.na(mergeVideo)]<-0
-
-mergeVideo$Total<-mergeVideo$Number.Observed + mergeVideo$Number.Empty
-
-##Make uppercase
-mergeVideo$ID<-toupper(mergeVideo$ID)
-
-rownames(mergeVideo)<-sapply(mergeVideo$ID,function(x){
-  as.numeric(strsplit(as.character(x),"FL")[[1]][2])
-})
-
-mergeVideo<-mergeVideo[order(mergeVideo$numb),]
-  
-write.csv(mergeVideo,"C:\\Users\\Ben\\Dropbox\\Thesis\\Maquipucuna_SantaLucia\\Data2013\\csv\\VideoTable.csv")
-
-#Create function to compute network parameters
-#The general strategy is to write all metrics to file, and develop call statements at the end to retrieve them
-NetworkC<-function(datf,naming){
-  
-  #Set a working directory, create a folder for each run
-  setwd(home)
-  toset<-paste("Thesis/Maquipucuna_SantaLucia/Results/Network/",naming,sep="")
-  dir.create(toset,showWarnings=FALSE)
-  setwd(toset)
-
-  
-#Interaction of flowers and birds
-F_H<-as.data.frame.array(table(datf$Flower,datf$Hummingbird))
-
-#Save Input Matrix
-write.csv(F_H,"BirdXFlower.csv")
-
-#View Web
-svg(filename="WebPlot.svg",height=7,width=12)
-plotweb(F_H)
-dev.off()
-
-#Plot matrix of interactions
-#There was an error on the svg
-jpeg(filename="MatrixPlot.jpeg",height=8,width=8,units="in",res=300)
-visweb(F_H)
-dev.off()
-
-jpeg(filename="MatrixPlotCompartments.jpeg",height=8,width=8,units="in",res=300)
-  visweb(F_H,"compartment")
-  dev.off()
-  
-#Metrics across entire
-birds.prop<-data.frame(HummingbirdNetwork=networklevel(F_H,level="higher"))
-plants.prop<-data.frame(PlantNetwork=networklevel(F_H,level="lower"))
-
-#Merge networks
-NetworkProp<-data.frame(birds.prop,plants.prop)
-#Write to file
-write.csv(NetworkProp,"NetworkProperties.csv")
-  
-#Metrics across species, write to file
-H.species.prop<-specieslevel(F_H,level="higher")
-
-#Hummingbird Properties
-write.csv(H.species.prop,"HummingbirdMetrics.csv")
-
-#Plant Network Metrics  
-P.species.prop<-specieslevel(F_H,level="lower")
-write.csv(P.species.prop,"PlantMetrics.csv")
-  
-##################################################
-#Specialization for each species
-##################################################
-  
-#For birds
-birds.special<-dfun(t(F_H))
-birds.spl<-data.frame(lapply(birds.special,data.frame))
-colnames(birds.spl)<-names(birds.special)
-ggplot(birds.spl[1:22,],aes(x=rownames(birds.spl)[1:22],y=dprime)) + geom_point() + theme_bw() + theme(axis.text.x=element_text(angle=90))
-ggsave("Specialization.svg",height=8,width=9)
-
-#############################################
-#Resource overlap between Hummingbird species
-#############################################
-
-  #Boris suggest that we consider a distance based framework for the Y axis (consider Niche overlap from Schoener?)
-#Collapse Matrix into Hummingbird by Hummingbird Matrix
-#Hummingbird
-H_H<-as.one.mode(F_H,project="higher")
-diag(H_H)<-NA
-H_H[upper.tri(H_H)]<-NA
-m.HH<-melt(H_H)
-  
-#Plot Resource overlap between hummingbird Species
-ggplot(m.HH,aes(X1,X2,fill=value)) + geom_tile() + scale_fill_continuous(low="blue",high="red",na.value="white") + theme(axis.text.x = element_text(angle = 90, hjust = 1),panel.background=element_rect(color="white"))
-ggsave("ResourceOverlap.svg",height=8,width=11)
-
-#Relatedness and flower overlap, very rudimentary test so far
-ctrx<-cophenetic(tree)
-         
-    ER<-function(x){
-    y<-m.HH[x,]
-    if(sum(clades$English %in% y[[1]])==0) {return("NA")}
-    if(sum(clades$English %in% y[[2]])==0) {return("NA")}
-    sp1<-gsub(" ","_",clades[clades$English %in% y[[1]],"double"])
-    sp2<-gsub(" ","_",clades[clades$English %in% y[[2]],"double"])
-    
-      return(tryCatch(ctrx[sp1,sp2],error=function(e) print("NA")))
-    }
-
-#get cophenetic distance between species
-m.HH$Relatedness<-sapply(1:nrow(m.HH),ER)
-
-#Relatedness and plant overlap
-ggplot(m.HH[m.HH$value>0,],aes(y=value,x=as.numeric(Relatedness),)) + geom_point() + geom_smooth(method="lm") + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness")
-ggsave("Relatedness_Overlap.svg",height=8,width=11)
-
-#Plants 
-P_P<-as.one.mode(F_H,project="lower")
-diag(P_P)<-NA
-P_P[upper.tri(P_P)]<-NA
-m.PP<-melt(P_P)
-
-#
-ggplot(m.PP,aes(X1,X2,fill=value)) + geom_tile() + scale_fill_continuous(low="blue",high="red",na.value="white") + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-ggsave("PollinatorOverlap.svg",height=8,width=11)
-  
-#In the future this is where you consider relatedness among species among plants
-#Plot 3d visualization of the hummingbird network
-svg("Hummingbird3d.jpeg")
-gplot(H_H)
-dev.off()
-}
-
 ############################################
 #Run Network Function for the entire dataset
 NetworkC(dat,"Total")
@@ -271,24 +129,19 @@ NetworkC(dat,"Total")
 #Temporal Change in Network Structure
 ####################################################
 
-#Split input data into desired paths
-dat$Month<-months(chron(as.character(dat$Date)))
 dat.split<-split(dat,dat$Month,drop=TRUE)
 
 #Compute metrics for each month
 for (x in 1:length(dat.split)){
-  NetworkC(dat.split[[x]],names(dat.split)[[x]])
+  NetworkC(datf=dat.split[[x]],naming=names(dat.split)[[x]])
 }
 
 #Retrieve Classes, name them, melt 
-
 #Start with networkwide properties
 netPath<-paste(home,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
 
 #Get the desired files from paths
 fil.list<-list.files(netPath,pattern="NetworkProperties.csv",recursive=TRUE,full.names=TRUE)
-#I'm terrible at regex, the strsplit statement, may need to change depending on your path
-
 
 fil<-list()
 #Read and name each file
@@ -318,7 +171,7 @@ metricskeep<-c("connectance","links per species","nestedness","Shannon diversity
 
 month.Prop<-droplevels(month.Prop[month.Prop$Metric %in% metricskeep,])
 #Quick and dirty look at all metrics
-p<-ggplot(na.omit(month.Prop),aes(x=Time,y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level)) + facet_wrap(~Metric,scales="free_y")
+p<-ggplot(na.omit(month.Prop),aes(x=as.numeric(Time),y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level)) + facet_wrap(~Metric,scales="free_y")
 p + theme_bw() 
 ggsave("MetricsFacet.svg",height=8,width=11)
 
@@ -334,7 +187,7 @@ for(x in levels(month.Prop$Metric)) {
   if(nrow(toplot)==0) next
   
   #Plot and Save
-  p<-ggplot(toplot,aes(x=Time,y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level))
+  p<-ggplot(toplot,aes(x=as.numeric(Time),y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level))
   p + theme_bw() + ylab(x)
   ggsave(paste(x,".svg",sep=""),height=8,width=11)
 }
@@ -365,15 +218,18 @@ H.c<-cast(Hum.Time,...~Metric)
 Hum.Time<-melt(H.c[H.c$degree > 2,])
 
 #Quick and dirty look across species 
-ggplot(Hum.Time,aes(Time,value,col=Species)) + facet_wrap(~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
+ggplot(Hum.Time,aes(as.numeric(Time),value,col=Species)) + facet_wrap(~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
 ggsave(paste(netPath,"TimeFigures/HumSpecies_Time.svg",sep=""),height=8,width=11)
 
 #Plot for each species, or for each metric?
 for(x in levels(droplevels(Hum.Time$Species))){
   print(x)
+  if(nrow(Hum.Time[Hum.Time$Species %in% x & !Hum.Time$Time %in% "Total",])==0) next
+  
   #drop the total column and added a dashed total line
-  p<-ggplot(Hum.Time[Hum.Time$Species %in% x & !Hum.Time$Time %in% "Total",],aes(Time,value)) + facet_wrap(~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
+  p<-ggplot(Hum.Time[Hum.Time$Species %in% x & !Hum.Time$Time %in% "Total",],aes(as.numeric(Time),value)) + facet_wrap(~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
   ggsave(paste(netPath,paste(x,".svg",sep=""),sep="TimeFigures/"),height=8,width=11) 
+
 }
 
 #######################################################################
@@ -385,8 +241,6 @@ for(x in levels(droplevels(Hum.Time$Species))){
 
 #The script FlowerTransects.R must be run
 source(paste(gitpath),"FlowerTransects.R")
-
-
 
 #Save image to file
 setwd(home)
