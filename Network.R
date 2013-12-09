@@ -19,6 +19,10 @@ setwd(home)
 
 #Set Gitpath
 gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
+
+#Where are the outputs?
+netPath<-paste(home,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
+
 #############################
 #Load image for convienance
 
@@ -131,14 +135,18 @@ NetworkC(dat,"Total")
 
 dat.split<-split(dat,dat$Month,drop=TRUE)
 
+##############################################
 #Compute metrics for each month
+##############################################
+
 for (x in 1:length(dat.split)){
   NetworkC(datf=dat.split[[x]],naming=names(dat.split)[[x]])
 }
 
+##################################
 #Retrieve Classes, name them, melt 
 #Start with networkwide properties
-netPath<-paste(home,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
+##################################
 
 #Get the desired files from paths
 fil.list<-list.files(netPath,pattern="NetworkProperties.csv",recursive=TRUE,full.names=TRUE)
@@ -192,7 +200,9 @@ for(x in levels(month.Prop$Metric)) {
   ggsave(paste(x,".svg",sep=""),height=8,width=11)
 }
 
+##############################################
 #Compute Metrics for each Humminbird species
+##############################################
 
 #Get the desired files from paths
 fil.list<-list.files(netPath,pattern="HummingbirdMetrics.csv",recursive=TRUE,full.names=TRUE)
@@ -233,14 +243,43 @@ for(x in levels(droplevels(Hum.Time$Species))){
 }
 
 #######################################################################
-#Bring in Transect Data and Compare specilization across all Elevations
+#Bring in Transect Data and Compare Specilization and available resources across all Elevations
 #######################################################################
-
 #At first just use the across entire network properies and all flowers from all elevations
 #The next step is to set species ranges and get flower transects across that range
 
 #The script FlowerTransects.R must be run
-source(paste(gitpath),"FlowerTransects.R")
+#source(paste(gitpath),"FlowerTransects.R")
+
+####################
+#Network Properties
+head(month.Prop)
+####################
+
+########################################################
+#For now there is a bit of a mismatch, since the network 
+#is not split by elevation, but the flowers are aggregated into 200m bins
+#########################################################
+
+setwd(home)
+load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+
+#The aggregate totals of the flower assemblage
+head(fl.totals)
+
+#aggregate by month for now, not elev split
+month.totals<-aggregate(fl.totals$TotalFlowers,list(fl.totals$Month),sum)
+colnames(month.totals)<-c("Month","Flowers")
+
+#Start with just hummingbird levels
+month.Hum<-month.Prop[month.Prop$Level == "Hummingbirds",]
+
+#combine the flower totals and network metrics
+network.fl<-merge(month.totals,month.Hum,by.x="Month",by.y="Time")
+
+#Quick visualization
+ggplot(network.fl,aes(Flowers,value,col=as.factor(Month),shape=Level)) + facet_wrap(~Metric,scale="free") + geom_point() + geom_smooth(method="lm",aes(group=1))
+ggsave(paste(netPath,"NetworkProp_Flowers.svg",sep=""),height=8,width=11,dpi=300)
 
 #Save image to file
 setwd(home)
