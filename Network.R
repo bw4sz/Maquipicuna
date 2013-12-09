@@ -278,8 +278,29 @@ month.Hum<-month.Prop[month.Prop$Level == "Hummingbirds",]
 network.fl<-merge(month.totals,month.Hum,by.x="Month",by.y="Time")
 
 #Quick visualization
-ggplot(network.fl,aes(Flowers,value,col=as.factor(Month),shape=Level)) + facet_wrap(~Metric,scale="free") + geom_point() + geom_smooth(method="lm",aes(group=1))
+ggplot(network.fl,aes(Flowers,value,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point() + geom_smooth(method="lm",aes(group=1))
 ggsave(paste(netPath,"NetworkProp_Flowers.svg",sep=""),height=8,width=11,dpi=300)
+
+###############################################
+#Hummingbird Properties and Available Resources
+###############################################
+head(Hum.Time)
+
+#Take out the total time
+Hum.Time<-Hum.Time[!Hum.Time$Time %in% "Total",]
+hum.fl<-merge(month.totals,Hum.Time,by.x="Month",by.y="Time")
+
+#Need to subset by number of interactions, get rid of the species just seen once?
+with(hum.fl,table(Species,Month))
+month_Pres<-aggregate(hum.fl$Month,list(hum.fl$Species),function(x) nlevels(factor(x)))
+
+#Keep species seen more than 1 month
+species_keep<-month_Pres[which(month_Pres$x > 1),]$Group.1
+
+#remove an unknwon species
+species_keep<-species_keep[!species_keep %in% "UKWN"]
+ggplot(hum.fl[hum.fl$Species %in% species_keep,],aes(Flowers,value,col=as.factor(Month))) + facet_grid(Metric~Species,scale="free") + geom_point() + geom_smooth(method="lm",aes(group=1))
+ggsave(paste(netPath,"SpeciesProp_Flowers.svg",sep=""),height=8,width=11,dpi=300)
 
 #Save image to file
 setwd(home)

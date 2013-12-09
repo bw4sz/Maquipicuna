@@ -38,7 +38,6 @@ holgerID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIIDHolger
 ####################################
 #Clean Holger's data, begins in 9/2013
 ###################################
-
 holgerID$Transect_R<-factor(paste(holgerID$Elevation.Begin,holgerID$Elevation.End,sep="_"))
 
 #This is causing a real headache, for now just take the last two chracters of the year
