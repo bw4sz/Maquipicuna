@@ -4,23 +4,27 @@
 #R script Ben Weinstein - Stony Brook University 7/7/2013
 #Under Git repository - Maquipucuna
 
-#Read in required libraries
-require(ggplot2)
-require(reshape2)
-require(maptools)
-library(plyr)
-require(plotKML)
-require(reshape)
-require(chron)
+#setwd to dropbox
+droppath<-"C:/Users/Jorge/Dropbox/"
 
 #Set github path
 gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
-#Set DropBox Working Directory
+###############
+#The latest version of the input files need to be set at 
+list.files(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013/csv",sep=""))
+#################
+#Flowers
+#################
+source(paste(gitpath,"FlowerTransects.R",sep=""))
+
+################
+#Hummingbirds
+################
+source(paste(gitpath,"HummingbirdTransect.R",sep=""))
 
 #################
-#Computer Flowers
+#Network Analysis
 #################
-source()
+source(paste(gitpath,"Network.R",sep=""))
 
-#Set Gitpath
