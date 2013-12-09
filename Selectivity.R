@@ -87,6 +87,7 @@ Trials<-split(dat, list(dat$Elevation),drop=TRUE)
 #####Just for data clarity remove any trials that down have high and low value data entered
 #Get number of levels per trial
 levels.trial<-lapply(Trials,function(x) nlevels(factor(x$Treatment)))
+
 #Only use trials that have a high and low, ie levels=2
 #complete.trial<- Trials[levels.trial ==2]
 
@@ -122,4 +123,22 @@ p  + geom_smooth(method="glm",family="binomial",aes(weight=Minutes_Total))
 
 ## Write selectivity tables to file
 write.csv(selective.matrix,paste(droppath,"Selectivity/Selectivity_Elevation.csv",sep=""))
+
+##########################################
+#Compare Selectivity to Available Resource
+##########################################
+#FlowerTransects.R needs to be run first
+load(paste(droppath,"Results/FlowerTransect.Rdata",sep=""))
+
+#Create a transect R column
+selective.matrix$Elev<-paste(selective.matrix$Elevation,(as.numeric(selective.matrix$Elevation) + 200),sep="_")
+
+#Create a month column
+selective.matrix$Elev
+
+#Merge
+selective.fl<-merge(fl.totals,selective.matrix)
+
+#For now, aggregate across months?
+ggplot(selective.fl,aes(x=as.numeric(TotalFlowers),Selectivity,col=Species,size=Minutes_Total)) + geom_point() + facet_wrap(~Species)
 
