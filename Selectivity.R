@@ -119,7 +119,7 @@ ggsave(paste(droppath,"Selectivity/Selectivity_Elevation_Unweighted.svg",sep="")
 #weighted
 p<-ggplot(selective.matrix,aes(x=as.numeric(Elevation),Selectivity,col=Species,size=Minutes_Total)) + geom_point() + facet_wrap(~Species)
 p
-p  + geom_smooth(method="glm",family="binomial",aes(weight=Minutes_Total))
+p  + geom_smooth(method="glm",family="binomial",aes(weight=Minutes_Total)) + theme_bw() + xlab("Elevation")
 
 ## Write selectivity tables to file
 write.csv(selective.matrix,paste(droppath,"Selectivity/Selectivity_Elevation.csv",sep=""))
