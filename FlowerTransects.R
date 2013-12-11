@@ -220,6 +220,17 @@ ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point(siz
 ggplot(fl.totals,aes(x=Month,TotalFlowers,col=Elev)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free_x")
 #ggsave()
 
+#Brief look at time series and taxonomy
+tax<-aggregate(full.fl[,c("Species","Genus","Family")],list(full.fl$month,full.fl$Transect_R,full.fl$Date),function(x){
+  nlevels(factor(x))})
+
+colnames(tax)[1:3]<-c("month","Elev","Date")
+
+tax.m<-melt(tax,id.var=c("month","Elev","Date"))
+ggplot(tax.m,aes(as.factor(month),value,col=Elev)) + geom_point() + geom_smooth((aes(group=1))) + facet_wrap(~variable)
+ggplot(tax,aes(x=as.factor(month),col=Elev,y=Genus/Species)) + geom_point() + geom_smooth(aes(group=1)) + xlab("Month")
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/GSRatio_Month.jpeg")
+
 
 ##############################################
 #Read in Spatial Data, still needs to be fixed. 
