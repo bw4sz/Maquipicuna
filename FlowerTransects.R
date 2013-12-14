@@ -341,3 +341,5 @@ compT<-data.frame(compT,colsplit(compT$L1,"\\.",c("Month","Transect")))
 
 #quick plot, need same for family
 ggplot(compT,aes(as.numeric(Flowers),as.numeric(Congenerics.Flower))) + geom_point()+ geom_smooth(aes(group=1),method="lm") + facet_wrap(~Genus,scales="free")
+
+ggplot(compT,aes(as.numeric(Stalks),as.numeric(Congenerics.Stalk))) + geom_point()+ geom_smooth(aes(group=1),method="lm") + facet_wrap(~Genus,scales="free")
