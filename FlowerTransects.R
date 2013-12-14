@@ -31,10 +31,32 @@ holger.hum<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HolgerTransect_
 #Bring in holger transect data
 holgerID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIIDHolger.csv")
 
-#Create ID columns
-holgerID$ID<-factor(paste(holgerID$Transect,holgerID$Date,sep="_"))
+#This is causing a real headache, for now just take the last two chracters of the year
+holgerID$Date_F<-sapply(holgerID$Date,function(x){
+  #grab the year
+  d<-strsplit(as.character(x),split="/")[[1]]
+  yr<-d[[3]]
+  #get the last two characters
+  yrsplit<-substr(yr, nchar(yr)-2+1, nchar(yr))
+  dat_f<-as.Date(paste(paste(d[[1]],d[[2]],sep="/"),yrsplit,sep="/"),format="%d/%m/%y")
+  return(as.character(dat_f))
+})
 
-holger.fl$ID<-factor(paste(holger.fl$Transect,holger.fl$Date,sep="_"))
+holger.fl$Date_F<-sapply(holger.fl$Date,function(x){
+  #grab the year
+  d<-strsplit(as.character(x),split="/")[[1]]
+  yr<-d[[3]]
+  #get the last two characters
+  yrsplit<-substr(yr, nchar(yr)-2+1, nchar(yr))
+  dat_f<-as.Date(paste(paste(d[[1]],d[[2]],sep="/"),yrsplit,sep="/"),format="%d/%m/%y")
+  return(as.character(dat_f))
+})
+
+
+#Create ID columns
+holgerID$ID<-factor(paste(holgerID$Transect,holgerID$Date_F,sep="_"))
+
+holger.fl$ID<-factor(paste(holger.fl$Transect,holger.fl$Date_F,sep="_"))
 
 holgerID$ID[!holgerID$ID %in% holger.fl$ID]
 levels(droplevels(holger.fl$ID[!holger.fl$ID %in% holgerID$ID]))
@@ -198,6 +220,17 @@ ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point(siz
 #Flowers at each elevation over time
 ggplot(fl.totals,aes(x=Month,TotalFlowers,col=Elev)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free_x")
 #ggsave()
+
+#Brief look at time series and taxonomy
+tax<-aggregate(full.fl[,c("Species","Genus","Family")],list(full.fl$month,full.fl$Transect_R,full.fl$Date),function(x){
+  nlevels(factor(x))})
+
+colnames(tax)[1:3]<-c("month","Elev","Date")
+
+tax.m<-melt(tax,id.var=c("month","Elev","Date"))
+ggplot(tax.m,aes(as.factor(month),value,col=Elev)) + geom_point() + geom_smooth((aes(group=1))) + facet_wrap(~variable)
+ggplot(tax,aes(x=as.factor(month),col=Elev,y=Genus/Species)) + geom_point() + geom_smooth(aes(group=1)) + xlab("Month")
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/GSRatio_Month.jpeg")
 
 
 ##############################################

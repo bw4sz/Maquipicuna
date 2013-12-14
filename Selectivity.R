@@ -10,6 +10,8 @@
 #load in packages
 require(ggplot2)
 require(chron)
+require(reshape)
+
 #Set working directory
 droppath<-"C:/Users/Jorge/Dropbox/Thesis//Maquipucuna_SantaLucia/"
 
@@ -69,7 +71,7 @@ dat$Time_Feeder_Obs<-dat$Time.End - dat$Time.Begin
 #Get any rownumbers that are negative, these need to be fixed. 
 dat[which(dat$Time_Feeder_Obs < 0),]
 
-#Time per species
+#Total Time per species
 Total_Time_Species<-aggregate(dat$Time_Feeder_Obs,by=list(dat$Species),sum) 
 colnames(Total_Time_Species)<-c("Species","TotalTime")
 ggplot(Total_Time_Species,aes(Species,minutes(TotalTime))) + geom_bar() + theme_bw()
@@ -85,6 +87,7 @@ Trials<-split(dat, list(dat$Elevation),drop=TRUE)
 #####Just for data clarity remove any trials that down have high and low value data entered
 #Get number of levels per trial
 levels.trial<-lapply(Trials,function(x) nlevels(factor(x$Treatment)))
+
 #Only use trials that have a high and low, ie levels=2
 #complete.trial<- Trials[levels.trial ==2]
 
@@ -111,12 +114,31 @@ colnames(selective.matrix)[1]<-"Elevation"
 #unweighted
 p<-ggplot(selective.matrix,aes(x=Elevation,Selectivity,col=Species)) + geom_point(size=3) + facet_wrap(~Species) + geom_smooth(aes(group=1))
 p
+ggsave(paste(droppath,"Selectivity/Selectivity_Elevation_Unweighted.svg",sep=""),height=8,width=15)
 
 #weighted
-p<-ggplot(selective.matrix,aes(x=Elevation,Selectivity,col=Species,size=Minutes_Total)) + geom_point() + facet_wrap(~Species)
+p<-ggplot(selective.matrix,aes(x=as.numeric(Elevation),Selectivity,col=Species,size=Minutes_Total)) + geom_point() + facet_wrap(~Species)
 p
-p  + geom_smooth(method="glm",family="binomial",aes(weight=Minutes_Total,group=1))
+p  + geom_smooth(method="glm",family="binomial",aes(weight=Minutes_Total))
 
 ## Write selectivity tables to file
-#write.csv(selective.final,"Selectivity.csv")
+write.csv(selective.matrix,paste(droppath,"Selectivity/Selectivity_Elevation.csv",sep=""))
+
+##########################################
+#Compare Selectivity to Available Resource
+##########################################
+#FlowerTransects.R needs to be run first
+load(paste(droppath,"Results/FlowerTransect.Rdata",sep=""))
+
+#Create a transect R column
+selective.matrix$Elev<-paste(selective.matrix$Elevation,(as.numeric(selective.matrix$Elevation) + 200),sep="_")
+
+#Create a month column
+selective.matrix$Elev
+
+#Merge
+selective.fl<-merge(fl.totals,selective.matrix)
+
+#For now, aggregate across months?
+ggplot(selective.fl,aes(x=as.numeric(TotalFlowers),Selectivity,col=Species,size=Minutes_Total)) + geom_point() + facet_wrap(~Species)
 
