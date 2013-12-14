@@ -11,6 +11,7 @@ library(plyr)
 require(plotKML)
 require(reshape)
 require(chron)
+require(stringr)
 
 #Set DropBox Working Directory
 setwd("C:/Users/Ben/Dropbox/")
@@ -251,3 +252,94 @@ p<-ggplot(fl.elev,aes(x=ele,y=Total_Flowers,col=Species),size=2) + geom_point() 
 p+stat_smooth(method='lm',aes(group=Family))
 
 save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+
+
+###############
+#Some throw away code to add the phylogeny script
+
+head(full.fl)
+
+#split by month
+full.m<-split(full.fl,list(full.fl$month))
+
+#goal, create abundance weighted matrix type analysis, i.e how many flowers are in bloom of members of the same genus (lots of typos)
+
+flowerComp<-lapply(full.m,function(x){
+  #which species to pick, only those with full names
+  nam<-levels(factor(x$Full))
+  
+  #clean names, keep names that have three words
+  nam<-nam[sapply(gregexpr("\\W+", nam), length) + 1 == 3] 
+  
+  #get rid of unknown species
+  nam<-nam[!str_detect(nam,"sp")]
+  
+  #get rid of species with q?
+  nam<-nam[!str_detect(nam,fixed("?"))]
+  
+  #for each species in nam, how many flowers of cogenerics in family, genus
+  
+  out<-sapply(nam,function(y){
+    
+    #get genus name
+    targetG<-strsplit(y," ")[[1]][2]
+    
+    #get all records in that month, that are the genus, but not the species in question
+
+    targetFl<-x[x$Genus %in% targetG & !x$Full %in% y,]
+    
+    if(nrow(targetFl)==0) {return(0)}
+    
+    #return total flowers from other members of the genus
+    return(sum(targetFl$Total_Flowers,na.rm=TRUE))
+    })
+  return(data.frame(Species=names(out),Congeneric=out))
+})
+
+#format dataframe
+head(flowerComp<-cast(melt(flowerComp)))
+colnames(flowerComp)<-c("Species","Month","Congeneric")
+
+#Add a dataframe of flowers per month for each species
+
+flowerM<-lapply(full.m,function(x){
+  #which species to pick, only those with full names
+  nam<-levels(factor(x$Full))
+  
+  #clean names, keep names that have three words
+  nam<-nam[sapply(gregexpr("\\W+", nam), length) + 1 == 3] 
+  
+  #get rid of unknown species
+  nam<-nam[!str_detect(nam,"sp")]
+  
+  #get rid of species with q?
+  nam<-nam[!str_detect(nam,fixed("?"))]
+  
+  #for each species in nam, how many flowers of cogenerics in family, genus
+  
+  out<-sapply(nam,function(y){
+    
+    targetFl<-x[x$Full %in% y,]
+    
+    if(nrow(targetFl)==0) {return(0)}
+    
+    #return total flowers from other members of the genus
+    return(sum(targetFl$Total_Flowers,na.rm=TRUE))
+  })
+  return(data.frame(Species=names(out),Flowers=out))
+})
+
+
+head(flowerM<-cast(melt(flowerM)))
+colnames(flowerM)<-c("Species","Month","Flowers")
+
+#merge data together
+compT<-merge(flowerM,flowerComp,by=c("Species","Month"))
+
+#make genus column
+
+compT$Genus<-sapply(strsplit(as.character(compT$Species)," "),function(x){
+    x[2]})
+
+#quick plot, need same for family
+ggplot(compT,aes(Flowers,Congeneric,col=Genus)) + geom_point() + geom_smooth(aes(group=1),method="lm") + ylim(0,2000) + xlim(100,2000)
