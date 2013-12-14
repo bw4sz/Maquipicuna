@@ -293,14 +293,14 @@ save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 head(full.fl)
 
 #split by month
-full.m<-split(full.fl,list(full.fl$month))
+full.m<-split(full.fl,list(full.fl$month,full.fl$Transect_R),drop=TRUE)
 
 #goal, create abundance weighted matrix type analysis, i.e how many flowers are in bloom of members of the same genus (lots of typos)
 
 flowerComp<-lapply(full.m,function(x){
   #which species to pick, only those with full names
   nam<-levels(factor(x$Full))
-  
+
   #clean names, keep names that have three words
   nam<-nam[sapply(gregexpr("\\W+", nam), length) + 1 == 3] 
   
@@ -313,66 +313,31 @@ flowerComp<-lapply(full.m,function(x){
   #for each species in nam, how many flowers of cogenerics in family, genus
   
   out<-sapply(nam,function(y){
-    
     #get genus name
     targetG<-strsplit(y," ")[[1]][2]
     
     #get all records in that month, that are the genus, but not the species in question
-
-    targetFl<-x[x$Genus %in% targetG & !x$Full %in% y,]
+    targetFl<-x[x$Genus %in% targetG & !x$Full %in% y,]        
     
-    if(nrow(targetFl)==0) {return(0)}
+    #Get own flower numers for that transect.
+    ownS<-sum(x[x$Full %in% y,]$mean_Stalk)
+    ownFL<-sum(x[x$Full %in% y,]$Total_Flowers)
     
-    #return total flowers from other members of the genus
-    return(sum(targetFl$Total_Flowers,na.rm=TRUE))
-    })
-  return(data.frame(Species=names(out),Congeneric=out))
+    if(nrow(targetFl)==0) {return(c(Flowers=ownFL,Congenerics.Stalk=0,Congenerics.Flower=0,Stalks=ownS,Genus=targetG))}
+    conS<-sum(targetFl$mean_Stalk,na.rm=TRUE)
+    conFL<-sum(targetFl$Total_Flowers,na.rm=TRUE)
+    
+    return(c(Flowers=as.numeric(ownFL),Congenerics.Stalk=conS, Congenerics.Flower=as.numeric(conFL), Stalks=ownS,Genus=targetG))})
+  
+  return(out)
 })
 
 #format dataframe
-head(flowerComp<-cast(melt(flowerComp)))
-colnames(flowerComp)<-c("Species","Month","Congeneric")
+head(compT<-melt(flowerComp))
+head(compT<-as.data.frame(cast(compT,L1+X2~X1)))
 
-#Add a dataframe of flowers per month for each species
-
-flowerM<-lapply(full.m,function(x){
-  #which species to pick, only those with full names
-  nam<-levels(factor(x$Full))
-  
-  #clean names, keep names that have three words
-  nam<-nam[sapply(gregexpr("\\W+", nam), length) + 1 == 3] 
-  
-  #get rid of unknown species
-  nam<-nam[!str_detect(nam,"sp")]
-  
-  #get rid of species with q?
-  nam<-nam[!str_detect(nam,fixed("?"))]
-  
-  #for each species in nam, how many flowers of cogenerics in family, genus
-  
-  out<-sapply(nam,function(y){
-    
-    targetFl<-x[x$Full %in% y,]
-    
-    if(nrow(targetFl)==0) {return(0)}
-    
-    #return total flowers from other members of the genus
-    return(sum(targetFl$Total_Flowers,na.rm=TRUE))
-  })
-  return(data.frame(Species=names(out),Flowers=out))
-})
-
-
-head(flowerM<-cast(melt(flowerM)))
-colnames(flowerM)<-c("Species","Month","Flowers")
-
-#merge data together
-compT<-merge(flowerM,flowerComp,by=c("Species","Month"))
-
-#make genus column
-
-compT$Genus<-sapply(strsplit(as.character(compT$Species)," "),function(x){
-    x[2]})
+#break month back out from elev
+compT<-data.frame(compT,colsplit(compT$L1,"\\.",c("Month","Transect")))
 
 #quick plot, need same for family
-ggplot(compT,aes(Flowers,Congeneric,col=Genus)) + geom_point() + geom_smooth(aes(group=1),method="lm") + ylim(0,2000) + xlim(100,2000)
+ggplot(compT,aes(as.numeric(Flowers),as.numeric(Congenerics.Flower))) + geom_point()+ geom_smooth(aes(group=1),method="lm") + facet_wrap(~Genus,scales="free")
