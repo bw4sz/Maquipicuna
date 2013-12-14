@@ -29,8 +29,12 @@ gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 #Read in Data
 #############
 
-#Read in Flower Dataset
+#Read in Flower Camera Dataset
 dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideo.csv")
+
+#Read in 
+#If this has not been created see HummingbirdTransects.R
+
 
 #Bring in the phylogeny
 #Read in phylogeny
@@ -54,7 +58,6 @@ head(dat)
 clades<-read.csv("Shared Ben and Catherine/DimDivEntire/Files for Analysis/CladeList.txt",header=FALSE)[,-1]
 colnames(clades)<-c("Clade","Genus","Species","double","English")
 clades<-clades[,1:5]
-
 
 #Bring in trait data
 

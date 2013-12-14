@@ -13,10 +13,10 @@ require(reshape)
 require(chron)
 
 #Set DropBox Working Directory
-setwd("C:/Users/Jorge/Dropbox/")
+setwd("C:/Users/Ben/Dropbox/")
 
 #Read in workspace if desired for quick access
-#load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
 #Read in Flower Transect Data from summer field season
 fl<-read.csv(file="Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerTransects.csv")
@@ -189,7 +189,7 @@ head(full.fl[is.na(full.fl$month),])
 fl.totals<-aggregate(full.fl$Total_Flowers,list(full.fl$Transect_R,full.fl$month,full.fl$Date),sum)
 colnames(fl.totals)<-c("Elev","Month","Date","TotalFlowers")
 
-
+try(dev.off())
 ##Flowers per month and elevation
 ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=3) + geom_smooth(aes(group=Month)) + facet_wrap(~Month) + theme_bw() + labs(col="Month")
 #ggsave
