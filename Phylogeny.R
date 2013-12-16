@@ -61,7 +61,5 @@ namesFl<-initN[-c(4,17,41,54)]
 
 write.table(sapply(strsplit(initN," "),function(x){  paste(x[2],x[3],sep="_")}),"names.txt",row.names=FALSE,col.names=FALSE)
 
-
 #After run of phyloGenerator
-tre<-read.tree("C:/Program Files (x86)/phyloGeneratorPC/phyloGenerator/test_phylogeny.tre")
-plot(tre)
+tre<-read.tree("C:/Users/Jorge/Documents/Maquipicuna/phyloGenerator/maqui_phylogeny.tre")

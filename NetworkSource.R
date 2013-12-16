@@ -4,7 +4,7 @@
 NetworkC<-function(datf,naming){
   
   #Set a working directory, create a folder for each run
-  setwd(home)
+  setwd(droppath)
   toset<-paste("Thesis/Maquipucuna_SantaLucia/Results/Network/",naming,sep="")
   dir.create(toset,showWarnings=FALSE)
   setwd(toset)

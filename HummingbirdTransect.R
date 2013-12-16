@@ -129,12 +129,12 @@ levels(hum.id$Hummingbird.Species)<-sapply(levels(hum.id$Hummingbird.Species),fu
 humInter<-melt(table(hum.id$Hummingbird.Species,hum.id$Plant.Species,hum.id$Month))
 colnames(humInter)<-c("Hummingbird","Plant","Month","value")
 
-#visualize holger only data
+#visualize summer only data
 #remove no interactions
 humInter<-humInter[!humInter$value==0,]
 p<-ggplot(humInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
 p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-p
+plot(p)
 
 ################################################
 #Combine Holger's transect data with summer data
@@ -143,10 +143,12 @@ fullInter<-rbind(humInter,monthInter)
 
 p<-ggplot(fullInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month,nrow=2) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
 p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HummingbirdTransectInteractions.jpeg",height=8,width=13)
+
 print(p)
 
 #write this matrix to file
-write.csv(fullInter,"Thesis/Maquipucuna_SantaLucia/Results/HumTransectMatrix.csv")
+write.csv(fullInter,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectMatrix.csv")
 print("Matrix_Written")
 
 #Okay, but it looks like the network functions just want the raw rows. 
@@ -159,7 +161,7 @@ colnames(humNetwork)
 colnames(holgerInter)<-c("ID","Hummingbird.Species","GPS.ID","Transect_R","Date_F","Month","Plant.Species")
 
 transectRows<-rbind(humNetwork,holgerInter)
-write.csv(transectRows,"Thesis/Maquipucuna_SantaLucia/Results/HumTransectRows.csv")
+write.csv(transectRows,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv")
 
 #Return end of file
 print("HummingbirdTransects")

@@ -11,10 +11,9 @@ library(plyr)
 require(plotKML)
 require(reshape)
 require(chron)
-require(stringr)
 
 #Set DropBox Working Directory
-#setwd("C:/Users/Ben/Dropbox/")
+setwd("C:/Users/Jorge/Dropbox/")
 
 #Read in workspace if desired for quick access
 #load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
@@ -151,7 +150,7 @@ names(fl.s)<-c("Species","Count")
 fl.all<-melt(table(paste(full.fl$Family,full.fl$Genus,full.fl$Species)))
 names(fl.all)<-c("Species","Count")
 ggplot(fl.all,aes(Species,Count)) + geom_bar() + coord_flip() + theme_bw()
-ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/SpeciesCount.jpeg",height=8,width=11)
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/SpeciesCount.jpeg",height=15,width=8)
 
 #Use this as the marker for now
 full.fl$Full<-paste(full.fl$Family,full.fl$Genus,full.fl$Species)
@@ -183,10 +182,10 @@ full.fl$Total_Flowers<-full.fl$mean_flowerStalk*full.fl$mean_Stalk*full.fl$mean_
 hist(full.fl$Total_Flowers)
 
 #Visualize total flowers by species
-ggplot(data=full.fl,aes(Full,Total_Flowers)) + geom_boxplot() + coord_flip()
+#ggplot(data=full.fl,aes(Full,Total_Flowers)) + geom_boxplot() + coord_flip()
 
 #visualize height by species
-ggplot(data=full.fl,aes(Full,as.numeric(Height))) + geom_boxplot() + coord_flip()
+#ggplot(data=full.fl,aes(Full,as.numeric(Height))) + geom_boxplot() + coord_flip()
 
 ################################################
 #Number of Flowers at Each Elevation over Time
@@ -205,182 +204,86 @@ for (j in 1:nrow(full.fl)){
   }
 
 #There is the one unique transect where holger did the transect with us. 
-
 head(full.fl[is.na(full.fl$month),])
 
 #plot total flowers over time?
 fl.totals<-aggregate(full.fl$Total_Flowers,list(full.fl$Transect_R,full.fl$month,full.fl$Date),sum)
 colnames(fl.totals)<-c("Elev","Month","Date","TotalFlowers")
 
-try(dev.off())
+
 ##Flowers per month and elevation
-ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=3) + geom_smooth(aes(group=Month)) + facet_wrap(~Month) + theme_bw() + labs(col="Month")
-#ggsave
+p<-ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=3) + geom_smooth(aes(group=Month)) + facet_wrap(~Month,nrow=2) + theme_bw() + labs(col="Month")
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerMonths.jpeg",height=8,width=10)
 
 #Flowers at each elevation over time
 ggplot(fl.totals,aes(x=Month,TotalFlowers,col=Elev)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free_x")
-#ggsave()
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10)
 
 #Brief look at time series and taxonomy
 tax<-aggregate(full.fl[,c("Species","Genus","Family")],list(full.fl$month,full.fl$Transect_R,full.fl$Date),function(x){
   nlevels(factor(x))})
 
 colnames(tax)[1:3]<-c("month","Elev","Date")
-
 tax.m<-melt(tax,id.var=c("month","Elev","Date"))
-ggplot(tax.m,aes(as.factor(month),value,col=Elev)) + geom_point() + geom_smooth((aes(group=1))) + facet_wrap(~variable)
-ggplot(tax,aes(x=as.factor(month),col=Elev,y=Genus/Species)) + geom_point() + geom_smooth(aes(group=1)) + xlab("Month")
-ggsave("Thesis/Maquipucuna_SantaLucia/Results/GSRatio_Month.jpeg")
 
+#Taxonomy over time
+ggplot(tax.m,aes(month,value,col=variable)) + geom_point(size=2) + geom_smooth(aes(group=variable),se=FALSE) + facet_grid(.~Elev) + theme_bw() + labs(col="Tax. Level")
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TimeSeriesTaxonomy.jpeg",height=5,width=10)
 
-##############################################
-#Read in Spatial Data, still needs to be fixed. 
-##############################################
+#Genus to Species Ratios
+ggplot(tax,aes(x=month,col=Elev,y=Genus/Species)) + geom_point() + geom_smooth(aes(group=1)) + xlab("Month") + facet_grid(~Elev,margins=TRUE) + theme_bw()
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TimeSeriesGSratio.jpeg",height=7,width=12)
 
-#Read and convert gpx points to a single dataframe and save it as a shapefile
-f<-list.files("Holger/Transect_Protocol_Holger/WayPoints/",full.names=TRUE)
-
-#loop through input files and find the errors. 
-gpx<-list()
-for (x in 1:length(f)){
-  print(x)
-  try(
-    gpx[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
-}
-
-##Repeat for Karen's GPS data, label Karen
-f<-list.files("F:\\KarenGPS\\KarenFirstgps/",full.names=TRUE)
-
-gpx2<-list()
-for (x in 1:length(f)){
-  print(x)
-  try(
-    gpx2[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
-}
-
-#Bind together the days that contain data
-#Label Observer
-holger.gps<-data.frame(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),Observer="Holger")
-karen.gps<-data.frame(rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]),Observer="Karen")
-
-#Combine data
-gpx.dat<-rbind.fill(holger.gps,karen.gps)
-
-full.fl$GPS_ID<-as.numeric(full.fl$GPS_ID)
-
-#Match each point with an elevation
-fl.elev<-merge(full.fl,gpx.dat,by.x=c("GPS_ID","Observer"),by.y=c("name","Observer"))
-
-#How records were in fl, but not matched
-full.fl[!full.fl$GPS_ID %in% fl.elev$GPS_ID,]$GPS_ID
-
-
-#spatially
-ggplot(fl.elev,aes(x=coords.x1,y=coords.x2,col=Total_Flowers),size=200) + theme_bw() + geom_point() + scale_color_continuous(high="red",low="blue",limits=c(0,200))
-
-#How many flowers at each elevation
-ggplot(fl.elev,aes(ele,y=Total_Flowers)) + geom_line() + geom_point(aes(color=Family),size=2) + theme_bw() 
-
-p<-ggplot(fl.elev,aes(x=ele,y=Total_Flowers,col=Species),size=2) + geom_point() + theme_bw() + facet_wrap(~Family,scales='free_y') + guides(color="none")
-p+stat_smooth(method='lm',aes(group=Family))
+# ##############################################
+# #Read in Spatial Data, still needs to be fixed. 
+# ##############################################
+# 
+# #Read and convert gpx points to a single dataframe and save it as a shapefile
+# f<-list.files("Holger/Transect_Protocol_Holger/WayPoints/",full.names=TRUE)
+# 
+# #loop through input files and find the errors. 
+# gpx<-list()
+# for (x in 1:length(f)){
+#   print(x)
+#   try(
+#     gpx[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
+# }
+# 
+# ##Repeat for Karen's GPS data, label Karen
+# f<-list.files("F:\\KarenGPS\\KarenFirstgps/",full.names=TRUE)
+# 
+# gpx2<-list()
+# for (x in 1:length(f)){
+#   print(x)
+#   try(
+#     gpx2[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
+# }
+# 
+# #Bind together the days that contain data
+# #Label Observer
+# holger.gps<-data.frame(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),Observer="Holger")
+# karen.gps<-data.frame(rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]),Observer="Karen")
+# 
+# #Combine data
+# gpx.dat<-rbind.fill(holger.gps,karen.gps)
+# 
+# full.fl$GPS_ID<-as.numeric(full.fl$GPS_ID)
+# 
+# #Match each point with an elevation
+# fl.elev<-merge(full.fl,gpx.dat,by.x=c("GPS_ID","Observer"),by.y=c("name","Observer"))
+# 
+# #How records were in fl, but not matched
+# full.fl[!full.fl$GPS_ID %in% fl.elev$GPS_ID,]$GPS_ID
+# 
+# 
+# #spatially
+# ggplot(fl.elev,aes(x=coords.x1,y=coords.x2,col=Total_Flowers),size=200) + theme_bw() + geom_point() + scale_color_continuous(high="red",low="blue",limits=c(0,200))
+# 
+# #How many flowers at each elevation
+# ggplot(fl.elev,aes(ele,y=Total_Flowers)) + geom_line() + geom_point(aes(color=Family),size=2) + theme_bw() 
+# 
+# p<-ggplot(fl.elev,aes(x=ele,y=Total_Flowers,col=Species),size=2) + geom_point() + theme_bw() + facet_wrap(~Family,scales='free_y') + guides(color="none")
+# p+stat_smooth(method='lm',aes(group=Family))
 
 save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
-
-
-###############
-#to add the phylogeny script
-
-head(full.fl)
-
-#split by month
-full.m<-split(full.fl,list(full.fl$month,full.fl$Transect_R),drop=TRUE)
-
-#goal, create abundance weighted matrix type analysis, i.e how many flowers are in bloom of members of the same genus (lots of typos)
-
-flowerComp<-lapply(full.m,function(x){
-  #which species to pick, only those with full names
-  nam<-levels(factor(x$Full))
-
-  #clean names, keep names that have three words
-  nam<-nam[sapply(gregexpr("\\W+", nam), length) + 1 == 3] 
-  
-  #get rid of unknown species
-  nam<-nam[!str_detect(nam,"sp")]
-  
-  #get rid of species with q?
-  nam<-nam[!str_detect(nam,fixed("?"))]
-  
-  #for each species in nam, how many flowers of cogenerics in family, genus
-  
-  out<-sapply(nam,function(y){
-    #get genus name
-    targetG<-strsplit(y," ")[[1]][2]
-    
-    #get all records in that month, that are the genus, but not the species in question
-    targetFl<-x[x$Genus %in% targetG & !x$Full %in% y,]        
-    
-    #Get own flower numers for that transect.
-    ownS<-sum(x[x$Full %in% y,]$mean_Stalk)
-    ownFL<-sum(x[x$Full %in% y,]$Total_Flowers)
-    
-    if(nrow(targetFl)==0) {
-      conS=0
-      conFL=0
-    }
-    
-    if(!nrow(targetFl)==0) {
-      conS<-sum(targetFl$mean_Stalk,na.rm=TRUE)
-      conFL<-sum(targetFl$Total_Flowers,na.rm=TRUE)
-    }
-    
-    #repeat for family 
-    #get family name
-    targetF<-strsplit(y," ")[[1]][1]
-    
-    #get all records in that month, that are the flower, but not the species in question
-    targetFl<-x[x$Family %in% targetF & !x$Full %in% y,]        
-    
-    if(nrow(targetFl)==0) {
-      famS<-0
-      famFL<-0
-    }
-  
-    if(!nrow(targetFl)==0) {
-      famS<-sum(targetFl$mean_Stalk,na.rm=TRUE)
-      famFL<-sum(targetFl$Total_Flowers,na.rm=TRUE)
-    }
-    
-    return(c(Flowers=as.numeric(ownFL),Congenerics.Stalk=conS,Family.Stalk=famS, Congenerics.Flower=as.numeric(conFL),Family.Flower=famFL, Stalks=ownS,Genus=targetG,Family=targetF))})
-  
-  return(out)
-})
-
-#format dataframe
-head(compT<-melt(flowerComp))
-head(compT<-as.data.frame(cast(compT,L1+X2~X1)))
-
-#break month back out from elev
-compT<-data.frame(compT,colsplit(compT$L1,"\\.",c("Month","Transect")))
-
-#Flowers versus congeric flowers
-p<-ggplot(compT,aes(as.numeric(Flowers),as.numeric(Congenerics.Flower))) + geom_point()+ geom_smooth(aes(group=1),method="lm")
-p
-p+ facet_wrap(~Genus,scales="free")
-
-#without facets
-#Flowers versus canfamilial flowers
-p<-ggplot(compT,aes(as.numeric(Flowers),as.numeric(Family.Flower))) + geom_point()+ geom_smooth(aes(group=1),method="lm") 
-p
-p + facet_wrap(~Family,scales="free")
-
-#stalks
-p<-ggplot(compT,aes(as.numeric(Stalks),as.numeric(Congenerics.Stalk))) + geom_point()+ geom_smooth(aes(group=1),method="lm") 
-p
-p+ facet_wrap(~Genus,scales="free")
-
-p<-ggplot(compT,aes(as.numeric(Stalks),as.numeric(Family.Stalk))) + geom_point()+ geom_smooth(aes(group=1),method="lm") 
-p 
-p+ facet_wrap(~Family,scales="free")
-
-#Return end of file
-print("FlowerTransects")

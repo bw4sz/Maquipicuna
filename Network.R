@@ -30,8 +30,8 @@ netPath<-paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
 ##############
 #Source Functions
 ###################
-
 source(paste(gitpath,"NetworkSource.R",sep=""))
+
 #############
 #Read in Data
 #############
@@ -93,7 +93,7 @@ rownames(z.scores) <- rownames(mon)
 trait_pc <- as.matrix(dist(z.scores, method = "euclidean"))
 
 ####Bring in interaction matrix for the flower transects, see FlowerTransects.R
-transect.FL<-read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/HumTransectRows.csv",sep=""))[,-1]
+transect.FL<-read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv",sep=""))[,-1]
 
 #make the columns as similiar as possible to videodata
 colnames(transect.FL)<-c("TransectID","Hummingbird","ID","Flower","Date","Month","Transect_R")
