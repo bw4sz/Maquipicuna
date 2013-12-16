@@ -11,9 +11,10 @@ library(plyr)
 require(plotKML)
 require(reshape)
 require(chron)
+require(stringr)
 
 #Set DropBox Working Directory
-setwd("C:/Users/Jorge/Dropbox/")
+#setwd("C:/Users/Ben/Dropbox/")
 
 #Read in workspace if desired for quick access
 #load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
@@ -211,7 +212,7 @@ head(full.fl[is.na(full.fl$month),])
 fl.totals<-aggregate(full.fl$Total_Flowers,list(full.fl$Transect_R,full.fl$month,full.fl$Date),sum)
 colnames(fl.totals)<-c("Elev","Month","Date","TotalFlowers")
 
-
+try(dev.off())
 ##Flowers per month and elevation
 ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=3) + geom_smooth(aes(group=Month)) + facet_wrap(~Month) + theme_bw() + labs(col="Month")
 #ggsave
@@ -284,3 +285,102 @@ p<-ggplot(fl.elev,aes(x=ele,y=Total_Flowers,col=Species),size=2) + geom_point() 
 p+stat_smooth(method='lm',aes(group=Family))
 
 save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+
+
+###############
+#to add the phylogeny script
+
+head(full.fl)
+
+#split by month
+full.m<-split(full.fl,list(full.fl$month,full.fl$Transect_R),drop=TRUE)
+
+#goal, create abundance weighted matrix type analysis, i.e how many flowers are in bloom of members of the same genus (lots of typos)
+
+flowerComp<-lapply(full.m,function(x){
+  #which species to pick, only those with full names
+  nam<-levels(factor(x$Full))
+
+  #clean names, keep names that have three words
+  nam<-nam[sapply(gregexpr("\\W+", nam), length) + 1 == 3] 
+  
+  #get rid of unknown species
+  nam<-nam[!str_detect(nam,"sp")]
+  
+  #get rid of species with q?
+  nam<-nam[!str_detect(nam,fixed("?"))]
+  
+  #for each species in nam, how many flowers of cogenerics in family, genus
+  
+  out<-sapply(nam,function(y){
+    #get genus name
+    targetG<-strsplit(y," ")[[1]][2]
+    
+    #get all records in that month, that are the genus, but not the species in question
+    targetFl<-x[x$Genus %in% targetG & !x$Full %in% y,]        
+    
+    #Get own flower numers for that transect.
+    ownS<-sum(x[x$Full %in% y,]$mean_Stalk)
+    ownFL<-sum(x[x$Full %in% y,]$Total_Flowers)
+    
+    if(nrow(targetFl)==0) {
+      conS=0
+      conFL=0
+    }
+    
+    if(!nrow(targetFl)==0) {
+      conS<-sum(targetFl$mean_Stalk,na.rm=TRUE)
+      conFL<-sum(targetFl$Total_Flowers,na.rm=TRUE)
+    }
+    
+    #repeat for family 
+    #get family name
+    targetF<-strsplit(y," ")[[1]][1]
+    
+    #get all records in that month, that are the flower, but not the species in question
+    targetFl<-x[x$Family %in% targetF & !x$Full %in% y,]        
+    
+    if(nrow(targetFl)==0) {
+      famS<-0
+      famFL<-0
+    }
+  
+    if(!nrow(targetFl)==0) {
+      famS<-sum(targetFl$mean_Stalk,na.rm=TRUE)
+      famFL<-sum(targetFl$Total_Flowers,na.rm=TRUE)
+    }
+    
+    return(c(Flowers=as.numeric(ownFL),Congenerics.Stalk=conS,Family.Stalk=famS, Congenerics.Flower=as.numeric(conFL),Family.Flower=famFL, Stalks=ownS,Genus=targetG,Family=targetF))})
+  
+  return(out)
+})
+
+#format dataframe
+head(compT<-melt(flowerComp))
+head(compT<-as.data.frame(cast(compT,L1+X2~X1)))
+
+#break month back out from elev
+compT<-data.frame(compT,colsplit(compT$L1,"\\.",c("Month","Transect")))
+
+#Flowers versus congeric flowers
+p<-ggplot(compT,aes(as.numeric(Flowers),as.numeric(Congenerics.Flower))) + geom_point()+ geom_smooth(aes(group=1),method="lm")
+p
+p+ facet_wrap(~Genus,scales="free")
+
+#without facets
+#Flowers versus canfamilial flowers
+p<-ggplot(compT,aes(as.numeric(Flowers),as.numeric(Family.Flower))) + geom_point()+ geom_smooth(aes(group=1),method="lm") 
+p
+p + facet_wrap(~Family,scales="free")
+
+#stalks
+p<-ggplot(compT,aes(as.numeric(Stalks),as.numeric(Congenerics.Stalk))) + geom_point()+ geom_smooth(aes(group=1),method="lm") 
+p
+p+ facet_wrap(~Genus,scales="free")
+
+p<-ggplot(compT,aes(as.numeric(Stalks),as.numeric(Family.Stalk))) + geom_point()+ geom_smooth(aes(group=1),method="lm") 
+p 
+p+ facet_wrap(~Family,scales="free")
+
+#Return end of file
+print("FlowerTransects")

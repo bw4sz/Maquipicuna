@@ -14,18 +14,17 @@ require(stringr)
 #############################
 #Set Dropbox Location
 #Read in flower videos
-home<-"C:/Users/Jorge/Dropbox/"
-setwd(home)
+#droppath<-"C:/Users/Ben/Dropbox/"
+setwd(droppath)
 
 #Set Gitpath
-gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
+#gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 #Where are the outputs?
-netPath<-paste(home,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
+netPath<-paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
 
 #############################
 #Load image for convienance
-
 #load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
 ##############
@@ -39,6 +38,9 @@ source(paste(gitpath,"NetworkSource.R",sep=""))
 
 #Read in Flower Camera Dataset
 dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideo.csv")
+
+#Read in 
+#If this has not been created see HummingbirdTransects.R
 
 #Read in Transect Dataset, needs to run from the HummingbirdTransect.R script
 humT<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HumTransectMatrix.csv",row.names=1)
@@ -66,6 +68,7 @@ clades<-read.csv("Shared Ben and Catherine/DimDivEntire/Files for Analysis/Clade
 colnames(clades)<-c("Clade","Genus","Species","double","English")
 clades<-clades[,1:5]
 
+#Bring in trait data
 ###Bring in trait data
 morph <- read.csv(paste(gitpath,"//InputData//MorphologyShort.csv",sep=""),na.strings="9999")
 
@@ -90,7 +93,7 @@ rownames(z.scores) <- rownames(mon)
 trait_pc <- as.matrix(dist(z.scores, method = "euclidean"))
 
 ####Bring in interaction matrix for the flower transects, see FlowerTransects.R
-transect.FL<-read.csv(paste(home,"Thesis/Maquipucuna_SantaLucia/Results/HumTransectRows.csv",sep=""))[,-1]
+transect.FL<-read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/HumTransectRows.csv",sep=""))[,-1]
 
 #make the columns as similiar as possible to videodata
 colnames(transect.FL)<-c("TransectID","Hummingbird","ID","Flower","Date","Month","Transect_R")
@@ -261,7 +264,7 @@ head(month.Prop)
 #is not split by elevation, but the flowers are aggregated into 200m bins
 #########################################################
 
-setwd(home)
+setwd(droppath)
 load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
 #The aggregate totals of the flower assemblage
@@ -303,5 +306,5 @@ ggplot(hum.fl[hum.fl$Species %in% species_keep,],aes(Flowers,value,col=as.factor
 ggsave(paste(netPath,"SpeciesProp_Flowers.svg",sep=""),height=8,width=11,dpi=300)
 
 #Save image to file
-setwd(home)
+setwd(droppath)
 save.image("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")

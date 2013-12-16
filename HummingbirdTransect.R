@@ -1,6 +1,6 @@
-################
+##########################
 #Hummingbird Transect Data
-################
+##########################
 
 #Data Collected by Holger Beck,K. Lohman and B. Weinstein
 #R script Ben Weinstein - Stony Brook University 7/7/2013
@@ -16,7 +16,7 @@ require(reshape)
 require(chron)
 
 #Set DropBox Working Directory
-setwd("C:/Users/Jorge/Dropbox/")
+#setwd("C:/Users/Ben/Dropbox/")
 
 #Read in workspace if desired for quick access
 #load("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
@@ -38,6 +38,7 @@ holgerID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIIDHolger
 ####################################
 #Clean Holger's data, begins in 9/2013
 ###################################
+
 holgerID$Transect_R<-factor(paste(holgerID$Elevation.Begin,holgerID$Elevation.End,sep="_"))
 
 #This is causing a real headache, for now just take the last two chracters of the year
@@ -89,7 +90,7 @@ colnames(monthInter)<-c("Hummingbird","Plant","Month","value")
 monthInter<-monthInter[!monthInter$value==0,]
 p<-ggplot(monthInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
 p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-p
+print(p)
 
 #################################
 #Clean Summer 2013 Data
@@ -140,12 +141,13 @@ p
 ################################################
 fullInter<-rbind(humInter,monthInter)
 
-p<-ggplot(fullInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
+p<-ggplot(fullInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month,nrow=2) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
 p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-p
+print(p)
 
 #write this matrix to file
 write.csv(fullInter,"Thesis/Maquipucuna_SantaLucia/Results/HumTransectMatrix.csv")
+print("Matrix_Written")
 
 #Okay, but it looks like the network functions just want the raw rows. 
 #Get all the summer rows that have plants
@@ -153,9 +155,11 @@ humNetwork<-hum.id[!is.na(hum.id$Plant.Species),]
 
 humNetwork<-humNetwork[,colnames(humNetwork) %in% c("ID","Plant.Species","Hummingbird.Species","Month","Date_F","Transect_R","GPS.ID")]
 #match up desired columns with holger's data
-
 colnames(humNetwork)
 colnames(holgerInter)<-c("ID","Hummingbird.Species","GPS.ID","Transect_R","Date_F","Month","Plant.Species")
 
 transectRows<-rbind(humNetwork,holgerInter)
 write.csv(transectRows,"Thesis/Maquipucuna_SantaLucia/Results/HumTransectRows.csv")
+
+#Return end of file
+print("HummingbirdTransects")
