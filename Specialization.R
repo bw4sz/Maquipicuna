@@ -5,14 +5,15 @@
 #Under Git repository - Maquipucuna
 
 #setwd to dropbox
-droppath<-"C:/Users/Jorge/Dropbox/"
-
+droppath<-"C:/Users/Ben/Dropbox/"
+setwd(droppath)
 #Set github path
-gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 ###############
 #The latest version of the input files need to be set at 
 list.files(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013/csv",sep=""))
+
 #################
 #Flowers
 #################
@@ -27,4 +28,3 @@ source(paste(gitpath,"HummingbirdTransect.R",sep=""))
 #Network Analysis
 #################
 source(paste(gitpath,"Network.R",sep=""))
-

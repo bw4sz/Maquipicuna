@@ -14,10 +14,10 @@ require(chron)
 require(stringr)
 
 #Set DropBox Working Directory
-setwd("C:/Users/Ben/Dropbox/")
+#setwd("C:/Users/Ben/Dropbox/")
 
 #Read in workspace if desired for quick access
-load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
 #Read in Flower Transect Data from summer field season
 fl<-read.csv(file="Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerTransects.csv")
@@ -288,7 +288,7 @@ save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
 
 ###############
-#Some throw away code to add the phylogeny script
+#to add the phylogeny script
 
 head(full.fl)
 
@@ -323,11 +323,34 @@ flowerComp<-lapply(full.m,function(x){
     ownS<-sum(x[x$Full %in% y,]$mean_Stalk)
     ownFL<-sum(x[x$Full %in% y,]$Total_Flowers)
     
-    if(nrow(targetFl)==0) {return(c(Flowers=ownFL,Congenerics.Stalk=0,Congenerics.Flower=0,Stalks=ownS,Genus=targetG))}
-    conS<-sum(targetFl$mean_Stalk,na.rm=TRUE)
-    conFL<-sum(targetFl$Total_Flowers,na.rm=TRUE)
+    if(nrow(targetFl)==0) {
+      conS=0
+      conFL=0
+    }
     
-    return(c(Flowers=as.numeric(ownFL),Congenerics.Stalk=conS, Congenerics.Flower=as.numeric(conFL), Stalks=ownS,Genus=targetG))})
+    if(!nrow(targetFl)==0) {
+      conS<-sum(targetFl$mean_Stalk,na.rm=TRUE)
+      conFL<-sum(targetFl$Total_Flowers,na.rm=TRUE)
+    }
+    
+    #repeat for family 
+    #get family name
+    targetF<-strsplit(y," ")[[1]][1]
+    
+    #get all records in that month, that are the flower, but not the species in question
+    targetFl<-x[x$Family %in% targetF & !x$Full %in% y,]        
+    
+    if(nrow(targetFl)==0) {
+      famS<-0
+      famFL<-0
+    }
+  
+    if(!nrow(targetFl)==0) {
+      famS<-sum(targetFl$mean_Stalk,na.rm=TRUE)
+      famFL<-sum(targetFl$Total_Flowers,na.rm=TRUE)
+    }
+    
+    return(c(Flowers=as.numeric(ownFL),Congenerics.Stalk=conS,Family.Stalk=famS, Congenerics.Flower=as.numeric(conFL),Family.Flower=famFL, Stalks=ownS,Genus=targetG,Family=targetF))})
   
   return(out)
 })
@@ -339,7 +362,25 @@ head(compT<-as.data.frame(cast(compT,L1+X2~X1)))
 #break month back out from elev
 compT<-data.frame(compT,colsplit(compT$L1,"\\.",c("Month","Transect")))
 
-#quick plot, need same for family
-ggplot(compT,aes(as.numeric(Flowers),as.numeric(Congenerics.Flower))) + geom_point()+ geom_smooth(aes(group=1),method="lm") + facet_wrap(~Genus,scales="free")
+#Flowers versus congeric flowers
+p<-ggplot(compT,aes(as.numeric(Flowers),as.numeric(Congenerics.Flower))) + geom_point()+ geom_smooth(aes(group=1),method="lm")
+p
+p+ facet_wrap(~Genus,scales="free")
 
-ggplot(compT,aes(as.numeric(Stalks),as.numeric(Congenerics.Stalk))) + geom_point()+ geom_smooth(aes(group=1),method="lm") + facet_wrap(~Genus,scales="free")
+#without facets
+#Flowers versus canfamilial flowers
+p<-ggplot(compT,aes(as.numeric(Flowers),as.numeric(Family.Flower))) + geom_point()+ geom_smooth(aes(group=1),method="lm") 
+p
+p + facet_wrap(~Family,scales="free")
+
+#stalks
+p<-ggplot(compT,aes(as.numeric(Stalks),as.numeric(Congenerics.Stalk))) + geom_point()+ geom_smooth(aes(group=1),method="lm") 
+p
+p+ facet_wrap(~Genus,scales="free")
+
+p<-ggplot(compT,aes(as.numeric(Stalks),as.numeric(Family.Stalk))) + geom_point()+ geom_smooth(aes(group=1),method="lm") 
+p 
+p+ facet_wrap(~Family,scales="free")
+
+#Return end of file
+print("FlowerTransects")
