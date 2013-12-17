@@ -15,6 +15,7 @@ require(vegan)
 require(reshape2)
 require(ggplot2)
 require(grid)
+require(GGally)
 
 #needs dev library ggbiplot,install if needed. 
 #require(devtools)
@@ -104,7 +105,7 @@ optionally add in circles covering normal distribution of groups
 ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x),ellipse=TRUE)
 ```
 
-17 trait data
+17 trait data cut into Least Correlated 7 Traits
 =========================
 
 ```{r,warning=FALSE,message=FALSE}
@@ -115,7 +116,7 @@ colnames(morph17)
 morph17<-morph17[,c(1:21,44)]
 
 #Name in English
-colnames(morph17)<-c("MorphID","SpID","Sex","N","Bill_Length","Mass","Bill-width","Total_Culmen","WingChord","Bill_Depth","Wing_Width","Wing_Length","Aspect_Ratio","Wing_Area","Wing_Loading","Wing_Taper","Wing_Area(alArea)","Tail_Length","Foot_Extension","Tarsus_Length","Nail_Length","Species")
+colnames(morph17)<-c("MorphID","SpID","Sex","N","Bill_Length","Mass","Bill_width","Total_Culmen","WingChord","Bill_Depth","Wing_Width","Wing_Length","Aspect_Ratio","Wing_Area","Wing_Loading","Wing_Taper","Wing_Area2","Tail_Length","Foot_Extension","Tarsus_Length","Nail_Length","Species")
 
 #just get males
 morph.male<-morph17[morph17$Sex=="Macho",]
@@ -147,18 +148,22 @@ head(trait17)
 trait17<-trait17[,-c(1,2,3,4)]
 
 
-
 #Standard the matrix to correct for different units by subtracting the means and dividing by sd
 zscore <- apply(trait17, 2, function(x){
   y<-(x - mean(x))/sd(x)
   return(y)
 })
+
+#Take only reasonably uncorrelated traits
+trait_keep<-c("Mass","Bill_Length","WingChord","Wing_Loading","Tarsus_Length","Tail_Length","Nail_Length")
+
+zscore_sub<-zscore[,colnames(zscore) %in% trait_keep]
 ```
 
-View PCA
+View PCA 
 
 ```{r}
-trait_pc<-prcomp(zscore)
+trait_pc<-prcomp(zscore_sub)
 ```
 
 ```{r}
@@ -180,4 +185,12 @@ optionally add in circles
 
 ```{r,fig.height=10,fig.width=10}
 ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x),ellipse=TRUE)
+```
+
+Define Roles
+```{r,fig.width=10,fig.height=10}
+rownames(trait_pc$x)
+roles<-factor(c("Generalist","Territorial","UKWN","Territorial","Territorial","Trapliner","Trapliner","Territorial","UKWN","Trapliner","Territorial","UKWN","UKWN","Territorial","Territorial","UKWN","Generalist","Trapliner","Trapliner","Trapliner","UKWN","Generalist","Territorial","UKWN"))
+
+ggbiplot(trait_pc,groups=roles,labels=rownames(trait_pc$x),ellipse=TRUE)
 ```

@@ -16,6 +16,7 @@ require(vegan)
 require(reshape2)
 require(ggplot2)
 require(grid)
+require(GGally)
 
 # needs dev library ggbiplot,install if needed.  require(devtools)
 # install_github('ggbiplot', 'vqv')
@@ -134,7 +135,7 @@ ggbiplot(trait_pc, groups = toCol, labels = rownames(trait_pc$x), ellipse = TRUE
 ![plot of chunk withellipse](figure/withellipse.png) 
 
 
-17 trait data
+17 trait data cut into Least Correlated 7 Traits
 =========================
 
 
@@ -165,8 +166,8 @@ morph17 <- morph17[, c(1:21, 44)]
 
 # Name in English
 colnames(morph17) <- c("MorphID", "SpID", "Sex", "N", "Bill_Length", "Mass", 
-    "Bill-width", "Total_Culmen", "WingChord", "Bill_Depth", "Wing_Width", "Wing_Length", 
-    "Aspect_Ratio", "Wing_Area", "Wing_Loading", "Wing_Taper", "Wing_Area(alArea)", 
+    "Bill_width", "Total_Culmen", "WingChord", "Bill_Depth", "Wing_Width", "Wing_Length", 
+    "Aspect_Ratio", "Wing_Area", "Wing_Loading", "Wing_Taper", "Wing_Area2", 
     "Tail_Length", "Foot_Extension", "Tarsus_Length", "Nail_Length", "Species")
 
 # just get males
@@ -207,7 +208,7 @@ head(trait17)
 ```
 
 ```
-##                         MorphID SpID Sex  N Bill_Length Mass Bill-width
+##                         MorphID SpID Sex  N Bill_Length Mass Bill_width
 ## Adelomyia.melanogenys       1.5    2  NA 16       15.04 4.24      5.075
 ## Aglaiocercus.coelestis      3.0    8  NA 13       16.24 6.07      6.040
 ## Amazilia.franciae          11.0   32  NA 19       22.71 5.27      5.680
@@ -228,25 +229,24 @@ head(trait17)
 ## Amazilia.tzacatl              62.66         7.52      3.03         0.24
 ## Boissonneaua.flavescens       87.66         7.75      3.07         0.21
 ## Coeligena.torquata            87.23         7.66      2.96         0.19
-##                         Wing_Taper Wing_Area(alArea) Tail_Length
-## Adelomyia.melanogenys        0.275             10.93       37.44
-## Aglaiocercus.coelestis       0.280             15.31       92.56
-## Amazilia.franciae            0.240              9.79       33.42
-## Amazilia.tzacatl             0.240             10.45       32.93
-## Boissonneaua.flavescens      0.250             19.86       47.06
-## Coeligena.torquata           0.290             19.87       45.86
-##                         Foot_Extension Tarsus_Length Nail_Length
-## Adelomyia.melanogenys            12.25         6.095        4.11
-## Aglaiocercus.coelestis           14.07         6.430        4.22
-## Amazilia.franciae                10.93         5.310        2.87
-## Amazilia.tzacatl                 10.62         5.240        2.77
-## Boissonneaua.flavescens          14.20         6.680        4.26
-## Coeligena.torquata               11.92         5.850        3.57
+##                         Wing_Taper Wing_Area2 Tail_Length Foot_Extension
+## Adelomyia.melanogenys        0.275      10.93       37.44          12.25
+## Aglaiocercus.coelestis       0.280      15.31       92.56          14.07
+## Amazilia.franciae            0.240       9.79       33.42          10.93
+## Amazilia.tzacatl             0.240      10.45       32.93          10.62
+## Boissonneaua.flavescens      0.250      19.86       47.06          14.20
+## Coeligena.torquata           0.290      19.87       45.86          11.92
+##                         Tarsus_Length Nail_Length
+## Adelomyia.melanogenys           6.095        4.11
+## Aglaiocercus.coelestis          6.430        4.22
+## Amazilia.franciae               5.310        2.87
+## Amazilia.tzacatl                5.240        2.77
+## Boissonneaua.flavescens         6.680        4.26
+## Coeligena.torquata              5.850        3.57
 ```
 
 ```r
 trait17 <- trait17[, -c(1, 2, 3, 4)]
-
 
 
 # Standard the matrix to correct for different units by subtracting the
@@ -255,14 +255,20 @@ zscore <- apply(trait17, 2, function(x) {
     y <- (x - mean(x))/sd(x)
     return(y)
 })
+
+# Take only reasonably uncorrelated traits
+trait_keep <- c("Mass", "Bill_Length", "WingChord", "Wing_Loading", "Tarsus_Length", 
+    "Tail_Length", "Nail_Length")
+
+zscore_sub <- zscore[, colnames(zscore) %in% trait_keep]
 ```
 
 
-View PCA
+View PCA 
 
 
 ```r
-trait_pc <- prcomp(zscore)
+trait_pc <- prcomp(zscore_sub)
 ```
 
 
@@ -297,4 +303,37 @@ ggbiplot(trait_pc, groups = toCol, labels = rownames(trait_pc$x), ellipse = TRUE
 ```
 
 ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8.png) 
+
+
+Define Roles
+
+```r
+rownames(trait_pc$x)
+```
+
+```
+##  [1] "Adelomyia.melanogenys"     "Aglaiocercus.coelestis"   
+##  [3] "Amazilia.franciae"         "Amazilia.tzacatl"         
+##  [5] "Boissonneaua.flavescens"   "Coeligena.torquata"       
+##  [7] "Coeligena.wilsoni"         "Colibri.coruscans"        
+##  [9] "Colibri.thalassinus"       "Doryfera.ludovicae"       
+## [11] "Florisuga.mellivora"       "Haplophaedia.lugens"      
+## [13] "Heliodoxa.imperatrix"      "Heliodoxa.jacula"         
+## [15] "Heliodoxa.rubinoides"      "Metallura.tyrianthina"    
+## [17] "Ocreatus.underwoodii"      "Phaethornis.striigularis" 
+## [19] "Phaethornis.syrmatophorus" "Phaethornis.yaruqui"      
+## [21] "Schistes.geoffroyi"        "Urosticte.benjamini"      
+## [23] "Heliangelus.exortis"       "Thalurania.furcata"
+```
+
+```r
+roles <- factor(c("Generalist", "Territorial", "UKWN", "Territorial", "Territorial", 
+    "Trapliner", "Trapliner", "Territorial", "UKWN", "Trapliner", "Territorial", 
+    "UKWN", "UKWN", "Territorial", "Territorial", "UKWN", "Generalist", "Trapliner", 
+    "Trapliner", "Trapliner", "UKWN", "Generalist", "Territorial", "UKWN"))
+
+ggbiplot(trait_pc, groups = roles, labels = rownames(trait_pc$x), ellipse = TRUE)
+```
+
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9.png) 
 
