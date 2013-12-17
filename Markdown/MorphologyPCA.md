@@ -111,7 +111,7 @@ Plot PCA - a bit ugly default
 
 ```r
 # normal plot, kinda ugly, need to zoom in
-biplot(trait_pc, cex = 1)
+biplot(trait_pc, cex = 0.75)
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
@@ -127,7 +127,7 @@ toCol <- clades[gsub(" ", ".", clades$double) %in% rownames(trait_pc$x), "Clade"
 ggbiplot(trait_pc, groups = toCol, labels = rownames(trait_pc$x))
 ```
 
-![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
+![plot of chunk ggbiplot](figure/ggbiplot.png) 
 
 
 optionally add in circles covering normal distribution of groups
@@ -136,6 +136,6 @@ optionally add in circles covering normal distribution of groups
 ggbiplot(trait_pc, groups = toCol, labels = rownames(trait_pc$x), ellipse = TRUE)
 ```
 
-![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
+![plot of chunk withellipse](figure/withellipse.png) 
 
 

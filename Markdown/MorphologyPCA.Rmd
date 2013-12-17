@@ -96,7 +96,7 @@ biplot(trait_pc,cex=.75)
 ```
 
 Use dev libary to ggplot PCA, color by clades
-```{r,ggbiplot,fig.height=10,fig.width=10}
+```{r,ggbiplot,fig.height=8,fig.width=8}
 #Try the ggplot biplot to color by clades (or later, behavioral roles)
 toCol<-clades[gsub(" ",".",clades$double) %in% rownames(trait_pc$x),"Clade"]
 
@@ -105,7 +105,7 @@ ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x))
 ```
 
 optionally add in circles covering normal distribution of groups
-```{r,withellipse,fig.height=10,fig.width=10}
+```{r,withellipse,fig.height=8,fig.width=8}
 ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x),ellipse=TRUE)
 ```
 
