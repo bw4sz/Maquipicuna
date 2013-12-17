@@ -42,8 +42,11 @@ dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideo.csv")
 #Read in 
 #If this has not been created see HummingbirdTransects.R
 
-#Read in Transect Dataset, needs to run from the HummingbirdTransect.R script
-humT<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HumTransectMatrix.csv",row.names=1)
+####Bring in interaction matrix for the flower transects, see FlowerTransects.R
+transect.FL<-read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv",sep=""))[,-1]
+
+#make the columns as similiar as possible to videodata
+colnames(transect.FL)<-c("TransectID","Hummingbird","ID","Flower","Date","Month","Transect_R")
 
 #Bring in the phylogeny
 #Read in phylogeny
@@ -63,46 +66,13 @@ head(dat)
         sep="", collapse=" ")
 }
 
-#bring in clade data
-clades<-read.csv("Shared Ben and Catherine/DimDivEntire/Files for Analysis/CladeList.txt",header=FALSE)[,-1]
-colnames(clades)<-c("Clade","Genus","Species","double","English")
-clades<-clades[,1:5]
-
-#Bring in trait data
-###Bring in trait data
-morph <- read.csv(paste(gitpath,"//InputData//MorphologyShort.csv",sep=""),na.strings="9999")
-
-#just get males
-morph.male<-morph[morph$Sex=="Macho",c("SpID","ExpC","Peso","AlCdo")]
-morph.complete<-morph.male[complete.cases(morph.male),]
-
-#aggregate for species
-agg.morph<-aggregate(morph.complete,list(morph.complete$SpID),mean)
-mon<-agg.morph[,-2]
-colnames(mon)<-c("Species","Bill","Mass","WingChord")
-rownames(mon)<-gsub(" ",".",mon[,1])
-mon<-mon[,-1]
-
-#principal component traits and get euclidean distance matrix
-means <- apply(mon, 2, mean)
-Bill <- mon$Bill - means["Bill"]/sd(mon$Bill)
-Mass <- mon$Mass - means["Mass"]/sd(mon$Mass)
-WingChord <- (mon$WingChord - means["WingChord"])/sd(mon$WingChord)
-z.scores <- data.frame(Bill, Mass, WingChord)
-rownames(z.scores) <- rownames(mon)
-trait_pc <- as.matrix(dist(z.scores, method = "euclidean"))
-
-####Bring in interaction matrix for the flower transects, see FlowerTransects.R
-transect.FL<-read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv",sep=""))[,-1]
-
-#make the columns as similiar as possible to videodata
-colnames(transect.FL)<-c("TransectID","Hummingbird","ID","Flower","Date","Month","Transect_R")
 
 #Fix date format
 dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))
 
 #Bind in the transect rows to the bottom of dat?
 dat<-rbind.fill(dat,transect.FL)
+
 ####################################################
 #Analysis of Flower Usage for each Hummingbird Species
 ####################################################
