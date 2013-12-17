@@ -337,3 +337,7 @@ ggbiplot(trait_pc, groups = roles, labels = rownames(trait_pc$x), ellipse = TRUE
 
 ![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9.png) 
 
+
+
+ggbiplot(trait_pc,groups=roles,labels=rownames(trait_pc$x),ellipse=TRUE) + theme_bw()
+ggsave(paste(gitpath,"PCA7Trait_Roles.svg"),dpi=300)
