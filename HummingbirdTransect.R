@@ -143,7 +143,7 @@ fullInter<-rbind(humInter,monthInter)
 
 p<-ggplot(fullInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month,nrow=2) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
 p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HummingbirdTransectInteractions.jpeg",height=8,width=13)
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HummingbirdTransectInteractions.jpeg",height=15,width=20)
 
 print(p)
 
