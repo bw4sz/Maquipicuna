@@ -105,6 +105,7 @@ NetworkC<-function(datf,naming){
   P_P[upper.tri(P_P)]<-NA
   m.PP<-melt(P_P)
   
+  write.csv(m.PP,"Hummingbird_Resource_Overlap.csv")
   #
   ggplot(m.PP,aes(X1,X2,fill=value)) + geom_tile() + scale_fill_continuous(low="blue",high="red",na.value="white") + theme(axis.text.x = element_text(angle = 90, hjust = 1))
   ggsave("PollinatorOverlap.svg",height=8,width=11)
