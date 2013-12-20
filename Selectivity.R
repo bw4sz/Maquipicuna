@@ -13,7 +13,7 @@ require(chron)
 require(reshape)
 
 #Set working directory
-droppath<-"C:/Users/Jorge/Dropbox/Thesis//Maquipucuna_SantaLucia/"
+droppath<-"C:/Users/Ben/Dropbox/Thesis//Maquipucuna_SantaLucia/"
 
 #Define selectivity function
 selective<-function(y){
@@ -86,22 +86,24 @@ ggplot(Total_Time_Species,aes(Species,minutes(TotalTime))) + geom_bar() + theme_
 #Split data into a list, with each compenent being one trial pair
 #In the future, we need to delinate by the same day?
 
-#Trials<-split(dat, list(dat$Elevation,dat$Date),drop=TRUE)
-Trials<-split(dat, list(dat$Elevation),drop=TRUE)
+Trials<-split(dat, list(dat$Elevation,dat$Date),drop=TRUE)
+#Trials<-split(dat, list(dat$Elevation),drop=TRUE)
 
 #####Just for data clarity remove any trials that down have high and low value data entered
 #Get number of levels per trial
 levels.trial<-lapply(Trials,function(x) nlevels(factor(x$Treatment)))
 
 #Only use trials that have a high and low, ie levels=2
-#complete.trial<- Trials[levels.trial ==2]
+complete.trial<- Trials[levels.trial ==2]
 
 #Calculate selectivity
-compet<-lapply(Trials,selective)
+compet<-lapply(complete.trial,selective)
 melt.compet<-melt(compet)
+#Split time and date?
+melt.compet<-data.frame(melt.compet,colsplit(melt.compet$L1,"\\.",c("Elev",'Date')))
 
 #Format table for selectivity across elevations
-selective.matrix<-as.data.frame(cast(melt.compet,L1 + Species ~ variable))
+selective.matrix<-as.data.frame(cast(melt.compet,Elev + Date + Species ~ variable))
 selective.matrix$Time_High<-times(selective.matrix$Time_High)
 selective.matrix$Time_Low<-times(selective.matrix$Time_Low)
 selective.matrix$Total_Time<-selective.matrix$Time_High + selective.matrix$Time_Low
