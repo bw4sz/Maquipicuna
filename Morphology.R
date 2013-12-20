@@ -9,18 +9,18 @@ require(grid)
 
 #needs dev library ggbiplot
 require(devtools)
-install_github("ggbiplot", "vqv")
-library(ggbiplot)
+#install_github("ggbiplot", "vqv")
+#library(ggbiplot)
 #
 
 #setwd to dropbox
-droppath<-"C:/Users/Jorge/Dropbox/"
+droppath<-"C:/Users/Ben/Dropbox/"
 setwd(droppath)
 #Set github path
-gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 #if not being sourced from Specialization.R, run the next line to get the env
-#save.image("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
+load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
 #bring in clade data
 clades<-read.csv(paste(gitpath,"InputData//CladeList.txt",sep=""),header=FALSE)[,-1]
@@ -142,3 +142,15 @@ ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x))
 #optionally add in circles
 ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x),ellipse=TRUE)
 
+#Create a distance matrix of morphological similarity among all species
+sp.dist<-as.matrix(dist(zscore))
+
+##########Morphological Similiarity and Niche Overlap
+#From the Network.R Script the number of shared plants
+
+#Bring in number of overlapping plants for either a month
+list.files("Thesis/Maquipucuna_SantaLucia/Results/Network",recursive=TRUE,pattern="Hummingbird_Resource_Overlap.csv")
+#need a more consistant measure of niche overlap, but atleast here is the number of shared records?
+
+
+melt(sp.dist)
