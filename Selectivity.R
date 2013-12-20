@@ -37,6 +37,11 @@ dat<-read.csv(paste(droppath,"Data2013/csv/CompetitionFeeders.csv",sep=""))
 
 #How many videos do we have for each elevation and treatment?
 vid_totals<-aggregate(dat$Video,list(dat$Elevation,dat$Treatment),function(x) nlevels(droplevels(x)))
+vid_totals<-cast(vid_totals,Group.1~Group.2)
+
+#Which dates need to be matched?
+vid_totals_date<-aggregate(dat$Video,list(dat$Elevation,dat$Treatment,dat$Date),function(x) nlevels(droplevels(x)))
+vid_totals_date<-cast(vid_totals_date,Group.1 + Group.3~Group.2)
 
 #Species richness and identity at each elevation
 sp_matrixHL<-(table(dat$Species,dat$Elevation,dat$Treatment) >= 1) * 1
