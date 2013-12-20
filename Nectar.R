@@ -12,8 +12,8 @@ require(reshape)
 #setwd
 #############
 
-#Nectar Script
-droppath<-"C:/Users/Jorge/Dropbox/"
+#Nectar Script, setwd if not running globally from specialization.R
+#droppath<-"C:/Users/Jorge/Dropbox/"
 
 #Bring in nectar data
 Nectar <- read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/Nectar.csv",sep=""))
@@ -42,6 +42,10 @@ Nectar$Full<-paste(Nectar$Family,Nectar$Genus,Nectar$Species)
 #Some weird records?
 toRemove<-c(567,415)
 Nectar<-Nectar[-toRemove,]
+
+######################################
+#Taxonomic Fixes
+######################################
 
 #Some basic visualizations to check data clarity
 #number of records per species
@@ -75,26 +79,3 @@ ggplot(Nectar,aes(x=TotalCorolla,y=Brix)) + geom_point(aes(color=Family)) + stat
 ggplot(Nectar,aes(x=EffectiveCorolla,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm") + geom_text(aes(label=Family),size=2)
 ggplot(Nectar,aes(x=Corolla.Width,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm") 
 
-########################################################
-#combine the elevation flower transects with morphology data
-########################################################
-#load in the nectar data
-load(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata",sep=""))
-head(full.fl)
-
-#Get the averages of the morphology dat
-agg.dat<-aggregate(Nectar[,c("TotalCorolla","EffectiveCorolla","Corolla.Width")],list(Nectar$Full),mean,na.rm=TRUE)
-colnames(agg.dat)[1]<-"Full"
-
-#Merge flower records and morphology
-full.morph<-merge(full.fl,agg.dat,by="Full")
-
-############################
-#Time Series and Morphology
-############################
-
-ggplot(full.morph,aes(as.factor(month),TotalCorolla)) + geom_boxplot()
-
-#First take the average nectar reading by species
-Nectar.mean<-aggregate(Nectar,list(Nectar$Full),mean,na.rm=TRUE)[,c("Group.1","EffectiveCorolla","TotalCorolla","Corolla.Width","Brix")]
-fl.nectar<-merge(fl.elev,Nectar.mean,by.x="Full",by.y="Group.1")
