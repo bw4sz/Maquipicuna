@@ -210,7 +210,6 @@ head(full.fl[is.na(full.fl$month),])
 fl.totals<-aggregate(full.fl$Total_Flowers,list(full.fl$Transect_R,full.fl$month,full.fl$Date),sum)
 colnames(fl.totals)<-c("Elev","Month","Date","TotalFlowers")
 
-
 ##Flowers per month and elevation
 p<-ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=3) + geom_smooth(aes(group=Month)) + facet_wrap(~Month,nrow=2) + theme_bw() + labs(col="Month")
 p + theme(axis.text.x = element_text(angle = 90, hjust = 1))

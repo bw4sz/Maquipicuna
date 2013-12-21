@@ -97,6 +97,19 @@ paste("Number of Flower Species:",nlevels(dat$Flower))
 #How many Birds Species
 paste("Number of Hummingbird Species:",nlevels(dat$Hummingbird))
 
+#Basic cleaning on flower diversity
+levels(dat$Flower)
+
+#Remove by hand any nonsensical data?
+dat[dat$Flower %in% "Rubiaceae Palicourea Sodiroi",]
+
+#Remove out piercing events for now?
+table(dat$Piercing)
+
+datPierce<-dat[dat$Piercing %in% c("Yes","YES"),]
+
+dat<-dat[!dat$Piercing %in% c("Yes","YES"),]
+
 ############################################
 #Run Network Function for the entire dataset
 NetworkC(dat,"Total")
