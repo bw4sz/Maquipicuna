@@ -10,6 +10,7 @@ require(ape)
 require(reshape)
 require(sna)
 require(stringr)
+require(rPlant)
 
 #############################
 #Set Dropbox Location
@@ -27,7 +28,7 @@ netPath<-paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
 #Load image for convienance
 #load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
-##############
+###################
 #Source Functions
 ###################
 source(paste(gitpath,"NetworkSource.R",sep=""))
@@ -66,59 +67,93 @@ head(dat)
         sep="", collapse=" ")
 }
 
-
 #Fix date format
 dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))
 
 #Bind in the transect rows to the bottom of dat?
 dat<-rbind.fill(dat,transect.FL)
 
-####################################################
-#Analysis of Flower Usage for each Hummingbird Species
-####################################################
-
-##############
-#Data Cleaning 
-##############
-
-#Capitalize Flowers
-dat$Flower<-factor(sapply(dat$Flower,function(x) {.simpleCap(as.character(x))}))
+###########################
+#Hummingbird Data Cleaning 
+###########################
 
 #Caps Hummingbird
 dat$Hummingbird<-factor(sapply(dat$Hummingbird,function(x) {.simpleCap(as.character(x))}))
 
+#make a object, just to save typing
+h<-levels(dat$Hummingbird)
+#Fix common mistakes
+h[h %in% "Fawn Breasted Brilliant"] <- "Fawn-breasted Brilliant"
+h[h %in% "Gorgetted Sunangel"]<-"Gorgetted Sunangel"
+h[h %in% "Violet-tailed Slyph"]<-"Violet-tailed Sylph"
+h[h %in% "Booted Racketail"]<-"Booted Racket-tail"
+h[h %in% "Green-crowned Woodnymph"]<-"Crowned Woodnymph" 
+
+levels(dat$Hummingbird) <- h
+
 #Take our any bad data
-dat<-droplevels(dat[!dat$Hummingbird %in% c("","NANA"),])
-
-#Overall statistics
-#How many flowers Species
-paste("Number of Flower Species:",nlevels(dat$Flower))
-
-#How many Birds Species
-paste("Number of Hummingbird Species:",nlevels(dat$Hummingbird))
-
-#Basic cleaning on flower diversity
-levels(dat$Flower)
-
-#Remove by hand any nonsensical data?
-dat[dat$Flower %in% "Rubiaceae Palicourea Sodiroi",]
+dat<-droplevels(dat[!dat$Hummingbird %in% c("","NANA","UKWN","Ukwn"),])
 
 #Remove out piercing events for now?
 table(dat$Piercing)
-
 datPierce<-dat[dat$Piercing %in% c("Yes","YES"),]
-
 dat<-dat[!dat$Piercing %in% c("Yes","YES"),]
+
+################Flower Taxonomy and Cleaning
+#Capitalize Flowers
+dat$Flower<-factor(sapply(dat$Flower,function(x) {.simpleCap(as.character(x))}))
+
+#For now, to be conservative all these metrics will be quite sensitive to taxonomic repeats, misspellings, and other errors that inflate number of potential plants
+#Therefore let's just get plants we have full IDs for right now, sorry clusia
+tax_comp<-sapply(gregexpr("\\W+", levels(dat$Flower)), length) + 1
+print(data.frame(levels(dat$Flower),Words=sapply(gregexpr("\\W+", levels(dat$Flower)), length) + 1))
+final_levels<-levels(dat$Flower)[which(tax_comp ==3)]
+
+datF<-droplevels(dat[dat$Flower %in% final_levels,])
+
+#Use the Iplant database to identify taxa changes, plus any nonsensical taxa?
+#Iplant wants just genus and species, seperated by an "_
+forIplant<-sapply(levels(datF$Flower),function(x){
+  s<-strsplit(x,split=" ")[[1]]
+  paste(s[2],tolower(s[3]),sep="_")
+})
+
+new.N<-ResolveNames(forIplant, max.per.call=100, verbose=TRUE)
+print(CompareNames(forIplant, new.N, verbose=TRUE))
+
+#Break iplant response back into data, create a new column
+plant.frame<-data.frame(Dat=forIplant,new.N)
+datF$Iplant<-NULL
+
+#Kinda a funky function, not sure how to do it better?
+#for each row in datF, get the name, match it to the column, make a new iplant column
+for (x in 1:nrow(datF)){
+  y<-datF[x,]
+  datF[x,"Iplant"]<-plant.frame[rownames(plant.frame) %in% as.character(y$Flower),"new.N"]   
+}
+
+#remove rows that did have an Iplant hit?
+datF<-droplevels(datF[!datF$Iplant %in% "",])
+
+#View which levels will be called
+print(paste(levels(datF$Iplant),"included in the Network!"))
+print(paste(levels(datF$Hummingbird),"included in the Network!"))
+
+#Overall statistics
+#How many flowers Species
+paste("Number of Flower Species:",nlevels(datF$Iplant))
+
+#How many Birds Species
+paste("Number of Hummingbird Species:",nlevels(datF$Hummingbird))
 
 ############################################
 #Run Network Function for the entire dataset
-NetworkC(dat,"Total")
+NetworkC(datF,"Total")
 ############################################
 
 ####################################################
 #Temporal Change in Network Structure
 ####################################################
-
 dat.split<-split(dat,dat$Month,drop=TRUE)
 
 ##############################################
@@ -285,7 +320,7 @@ species_keep<-month_Pres[which(month_Pres$x > 1),]$Group.1
 
 #remove an unknwon species
 species_keep<-species_keep[!species_keep %in% "UKWN"]
-ggplot(hum.fl[hum.fl$Species %in% species_keep,],aes(Flowers,value,col=as.factor(Month))) + facet_grid(Metric~Species,scale="free") + geom_point() + geom_smooth(method="lm",aes(group=1))
+ggplot(hum.fl[hum.fl$Species %in% species_keep,],aes(as.numeric(Flowers),value,col=as.factor(Month))) + facet_grid(Metric~Species,scale="free") + geom_point() + geom_smooth(method="lm",aes(group=1))
 ggsave(paste(netPath,"SpeciesProp_Flowers.svg",sep=""),height=8,width=11,dpi=300)
 
 #Save image to file

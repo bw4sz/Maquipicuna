@@ -10,7 +10,7 @@
 require(ggplot2)
 require(reshape2)
 require(maptools)
-library(plyr)
+require(plyr)
 require(plotKML)
 require(reshape)
 require(chron)
@@ -34,6 +34,12 @@ head(holger.hum)
 
 #Bring in holger transect data
 holgerID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIIDHolger.csv")
+
+#Fix holger's ID elev columns, make them more general, transect delim
+for (x in 1:6){
+  holgerID[holgerID$Transect %in% x,"Elevation.Begin"]<-1100 + 200*x 
+  holgerID[holgerID$Transect %in% x,"Elevation.End"]<-1300 + 200*x
+}
 
 ####################################
 #Clean Holger's data, begins in 9/2013
@@ -116,7 +122,6 @@ hum.id<-merge(Hum,TID.f,by.x="ID",by.y="TransectID")
 
 #Create date column
 hum.id$Date_F<-as.Date(as.character(hum.id$Date),"%m/%d/%Y")
-
 hum.id$Month<-as.numeric(format(as.Date(hum.id$Date_F),"%m"))
 hum.id$Transect_R<-paste(hum.id$Elevation.Begin,hum.id$Elevation.End,sep="_")
 
@@ -134,7 +139,7 @@ colnames(humInter)<-c("Hummingbird","Plant","Month","value")
 humInter<-humInter[!humInter$value==0,]
 p<-ggplot(humInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
 p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-plot(p)
+print(p)
 
 ################################################
 #Combine Holger's transect data with summer data
@@ -143,9 +148,8 @@ fullInter<-rbind(humInter,monthInter)
 
 p<-ggplot(fullInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month,nrow=2) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
 p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HummingbirdTransectInteractions.jpeg",height=15,width=20)
-
 print(p)
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HummingbirdTransectInteractions.jpeg",height=15,width=20)
 
 #write this matrix to file
 write.csv(fullInter,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectMatrix.csv")

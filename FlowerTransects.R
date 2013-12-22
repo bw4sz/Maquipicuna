@@ -24,11 +24,14 @@ fl<-read.csv(file="Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerTransects.cs
 #Load in holger's on going data
 holger.fl<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HolgerTransects.csv")
 
-#Bring in holger's hummingbird datasheet.
-holger.hum<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HolgerTransect_Hummingbirds.csv")
-
 #Bring in holger transect data
 holgerID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIIDHolger.csv")
+
+#Fix holger's ID elev columns, make them more general, transect delim
+for (x in 1:6){
+holgerID[holgerID$Transect %in% x,"Elevation.Begin"]<-1100 + 200*x 
+holgerID[holgerID$Transect %in% x,"Elevation.End"]<-1300 + 200*x
+}
 
 #This is causing a real headache, for now just take the last two chracters of the year
 holgerID$Date_F<-sapply(holgerID$Date,function(x){
@@ -51,15 +54,15 @@ holger.fl$Date_F<-sapply(holger.fl$Date,function(x){
   return(as.character(dat_f))
 })
 
-
 #Create ID columns
 holgerID$ID<-factor(paste(holgerID$Transect,holgerID$Date_F,sep="_"))
-
 holger.fl$ID<-factor(paste(holger.fl$Transect,holger.fl$Date_F,sep="_"))
-
 holgerID$ID[!holgerID$ID %in% holger.fl$ID]
+
+#Which IDs are missing?
 levels(droplevels(holger.fl$ID[!holger.fl$ID %in% holgerID$ID]))
 
+#Merge summer dataset with annual data
 holger.full<-merge(holger.fl,holgerID,"ID")
 
 #Fix the column names and rbindfill
@@ -96,9 +99,7 @@ full.fl<-rbind.fill(fl.id,holger.full)
 
 #Set holger as observer
 full.fl$Observer<-as.character(full.fl$Observer)
-
 full.fl$Observer[is.na(full.fl$Observer)]<-"Holger"
-
 full.fl$Observer<-factor(full.fl$Observer)
 
 head(full.fl)
@@ -134,7 +135,6 @@ names(fl.g)<-c("Genus","Count")
 #MS species need to be subbed in for the best taxonomy known
 full.fl<-full.fl[!full.fl$Family %in% c("Ms1","Ms2"),]
 
-########################################################
 #Combination of family genus count
 fl.fg<-melt(table(paste(full.fl$Family,full.fl$Genus)))
 names(fl.fg)<-c("F.Genus","Count")
@@ -154,6 +154,12 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/SpeciesCo
 
 #Use this as the marker for now
 full.fl$Full<-paste(full.fl$Family,full.fl$Genus,full.fl$Species)
+
+#Get plant list, any obvious erros?
+levels(factor(full.fl$Full))
+
+#Corrected Species on Mystery IDS
+full.fl[full.fl$Full %in% "Gesneriaceae  ms1" ,"Full"]<-"Gesneriaceae Glossoloma oblongicalyx"
 
 #Create total flower column by multiplying the Flowers per stalk, by stalks and total inflorescens
 #For now, remove any rows that have no flowers
@@ -212,11 +218,11 @@ colnames(fl.totals)<-c("Elev","Month","Date","TotalFlowers")
 
 ##Flowers per month and elevation
 p<-ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=3) + geom_smooth(aes(group=Month)) + facet_wrap(~Month,nrow=2) + theme_bw() + labs(col="Month")
-p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerMonths.jpeg",height=8,width=10)
 
 #Flowers at each elevation over time
-ggplot(fl.totals,aes(x=Month,TotalFlowers,col=Elev)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free_x")
+ggplot(fl.totals,aes(x=Month,TotalFlowers,col=Elev)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free_x") + scale_y_continuous(limits=c(0,5500),breaks=seq(0,5000,1000))
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10)
 
 #Brief look at time series and taxonomy
@@ -233,6 +239,8 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TimeSerie
 #Genus to Species Ratios
 ggplot(tax,aes(x=month,col=Elev,y=Genus/Species)) + geom_point() + geom_smooth(aes(group=1)) + xlab("Month") + facet_grid(~Elev,margins=TRUE) + theme_bw()
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TimeSeriesGSratio.jpeg",height=7,width=12)
+
+#This needs to be abundane based...
 
 # ##############################################
 # #Read in Spatial Data, still needs to be fixed. 

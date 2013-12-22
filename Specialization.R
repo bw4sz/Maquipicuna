@@ -5,10 +5,10 @@
 #Under Git repository - Maquipucuna
 
 #setwd to dropbox
-droppath<-"C:/Users/Ben/Dropbox/"
+droppath<-"C:/Users/Jorge/Dropbox/"
 setwd(droppath)
 #Set github path
-gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
 ###############
 #The latest version of the input files need to be set at 
@@ -32,9 +32,14 @@ source(paste(gitpath,"Network.R",sep=""))
 ########################
 #Phylogenetic Analysis?
 ########################
-
+source(paste(gitpath,"Phylogeny.R",sep=""))
 
 #########################
-#Morphological Analysis
+#Hummingbird Morphological Analysis
 #########################
 source(paste(gitpath,"Morphology.R",sep=""))
+
+#########################
+#Plant Morphological Analysis
+#########################
+source(paste(gitpath,"Nectar.R",sep=""))

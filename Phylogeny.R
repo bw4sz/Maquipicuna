@@ -12,6 +12,7 @@ require(reshape)
 require(chron)
 require(stringr)
 require(picante)
+require(rPlant)
 
 #Set DropBox Working Directory
 setwd("C:/Users/Jorge/Dropbox/")

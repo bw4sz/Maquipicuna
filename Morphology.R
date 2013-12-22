@@ -14,13 +14,13 @@ require(devtools)
 #
 
 #setwd to dropbox
-droppath<-"C:/Users/Ben/Dropbox/"
+droppath<-"C:/Users/Jorge/Dropbox/"
 setwd(droppath)
 #Set github path
-gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
 #if not being sourced from Specialization.R, run the next line to get the env
-load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
 #bring in clade data
 clades<-read.csv(paste(gitpath,"InputData//CladeList.txt",sep=""),header=FALSE)[,-1]

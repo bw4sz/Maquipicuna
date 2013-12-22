@@ -10,7 +10,7 @@ NetworkC<-function(datf,naming){
   setwd(toset)
   
   #Interaction of flowers and birds
-  F_H<-as.data.frame.array(table(datf$Flower,datf$Hummingbird))
+  F_H<-as.data.frame.array(table(datf$Iplant,datf$Hummingbird))
   
   #Save Input Matrix
   write.csv(F_H,"BirdXFlower.csv")
