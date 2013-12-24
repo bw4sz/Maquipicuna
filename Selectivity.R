@@ -13,7 +13,7 @@ require(chron)
 require(reshape)
 
 #Set working directory
-droppath<-"C:/Users/Jorge/Dropbox/Thesis//Maquipucuna_SantaLucia/"
+droppath<-"C:/Users/Ben/Dropbox/"
 
 #Define selectivity function
 selective<-function(y){
@@ -33,7 +33,7 @@ selective<-function(y){
   return(selectivity)}
 
 ##Read in data
-dat<-read.csv(paste(droppath,"Data2013/csv/CompetitionFeeders.csv",sep=""))
+dat<-read.csv(paste(droppath,"Thesis//Maquipucuna_SantaLucia/Data2013/csv/CompetitionFeeders.csv",sep=""))
 
 #How many videos do we have for each elevation and treatment?
 vid_totals<-aggregate(dat$Video,list(dat$Elevation,dat$Treatment),function(x) nlevels(droplevels(x)))
@@ -84,10 +84,8 @@ ggplot(Total_Time_Species,aes(Species,minutes(TotalTime))) + geom_bar() + theme_
 
 ####Match each trial together, trials are done on the same day at the same elevation
 #Split data into a list, with each compenent being one trial pair
-#In the future, we need to delinate by the same day?
 
 Trials<-split(dat, list(dat$Elevation,dat$Date),drop=TRUE)
-#Trials<-split(dat, list(dat$Elevation),drop=TRUE)
 
 #####Just for data clarity remove any trials that down have high and low value data entered
 #Get number of levels per trial
@@ -99,7 +97,8 @@ complete.trial<- Trials[levels.trial ==2]
 #Calculate selectivity
 compet<-lapply(complete.trial,selective)
 melt.compet<-melt(compet)
-#Split time and date?
+
+#Split time and date
 melt.compet<-data.frame(melt.compet,colsplit(melt.compet$L1,"\\.",c("Elev",'Date')))
 
 #Format table for selectivity across elevations
@@ -109,19 +108,21 @@ selective.matrix$Time_Low<-times(selective.matrix$Time_Low)
 selective.matrix$Total_Time<-selective.matrix$Time_High + selective.matrix$Time_Low
 
 #add total minutes feeding as a weight
-
 selective.matrix$Minutes_High<-minutes(selective.matrix$Time_High)+minutes(selective.matrix$Time_High)
 selective.matrix$Minutes_Low<-minutes(selective.matrix$Time_Low)+minutes(selective.matrix$Time_Low)
 selective.matrix$Minutes_Total<-selective.matrix$Minutes_Low+selective.matrix$Minutes_High
 
+#Rename column
 colnames(selective.matrix)[1]<-"Elevation"
 
-#plot
+###############
+#Plotting Selectivity
+###############
 
 #unweighted
 p<-ggplot(selective.matrix,aes(x=Elevation,Selectivity,col=Species)) + geom_point(size=3) + facet_wrap(~Species) + geom_smooth(aes(group=1))
 p
-ggsave(paste(droppath,"Selectivity/Selectivity_Elevation_Unweighted.svg",sep=""),height=8,width=15)
+ggsave(paste(droppath,"Thesis//Maquipucuna_SantaLucia/Results/Selectivity/Selectivity_Elevation_Unweighted.svg",sep=""),height=8,width=15)
 
 #weighted
 p<-ggplot(selective.matrix,aes(x=as.numeric(Elevation),Selectivity,col=Species,size=Minutes_Total)) + geom_point() + facet_wrap(~Species)
@@ -129,13 +130,16 @@ p
 p  + geom_smooth(method="glm",family="binomial",aes(weight=Minutes_Total)) + theme_bw() + xlab("Elevation")
 
 ## Write selectivity tables to file
-write.csv(selective.matrix,paste(droppath,"Selectivity/Selectivity_Elevation.csv",sep=""))
+write.csv(selective.matrix,paste(droppath,"Thesis//Maquipucuna_SantaLucia/Results/Selectivity/Selectivity_Elevation.csv",sep=""))
 
 ##########################################
-#Compare Selectivity to Available Resource
+#Compare Selectivity to Available Resource, incomplete, needs to be adjusted to per day
 ##########################################
-#FlowerTransects.R needs to be run first
-load(paste(droppath,"Results/FlowerTransect.Rdata",sep=""))
+
+#read in flower totals from FlowerTransects.R
+read.csv(paste(droppath,"FlowerTransects/FlowerTotals.csv"))
+
+#TH
 
 #Create a transect R column
 selective.matrix$Elev<-paste(selective.matrix$Elevation,(as.numeric(selective.matrix$Elevation) + 200),sep="_")
@@ -148,4 +152,22 @@ selective.fl<-merge(fl.totals,selective.matrix)
 
 #For now, aggregate across months?
 ggplot(selective.fl,aes(x=as.numeric(TotalFlowers),Selectivity,col=Species,size=Minutes_Total)) + geom_point() + facet_wrap(~Species)
+
+#################################
+#Species Presence and Time
+##################################
+
+#Create overall date stamp
+dat$Time_Stamp<-as.POSIXct(chron(dates=as.character(dat$Date),dat$Time.Begin))
+
+#Time and species occurence, facetted by elevation
+ggplot(dat,aes(x=strptime(dat$Time.Begin,"%H:%M"),fill=Species)) + geom_histogram(position="dodge") + facet_wrap(~Elevation)
+ggsave("Thesis//Maquipucuna_SantaLucia/Results/TimeofDayElevation.svg",height=11,width=8,dpi=300)
+
+#Overall Month_Day and Elevation
+ggplot(dat,aes(y=factor(Elevation),x=dat$Time_Stamp,col=Species)) + geom_point(size=3) + scale_x_datetime() + facet_wrap(~Species)
+ggsave("Thesis//Maquipucuna_SantaLucia/Results/DateElevation.svg",height=11,width=8,dpi=300)
+
+ggplot(dat,aes(x=dat$Time_Stamp,fill=Species)) + geom_histogram(position="dodge") + facet_wrap(~Elevation)
+ggsave("Thesis//Maquipucuna_SantaLucia/Results/TimeofDayElevation.svg",height=11,width=8,dpi=300)
 

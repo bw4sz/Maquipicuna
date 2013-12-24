@@ -44,4 +44,7 @@ source(paste(gitpath,"Morphology.R",sep=""))
 #########################
 source(paste(gitpath,"Nectar.R",sep=""))
 
-#New Line. 
+#########################
+#Time Series Analysis
+#########################
+source(paste(gitpath,"TimeSeries.R",sep=""))

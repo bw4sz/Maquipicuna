@@ -15,11 +15,11 @@ require(rPlant)
 #############################
 #Set Dropbox Location
 #Read in flower videos
-#droppath<-"C:/Users/Ben/Dropbox/"
+droppath<-"C:/Users/Ben/Dropbox/"
 setwd(droppath)
 
 #Set Gitpath
-#gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 #Where are the outputs?
 netPath<-paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
@@ -51,21 +51,15 @@ colnames(transect.FL)<-c("TransectID","Hummingbird","ID","Flower","Date","Month"
 
 #Bring in the phylogeny
 #Read in phylogeny
-tree<-read.nexus("Shared Ben and Catherine/DimDivEntire/Files for Analysis/ColombiaPhylogenyUM.tre")
+tree<-read.nexus(paste(gitpath,"InputData/ColombiaPhylogenyUM.tre",sep=""))
 
 #Read in names file to replace names in Nexis file
-spnames<-read.table(file="Shared Ben and Catherine/DimDivEntire/Files for Analysis/SpNameTree.txt" , sep = "\t", header = TRUE)
+spnames<-read.table(paste(gitpath,"InputData/SpNameTree.txt",sep="") , sep = "\t", header = TRUE)
 
 #Replace tip.label with Spnames#
 tree$tip.label<-as.character(spnames$SpName) 
 head(dat)
 
-#For the sake of simplicity, make everything lowercase
-.simpleCap <- function(x) {
-  s <- strsplit(x, " ")[[1]]
-  paste(toupper(substring(s, 1,1)), substring(s, 2),
-        sep="", collapse=" ")
-}
 
 #Fix date format
 dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))
@@ -79,6 +73,8 @@ dat<-rbind.fill(dat,transect.FL)
 
 #Caps Hummingbird
 dat$Hummingbird<-factor(sapply(dat$Hummingbird,function(x) {.simpleCap(as.character(x))}))
+
+####Taxize here?
 
 #make a object, just to save typing
 h<-levels(dat$Hummingbird)
