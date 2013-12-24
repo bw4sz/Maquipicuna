@@ -141,6 +141,7 @@ paste("Number of Flower Species:",nlevels(datF$Iplant))
 
 #How many Birds Species
 paste("Number of Hummingbird Species:",nlevels(datF$Hummingbird))
+write.csv(datF,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
 ############################################
 #Run Network Function for the entire dataset

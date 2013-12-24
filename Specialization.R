@@ -10,41 +10,58 @@ setwd(droppath)
 #Set github path
 gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
-###############
+##########################
 #The latest version of the input files need to be set at 
 list.files(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013/csv",sep=""))
 
-#################
+#First set of scripts are desciptive that clean, aggregate and quantify flowers, morphology, and hummingbird interactions
+
+##########################
 #Flowers
-#################
+#########################
+
 source(paste(gitpath,"FlowerTransects.R",sep=""))
 
-################
-#Hummingbirds
-################
-source(paste(gitpath,"HummingbirdTransect.R",sep=""))
+#########################
+#Flower Morphological
+#########################
 
-#################
-#Network Analysis
-#################
-source(paste(gitpath,"Network.R",sep=""))
+source(paste(gitpath,"Nectar.R",sep=""))
 
 ########################
-#Phylogenetic Analysis?
+#Flower Phylogeny
 ########################
+
 source(paste(gitpath,"Phylogeny.R",sep=""))
+
+########################
+#Hummingbirds
+########################
+
+source(paste(gitpath,"HummingbirdTransect.R",sep=""))
 
 #########################
 #Hummingbird Morphological Analysis
 #########################
+
 source(paste(gitpath,"Morphology.R",sep=""))
 
-#########################
-#Plant Morphological Analysis
-#########################
-source(paste(gitpath,"Nectar.R",sep=""))
+#Next set of scripts take in the descriptive stats and perform analysis
+
+#################
+#Network Analysis
+#################
+
+source(paste(gitpath,"Network.R",sep=""))
 
 #########################
-#Time Series Analysis
+#Time Series Analysis of Hummingbird Presence along Elevation
 #########################
+
 source(paste(gitpath,"TimeSeries.R",sep=""))
+
+#########################
+#Phenotypic Matching 
+#########################
+
+source(paste(gitpath,"PhenotypicMatching.R",sep=""))

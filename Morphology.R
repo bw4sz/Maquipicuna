@@ -14,10 +14,10 @@ require(devtools)
 #
 
 #setwd to dropbox
-droppath<-"C:/Users/Jorge/Dropbox/"
-setwd(droppath)
+#droppath<-"C:/Users/Ben/Dropbox/"
+#setwd(droppath)
 #Set github path
-gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
+#gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 #if not being sourced from Specialization.R, run the next line to get the env
 #load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
@@ -116,11 +116,14 @@ missing<-gsub(" ",".",sci.name)[!gsub(" ",".",sci.name) %in% rownames(mon)]
 #Add in closest related species for the species we are missing
 trait17<-rbind(trait17,mon[c("Heliangelus.exortis","Thalurania.furcata"),])
 
+#merge with clade info to write to file
+clades$double.<-gsub(" ",".",clades$double)
+
+write.csv(merge(trait17,clades,by.x="row.names",by.y="double."),"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdMorphology.csv")
+
 #take out columns unwanted in the PCA
 head(trait17)
 trait17<-trait17[,-c(1,2,3,4)]
-
-
 
 #Standard the matrix to correct for different units by subtracting the means and dividing by sd
 zscore <- apply(trait17, 2, function(x){
