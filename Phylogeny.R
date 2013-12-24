@@ -1,4 +1,4 @@
-#Flower Phenology 
+#Flower Phenology and Phylogenetics
 #R script Ben Weinstein - Stony Brook University 7/7/2013
 #Under Git repository - Maquipucuna
 
@@ -15,52 +15,49 @@ require(picante)
 require(rPlant)
 
 #Set DropBox Working Directory
-setwd("C:/Users/Jorge/Dropbox/")
+setwd("C:/Users/Ben/Dropbox/")
 
-#need to run flowerTransects.R
-#Read in workspace if desired for quick access
-load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+#need to run flowerTransects.R, get flower names from file
 
-#Clean flowers for intial try at resolution
+fl.names<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/Iplant_Names.txt",row.names=1)
+
 #must have family genus and species
-numWords<-sapply(gregexpr("\\W+", fl.all$Species), length) + 1
-
+numWords<-sapply(strsplit(as.character(fl.names$x),"_"),length)
 #Which species have three words in the them?
-initN<-droplevels(fl.all$Species[numWords==3])
+initN<-droplevels(fl.names$x[numWords==2])
+initGenus<-droplevels(fl.names$x[numWords==1])
 
-#Get rid of records with sp.
-toRemove<-str_detect(initN,"sp")
+#For the moment, while there are some errors with taxize, just grab those species that taxize likes, not a long term solution?
+uids<-get_uid(initN)
 
-#Remove sp with ?
-initN<-initN[!toRemove]
-toRemove<-str_detect(initN,fixed('?'))
+class.taxize<-classification(uids)
 
-#Remove species with spaces
-initN<-as.character(initN[!toRemove])
-toRemove<-str_detect(initN,' ')
+taxize.Sp<-sapply(class.taxize,function(x){
+  if(is.na(x)){return(NA)}
+  x[x$Rank %in% "species","ScientificName"]
+})
 
-#Still has some spaces
-threeSp<-sapply(initN,function(x){
-  length(strsplit(x," ")[[1]])
-}) 
+#just out of curosity which species match up?
+data.frame(initN,taxize.Sp)
 
-initN<-initN[threeSp == 3]
+#Grab the species taxize sees
+toPhylo<-taxize.Sp[!is.na(taxize.Sp)]
 
-#which species have the name in the tropicos database
-new.N<-ResolveNames(initN, max.per.call=100, verbose=TRUE)
-CompareNames(initN, new.N, verbose=TRUE)
+#Species attempt.
+tree <- phylomatic_tree(taxa=toPhylo, get = 'POST', informat='newick',
+                        method = "phylomatic", storedtree = "smith2011",
+                        outformat = "newick", clean = "true")
 
-#conservatively, use these matches
-inTrop<-sapply(strsplit(initN," "),function(x){  paste(x[2],x[3],sep="_")}) %in% new.N
+#lots of ugliness there
+try2<-tree$tip.label[!is.na(tree$tip.label)][-c(17,18)]
 
-initN<-initN[inTrop]
+tree <- phylomatic_tree(taxa=try2, get = 'POST', informat='newick',
+                        method = "phylomatic", storedtree = "smith2011",
+                        outformat = "newick", clean = "true")
+#Genus attempt.
+tree <- phylomatic_tree(taxa= c(as.character(initGenus))[5:8], get = 'POST', informat='newick',
+                        method = "phylomatic", storedtree = "smith2011",
+                        outformat = "newick", clean = "true")
 
-#manually take out any nonsense species
-namesFl<-initN[-c(4,17,41,54)]
 
-#sorry looks like it just wants genus and species
-
-write.table(sapply(strsplit(initN," "),function(x){  paste(x[2],x[3],sep="_")}),"names.txt",row.names=FALSE,col.names=FALSE)
-
-#After run of phyloGenerator
-tre<-read.tree("C:/Users/Jorge/Documents/Maquipicuna/phyloGenerator/maqui_phylogeny.tre")
+plot(tree)

@@ -13,7 +13,7 @@ require(reshape)
 require(chron)
 
 #Set DropBox Working Directory
-setwd("C:/Users/Jorge/Dropbox/")
+setwd("C:/Users/Ben/Dropbox/")
 
 #Read in workspace if desired for quick access
 #load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
@@ -66,7 +66,7 @@ levels(droplevels(holger.fl$ID[!holger.fl$ID %in% holgerID$ID]))
 holger.full<-merge(holger.fl,holgerID,"ID")
 
 #Fix the column names and rbindfill
-colnames(fl)<-c("Family","Genus","Species","Height","Flowers","Stalks","Inflorescences.Plants","GPS_ID","Accuracy","Hummingbird.Species","Photo","Transect.ID","Comment")
+colnames(fl)<-c("Family","Genus","Species","Height","Flowers","Stalks","Inflorescences.Plants","GPS_ID","Accuracy","Hummingbird.Species","Photo","Transect.ID","Comment","Revise_Remove")
 
 #Just get the desired columns and rename
 holger.full<-holger.full[,colnames(holger.full) %in% c(colnames(holger.full)[1:15],"Elevation.Begin","Elevation.End") ]
@@ -95,7 +95,7 @@ dim(fl.id)
 
 head(fl.id)
 
-full.fl<-rbind.fill(fl.id,holger.full)
+full.fl<-rbind.fill(holger.full,fl.id)
 
 #Set holger as observer
 full.fl$Observer<-as.character(full.fl$Observer)
@@ -107,44 +107,86 @@ head(full.fl)
 #Create elevation ID
 full.fl$Transect_R<-factor(paste(full.fl$Elevation.Begin,full.fl$Elevation.End,sep="_"))
 
-##############################################
-#Basic Records and Cleaning of Flower Taxonomy
-##############################################
+################
+#Flower Taxonomy
+################
 
-#Turn first letter of family to uppercase
-#see toupper?
-.simpleCap <- function(x) {
-  s <- strsplit(x, " ")[[1]]
-  paste(toupper(substring(s, 1,1)), substring(s, 2),
-        sep="", collapse=" ")
+#Go through a series of data cleaning steps, at the end remove all rows that are undesired
+
+Families<-levels(factor(full.fl$Family))
+iplant_names<-ResolveNames(names=Families)
+CompareNames(Families,iplant_names)
+
+Fam_Result<-data.frame(Families,iplant_names)
+Fam_Errors<-Fam_Result[Fam_Result$iplant_names %in% "","Families"]
+
+#Post to output which plant families need to be address
+print(paste(Fam_Errors,"not found in taxonomy database"))
+
+#Repeat for genus
+Genus<-levels(factor(full.fl$Genus))
+iplant_names<-ResolveNames(names=Genus)
+CompareNames(Genus,iplant_names)
+
+Genus_Result<-data.frame(Genus,iplant_names)
+Genus_Errors<-Genus_Result[Genus_Result$iplant_names %in% "","Genus"]
+
+#Post to output which plant families need to be address
+print(paste(Genus_Errors,"not found in taxonomy database"))
+
+#Set the Genus column
+for (x in 1:nrow(full.fl)){
+  y<-full.fl[x,]
+  full.fl[x,"Iplant_Genus"]<-levels(droplevels(Genus_Result[Genus_Result$Genus %in% y$Genus,"iplant_names"] ))   
 }
 
-full.fl$Family<-as.factor(sapply(full.fl$Family,function(x) .simpleCap(as.character(x))))
-#How many families do we have?
-fl.t<-melt(table(full.fl$Family))
-names(fl.t)<-c("Family","Count")
-#ggplot(fl.t,aes(Family,Count)) + geom_bar() + coord_flip() + theme_bw()
+#Repeat for species
+Species<-levels(factor(paste(full.fl$Iplant_Genus,full.fl$Species,sep="_")))
+iplant_names<-ResolveNames(Species)
+print(CompareNames(Species,iplant_names))
+Species_Result<-data.frame(Species,iplant_names)
 
-#Turn genus to uppercase
-full.fl$Genus<-as.factor(sapply(full.fl$Genus,function(x) .simpleCap(as.character(x))))
-table(full.fl$Genus)
-fl.g<-melt(table(full.fl$Genus))
-names(fl.g)<-c("Genus","Count")
-#ggplot(fl.g,aes(Genus,Count)) + geom_bar() + coord_flip() + theme_bw()
+#Set the Species column
+for (x in 1:nrow(full.fl)){
+  y<-full.fl[x,]
+  toMatch<-paste(y$Iplant_Genus,y$Species,sep="_")
+  full.fl[x,"Iplant_Double"]<-levels(droplevels(
+    Species_Result[Species_Result$Species %in% toMatch,"iplant_names"] ))   
+}
 
-#MS species need to be subbed in for the best taxonomy known
-full.fl<-full.fl[!full.fl$Family %in% c("Ms1","Ms2"),]
+#Lots of cleaning left to do, but that's a start. 
+#Final levels
+print(paste("Final Flower Species:", levels(factor(full.fl$Iplant_Double))))
 
-#Combination of family genus count
-fl.fg<-melt(table(paste(full.fl$Family,full.fl$Genus)))
-names(fl.fg)<-c("F.Genus","Count")
-#ggplot(fl.fg,aes(F.Genus,Count)) + geom_bar() + coord_flip() + theme_bw()
+#Write 
+write.csv(levels(factor(full.fl$Iplant_Double)),"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/Iplant_Names.txt")
 
-#For species, turn all to lowercase
-full.fl$Species<-as.factor(sapply(full.fl$Species,tolower))
-fl.s<-melt(table(full.fl$Species))
-names(fl.s)<-c("Species","Count")
-#ggplot(fl.s,aes(Species,Count)) + geom_bar() + coord_flip() + theme_bw()
+#Error rows, though species that are not going to be 
+head(full.fl)
+
+error_rows<-full.fl[full.fl$Iplant_Double %in% "",]
+print("Error_Rows")
+print(rownames(error_rows))
+
+GS<-levels(factor(full.fl$Iplant_Double))
+
+uids<-get_uid(GS)
+
+out <- classification(uids)
+taxize_N<-sapply(out, function(x){
+  if(is.na(x)){return(NA)}
+  print(x)
+  paste(x[x$Rank %in% "family","ScientificName"],x[x$Rank %in% "species","ScientificName"])
+})
+
+data.frame(GS,taxize_N)
+
+taxize_Name<-sapply(out, function(x){
+  if(is.na(x)){return(NA)}
+  x[x$Rank %in% "family","ScientificName"]
+})
+
+data.frame(levels(factor(full.fl$Family)),taxize_Name)
 
 #Family Genus Species, in future, create abreviations
 fl.all<-melt(table(paste(full.fl$Family,full.fl$Genus,full.fl$Species)))
@@ -158,8 +200,14 @@ full.fl$Full<-paste(full.fl$Family,full.fl$Genus,full.fl$Species)
 #Get plant list, any obvious erros?
 levels(factor(full.fl$Full))
 
-#Corrected Species on Mystery IDS
-full.fl[full.fl$Full %in% "Gesneriaceae  ms1" ,"Full"]<-"Gesneriaceae Glossoloma oblongicalyx"
+uid<-get_uid(levels(factor(full.fl$Full)))
+out <- classification(uid)
+
+taxize_Name<-sapply(out, function(x){
+  if(is.na(x)){return(NA)}
+  paste(x[x$Rank %in% "family","ScientificName"],sep=x[x$Rank %in% "genus","ScientificName"],x[x$Rank %in% "species","ScientificName"])
+})
+
 
 #Create total flower column by multiplying the Flowers per stalk, by stalks and total inflorescens
 #For now, remove any rows that have no flowers

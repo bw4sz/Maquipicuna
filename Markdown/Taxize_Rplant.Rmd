@@ -1,0 +1,49 @@
+Comparison of rPLant and Taxize in resolving plant names from Maquipucuna Ecuador
+========================================================
+
+I'm having some trouble understanding the differences in outputs from rPlant's resolveNames with calls.
+
+I really love the tools in taxize, and am very eager to try the phylomatic options. For my workflow, i was first using the rPlant ResolveNames fuction because of its nice fuzzy matching of misspelled species (lots of field assistants!). I would then run the outputs of the rPlant search into taxize to check if there are have been taxonomy changes. I'm finding that many records in rPlant, and corroborated online as good species names, are failing to be found within taxize. 
+
+As a quick reference here are the eol pages for five sample species
+http://eol.org/pages/1118538/overview
+http://eol.org/pages/8767588/overview
+http://eol.org/pages/1118438/overview
+http://eol.org/pages/8767461/overview (although ironically i can see that the images for this species are of the wrong genus on eol)
+http://eol.org/pages/1107632/overview
+
+Also works from another source:
+http://www.theplantlist.org/tpl/record/kew-84010
+
+
+```{r}
+require(rPlant)
+require(taxize)
+
+#Create some test names, some that match, some that disagree, etc. I can push a file to github if you would like to see the full naming lists (has some ugly NA species).
+
+
+nam<-c("Heliconia_virginalis","Guzmania_amplectens","Macleania_bullata","psamisia_ulbrichiana","faramae calyptrata") # In this list, the first three are good species, the last two are intentionally misspelled ("psammisia", "faramea")
+
+#First rplant
+rPlant_N<-ResolveNames(nam)
+CompareNames(nam,rPlant_N)
+#That was a success.
+
+#Taxize to reflect current taxonomy.
+uids<-get_uid(rPlant_N)
+classification(uids)
+#Flags two errors
+```
+
+```{r}
+gnr_resolve("Guzmania jaramilloi")
+gnr_resolve("Guzmania_jaramilloi")
+
+get_uid("Guzmania jaramilloi")
+get_uid("Guzmania_jaramilloi")
+```
+
+My ultimate goal is to get a species list of accepted names, such that i can input them into the phylomatic_tree, i'm aiming for a genus level phylogeny, but that's the next question.
+
+As always i appreciate your work, insight, and leadership. The RopenSci community is an incredible project.
