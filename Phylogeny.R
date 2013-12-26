@@ -10,93 +10,102 @@ require(phytools)
 #Set DropBox Working Directory
 setwd("C:/Users/Ben/Dropbox/")
 
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+
 #need to run flowerTransects.R, get flower names from file
 fl.names<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/Iplant_Names.txt",row.names=1)
 
-# #must have family genus and species
-numWords<-sapply(strsplit(as.character(fl.names$x),"_"),length)
-# #Which species have three words in the them?
-initN<-droplevels(fl.names$x[numWords==2])
-initGenus<-droplevels(fl.names$x[numWords==1])
+#Grab those species that taxize recognizes
 
-#For the moment, while there are some errors with taxize, just grab those species that taxize likes, not a long term solution?
+#Unfortunately, using the tropicos dp leads to lots of conflicts because of the number of subspecies, we just want rank = sp.
+#Not a big deal, just can't show here.
 
-uids<-get_ids(gsub("_"," ",fl.names$x[-1]),db="tropicos",ask=FALSE)
+uids<-get_ids(gsub("_"," ",fl.names$x[-1]),db="tropicos",ask=TRUE)
 
-#remove Na's
-ui<-uids[[1]][!is.na(uids[[1]])]
-class.taxize<-classification(uids,db="tropicos")
+#Save image, so we don't have to manually do that everytime.
+save.image("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 
+#Optional start here on restart
+#load("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
+
+#Classify
+class.taxize<-classification(uids$tropicos)
+
+#Format into a dataframe
 m.t<-melt(class.taxize,"ScientificName")
 
 #Remove species with Na
 m.t<-m.t[complete.cases(m.t),]
-fl.leveln<-levels(factor(m.t$L2))
 
-#got get the family name?
-uids<-get_ids(fl.leveln,db="tropicos",ask=FALSE)
-class.taxize<-classification(uids,db="tropicos")
+#Create list of plants to enter into Phylomatic
+fl.leveln<-levels(factor(m.t$L1))
 
-familys<-sapply(class.taxize[[1]],function(x){
-  x[x$Rank %in% "family","ScientificName"]
-})
+head(fl.leveln)
 
-genera<-sapply(class.taxize[[1]],function(x){
-  x[x$Rank %in% "genus","ScientificName"]
-})
+#Okay now we have the taxa list, let's first try the taxize:: function to access the phylomatic API
+tree_smith <- phylomatic_tree(taxa=fl.leveln, storedtree='smith2011', get='POST')
+tree_smith
+plot(tree_smith)
 
-nam.df<-data.frame(F=familys,GS=fl.leveln)
+tree_APG3 <- phylomatic_tree(taxa=fl.leveln, storedtree='R20120829"', get='POST')
+tree_APG3
 
-phyloO<-gsub(" ","/",paste(nam.df$F,nam.df$GS,sep="/"))
-#Write to phylomatic output
+#Just for fun, try genus only, in case its a species name problem?
+# count number of words in a string
+GenusOnly<-sapply(fl.leveln,function(x){
+    split_x<-strsplit(as.character(x),split=" ")
+    split_x[[1]][1]
+  })
 
-write.table(phyloO,paste(gitpath,"names.txt",sep=""),row.names=FALSE, col.names=FALSE,quote=FALSE)
+Gtree_smith <- phylomatic_tree(GenusOnly, storedtree='smith2011', get='POST')
+Gtree_smith
 
-#Read in phylomatic output?
-tree<-read.newick(paste(gitpath,"PhyloM.txt",sep=""))
-tree<-read.tree(paste(gitpath,"Phylomatic_out.new",sep=""))
+tree_APG3 <- phylomatic_tree(taxa=GenusOnly, storedtree='R20120829"', get='POST')
+tree_APG3
 
-read.newick(text=tree)
-  c.tree<-collapse.singles(tree)
-plot(c.tree)
-       complete.tax<-split(m.t,m.t$L2)
+#Not successful
+##Okay, no big deal, i'll try to do it online.
+#I'm struggling a bit with the phylocom syntax since the sample is inconsistant, and it also disagrees with the documentation
 
-fl.leveln<-levels(factor(m.t$L2))
+#Phylomatic sample input reads: malvaceae/durio/durio_zibethinus, which to me looks like family/genus/genus_species
 
-taxa <- c("Collomia grandiflora", "Lilium lankongense", "Phlox diffusa",
-          "Iteadaphne caudata", "Nicotiana tomentosa", "Gagea sarmentosa")
-tree <- phylomatic_tree(taxa=as.character(initGenus)[-c(10:15)], get = 'POST', informat='newick', method = "phylomatic", storedtree = "R20120829",outformat = "newick", clean = "true")
-plot(tree)
-tree <- phylomatic_tree(taxa=taxa, get = 'POST', informat='newick', method = "phylomatic", storedtree = "smith2011",outformat = "newick", clean = "false")
+##Formatting for Phylomatic Online
+#Family Name
 
-tree <- phylomatic_tree(taxa=fl.leveln, storedtree='smith2011', get='POST')
+#Go back to taxize classification, for each entry, format in Family/Genus/Genus_Species
+class.taxize[[5]]
+names(class.taxize[5])
 
-
-#Species attempt.
-for (x in 1:length(fl.leveln)){
-  print(x)
-tree <- phylomatic_tree(taxa=fl.leveln[1:x])
-  print(tree)
-try(plot(tree))
+phyloN<-vector()
+for (i in 1:length(class.taxize)){
+  y<-class.taxize[[i]]  
+  
+  #Skip if taxize didn't find a hit
+  if(is.na(y)){next}
+  
+  GS<-gsub(" ","_",names(class.taxize[i]))
+  
+  #If there is not a species name
+  if(length(y[y$Rank %in% "genus","ScientificName"])==0){
+    phyloN[i]<-paste(y[y$Rank %in% "family","ScientificName"],GS,sep="/")}
+  
+  #If is genus, no species name
+  if(!length(y[y$Rank %in% "genus","ScientificName"])==0){
+    str1<-paste(y[y$Rank %in% "genus","ScientificName"],GS,sep="/")
+    phyloN[i]<-paste(y[y$Rank %in% "family","ScientificName"],str1,sep="/")}
 }
 
-plot(tree)
+#remove Na's
+phyloN[!is.na(phyloN)]
 
-#Write a for loop to track errors?
-#has problem with 8,10,22?
+#View
+head(phyloN)
 
-#lots of ugliness there
-try2<-tree$tip.label[!is.na(tree$tip.label)][-c(17,18)]
+#Write to phylomatic output
+write.table(phyloO,paste(gitpath,"names.txt",sep=""),row.names=FALSE, col.names=FALSE,quote=FALSE)
 
-tree <- phylomatic_tree(taxa=try2, get = 'POST', informat='newick',
-                        method = "phylomatic", storedtree = "smith2011",
-                        outformat = "newick", clean = "true")
-#Genus attempt.
-tree <- phylomatic_tree(taxa= c(as.character(initGenus))[5:8], get = 'POST', informat='newick',
-                        method = "phylomatic", storedtree = "smith2011",
-                        outformat = "newick", clean = "true")
+#Read in phylomatic output? Try both the phytools and ape options, the phytools just hangs.
+#tree<-read.newick(paste(gitpath,"PhyloM.txt",sep=""))
+tree<-read.tree(paste(gitpath,"PhyloM.txt",sep=""))
 
-nodelabels(tree)
-plot(tree)
-
-#save.image(paste(droppath))
+#view the file
