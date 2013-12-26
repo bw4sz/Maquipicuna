@@ -56,11 +56,11 @@ fl.leveln<-levels(factor(m.t$L1))
 head(fl.leveln)
 
 #Okay now we have the taxa list, let's first try the taxize:: function to access the phylomatic API
-tree_smith <- phylomatic_tree(taxa=fl.leveln, storedtree='smith2011', get='POST')
+tree_smith <- phylomatic_tree(taxa=fl.leveln, storedtree='smith2011', get='POST',clean=TRUE)
 tree_smith
 plot(tree_smith)
 
-tree_APG3 <- phylomatic_tree(taxa=fl.leveln, storedtree='R20120829"', get='POST')
+tree_APG3 <- phylomatic_tree(taxa=fl.leveln, storedtree='R20120829"', get='POST',clean=TRUE)
 tree_APG3
 ```
 
@@ -76,10 +76,10 @@ GenusOnly<-sapply(fl.leveln,function(x){
 
 head(GenusOnly)
 
-Gtree_smith <- phylomatic_tree(GenusOnly, storedtree='smith2011', get='POST')
+Gtree_smith <- phylomatic_tree(GenusOnly, storedtree='smith2011', get='POST',clean=TRUE)
 Gtree_smith
 
-tree_APG3 <- phylomatic_tree(taxa=GenusOnly, storedtree='R20120829"', get='POST')
+tree_APG3 <- phylomatic_tree(taxa=GenusOnly, storedtree='R20120829"', get='POST',clean=TRUE)
 tree_APG3
 ```
 

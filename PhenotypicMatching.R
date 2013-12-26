@@ -125,6 +125,5 @@ nrow(m.datH[is.na(m.datH$Month),])
 p<-ggplot(m.datH,aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_boxplot() + geom_smooth(method="lm",aes(group=1))
 p + geom_point() + facet_wrap(~Month)
 
-
 #Difference Between Corolla and Bill Length
 save.image("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")

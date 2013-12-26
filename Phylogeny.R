@@ -108,4 +108,6 @@ write.table(phyloO,paste(gitpath,"names.txt",sep=""),row.names=FALSE, col.names=
 #tree<-read.newick(paste(gitpath,"PhyloM.txt",sep=""))
 tree<-read.tree(paste(gitpath,"PhyloM.txt",sep=""))
 
+#Run BLADJ in R?
+
 #view the file
