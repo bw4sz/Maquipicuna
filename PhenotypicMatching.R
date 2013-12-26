@@ -1,7 +1,11 @@
 #Phenotypic Matching Among Plants and Birds
+require(reshape)
 
+#Setwd if not run globally
+droppath<-"C:/Users/Ben/Dropbox/"
+setwd(droppath)
 #read in flower morphology data, comes from Nectar.R
-fl.morph<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/FlowerMorphology.csv")
+fl.morph<-read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/FlowerMorphology.csv",sep=""))
 
 #Bring in Hummingbird Morphology Dataset, comes from
 hum.morph<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdMorphology.csv")
@@ -11,14 +15,97 @@ int<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteract
 
 #Melt the interaction frame and match it with the traits
 m.dat<-melt(int)
-colnames(m.dat)<-c("Plant","Bird","int")
 
 #Fix spacing to match clades
-m.dat$Bird<-gsub("//."," ",m.dat$Bird)
-m.datH<-merge(m.dat,hum.morph, by.x="Bird",by.y="")
+#Which are matching
+hum.morph$English
+levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English]
+
+#This needs to be checked
+print(paste(levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English],"not matched"))
+
+levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English]<-c("Green-crowned Woodnymph","Gorgeted Sunangel","Tyrian Metaltail")
+
+m.datH<-merge(m.dat,hum.morph, by.x="Hummingbird",by.y="English")
 
 #Merge to flowers
-m.datH<-merge(m.datH,fl.morph, by.x="Plant",by.y="X")
+levels(factor(m.datH$Iplant_Double))
+m.datH<-merge(m.datH,fl.morph, by.x="Iplant_Double",by.y="X")
+
+######Univariate Phenotype Matching##########
+
+#Some of these observations are suspect, the booted racket-tail on the 50cm plant?
+p<-ggplot(m.datH,aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_boxplot() + geom_smooth(method="lm",aes(group=1))
+p + geom_point()
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/TotalCorollaMatching.svg",)
+
+#Effective Corolla Matching
+p<-ggplot(m.datH,aes(x=factor(Bill),EffectiveCorolla,col=Hummingbird)) + geom_boxplot() + geom_smooth(method="lm",aes(group=1))
+p + geom_point()
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/TotalCorollaMatching.svg",)
+
+#Corolla Width Matching
+ggplot(m.datH,aes(x=Bill,Corolla.Width)) + geom_jitter() + geom_smooth(method="lm")
+ggplot(m.datH,aes(x=Bill,Corolla.Width,col=Clade)) + geom_point() + geom_smooth(method="lm")
+
+#Could do a multivariate space
+#Standard the matrix to correct for different units by subtracting the means and dividing by sd
+zscore <- apply(fl.morph[,c("TotalCorolla","EffectiveCorolla","Corolla.Width")], 2, function(x){
+  y<-(x - mean(x))/sd(x)
+  return(y)
+})
+
+rownames(zscore)<-fl.morph$X
+#Principal Components
+trait_pc<-prcomp(zscore)
+
+#bind loadings 1 and 2 to dataframe
+fl_load<-trait_pc$x[,c("PC1","PC2")]
+rownames(fl_load)<-rownames(zscore)
+
+m.datH<-merge(m.datH,fl_load,by.x="Iplant_Double",by.y="row.names")
+#rename columns 
+colnames(m.datH)[colnames(m.datH) %in% c("PC1","PC2")] <- c("Fl.PC1","Fl.PC2")
+
+# Hum Standardized variables, what to do about NA's?
+
+#Standard the matrix to correct for different units by subtracting the means and dividing by sd
+zscore <- apply(hum.morph[,c("Bill","Mass","WingChord","Tarsus_Length","Nail_Length","Wing_Loading")], 2, function(x){
+  y<-(x - mean(x,na.rm=TRUE))/sd(x,na.rm=TRUE)
+  return(y)
+})
+rownames(zscore)<-hum.morph$English
+
+#Need to figure out what to do about Na's, we could use closely related species?
+trait_pc<-prcomp(na.omit(zscore))
+
+biplot(trait_pc)
+
+#bind loadings 1 and 2 to dataframe
+hum_load<-trait_pc$x[,c("PC1","PC2")]
+rownames(hum_load)<-rownames(zscore)
+
+m.datH<-merge(m.datH,hum_load,by.x="Hummingbird",by.y="row.names")
+
+#rename columns 
+colnames(m.datH)[colnames(m.datH) %in% c("PC1","PC2")] <- c("H.PC1","H.PC2")
+
+#####################################
+#Visualization of multivariate space
+#####################################
+
+#polygons on trait use by hummingbirds
+p<-ggplot(m.datH,aes(x=Fl.PC1,y=Fl.PC2,fill=Hummingbird)) + geom_polygon() + facet_wrap(~Clade,drop=TRUE) + scale_fill_discrete()
+p + geom_point()
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/FlowerSpace.svg",)
+
+#polygons on flower use by hummingbirds traits
+#create a flower genus column?
+m.datH$FLGenus<-sapply(m.datH$Iplant_Double,function(x) strsplit(as.character(x),split="_")[[1]][[1]])
+p<-ggplot(m.datH,aes(x=H.PC1,y=H.PC2,fill=FLGenus,alpha=.02)) + geom_polygon() + facet_wrap(~FLGenus,drop=TRUE) + geom_point()
+p + geom_text(aes(label=Hummingbird),size=3)
+
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/HummingbirdSpace.svg",)
 
 #Difference Between Corolla and Bill Length
 

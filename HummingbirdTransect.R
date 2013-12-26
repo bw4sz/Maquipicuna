@@ -169,3 +169,5 @@ write.csv(transectRows,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransec
 
 #Return end of file
 print("HummingbirdTransects")
+
+save.image("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")

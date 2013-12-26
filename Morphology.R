@@ -10,17 +10,20 @@ require(grid)
 #needs dev library ggbiplot
 require(devtools)
 #install_github("ggbiplot", "vqv")
-#library(ggbiplot)
+library(ggbiplot)
 #
 
 #setwd to dropbox
 #droppath<-"C:/Users/Ben/Dropbox/"
 #setwd(droppath)
 #Set github path
-#gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 #if not being sourced from Specialization.R, run the next line to get the env
 #load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
+
+#Get Hummingbird Interaction - just used for rownames, hummingbird species list.
+int<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectMatrix.csv")
 
 #bring in clade data
 clades<-read.csv(paste(gitpath,"InputData//CladeList.txt",sep=""),header=FALSE)[,-1]
@@ -41,6 +44,9 @@ colnames(mon)<-c("Species","Bill","Mass","WingChord")
 rownames(mon)<-gsub(" ",".",mon[,1])
 mon<-mon[,-1]
 
+#Legacy, save a version 
+mon3trait<-mon
+
 #principal component traits and get euclidean distance matrix
 zscore <- apply(mon, 2, function(x){
   y<-(x - mean(x))/sd(x)
@@ -55,17 +61,18 @@ zscore <- apply(mon, 2, function(x){
 #Get the scientific names to match to the morphology dataset
 
 #which english names have errors?
-errors<-levels(dat$Hummingbird)[!levels(dat$Hummingbird) %in% clades$English]
+errors<-levels(int$Hummingbird)[!levels(int$Hummingbird) %in% clades$English]
 
+print(paste(errors,"not matched"))
 #Fix the levels
-levels(dat$Hummingbird)[!levels(dat$Hummingbird) %in% clades$English]<-c("Andean Emerald","Fawn-breasted Brilliant","Gorgeted Sunangel","Tyrian Metaltail")
+levels(int$Hummingbird)[!levels(int$Hummingbird) %in% clades$English]<-c("Booted Racket-tail","Green-Crowned Woodnymph","UKWN","Violet-tailed Sylph")
 
 #Add a species never seen, but known from the siote
-sp.list<-c(levels(dat$Hummingbird),"Empress Brilliant")
+sp.list<-c(levels(int$Hummingbird),"Empress Brilliant","Green-fronted Lancebill","Tyrian Metaltail")
 sci.name<-clades[clades$English %in% sp.list,"double"]
 
 #The trait dataset has . instead of " "
-site.trait<-z.scores[rownames(z.scores) %in% gsub(" ",".",sci.name),]
+site.trait<-zscore[rownames(zscore) %in% gsub(" ",".",sci.name),]
 trait_pc<-prcomp(site.trait)
 
 #normal plot, kinda ugly, need to zoom in
@@ -89,7 +96,7 @@ colnames(morph17)
 morph17<-morph17[,c(1:21,44)]
 
 #Name in English
-colnames(morph17)<-c("MorphID","SpID","Sex","N","Bill_Length","Mass","Bill-width","Total_Culmen","WingChord","Bill_Depth","Wing_Width","Wing_Length","Aspect_Ratio","Wing_Area","Wing_Loading","Wing_Taper","Wing_Area(alArea)","Tail_Length","Foot_Extension","Tarsus_Length","Nail_Length","Species")
+colnames(morph17)<-c("MorphID","SpID","Sex","N","Bill","Mass","Bill_width","Total_Culmen","WingChord","Bill_Depth","Wing_Width","Wing_Length","Aspect_Ratio","Wing_Area","Wing_Loading","Wing_Taper","Wing_Area(alArea)","Tail_Length","Foot_Extension","Tarsus_Length","Nail_Length","Species")
 
 #just get males
 morph.male<-morph17[morph17$Sex=="Macho",]
@@ -113,13 +120,20 @@ nrow(trait17)
 #Which species did we miss
 missing<-gsub(" ",".",sci.name)[!gsub(" ",".",sci.name) %in% rownames(mon)]
 
-#Add in closest related species for the species we are missing
-trait17<-rbind(trait17,mon[c("Heliangelus.exortis","Thalurania.furcata"),])
+print(paste("Missing morphology:",missing))
 
+#Add in closest related species for the species we are missing
+#trait17<-rbind(trait17,mon[c("Heliangelus.exortis","Thalurania.furcata"),])
+
+#Another option is just to add from the three trait data?
+head(mon3trait)
+
+trait17_fullsp<-rbind.fill(trait17,mon3trait[missing,])
+rownames(trait17_fullsp)<-c(rownames(trait17),rownames(mon3trait[missing,]))
 #merge with clade info to write to file
 clades$double.<-gsub(" ",".",clades$double)
-
-write.csv(merge(trait17,clades,by.x="row.names",by.y="double."),"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdMorphology.csv")
+trait17F<-merge(trait17_fullsp,clades,by.x="row.names",by.y="double.")
+write.csv(trait17F,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdMorphology.csv")
 
 #take out columns unwanted in the PCA
 head(trait17)

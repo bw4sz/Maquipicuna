@@ -21,12 +21,15 @@ list.files(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013/csv",sep=""))
 #########################
 
 source(paste(gitpath,"FlowerTransects.R",sep=""))
+#Load from source:
+load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
 #########################
 #Flower Morphological
 #########################
 
 source(paste(gitpath,"Nectar.R",sep=""))
+load("Thesis/Maquipucuna_SantaLucia/Results/Nectar.Rdata")
 
 ########################
 #Flower Phylogeny
@@ -39,12 +42,15 @@ source(paste(gitpath,"Phylogeny.R",sep=""))
 ########################
 
 source(paste(gitpath,"HummingbirdTransect.R",sep=""))
+load("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
 
 #########################
 #Hummingbird Morphological Analysis
 #########################
 
 source(paste(gitpath,"Morphology.R",sep=""))
+load("Thesis/Maquipucuna_SantaLucia/Results/Morphology.Rdata")
+
 
 #Next set of scripts take in the descriptive stats and perform analysis
 
@@ -53,6 +59,8 @@ source(paste(gitpath,"Morphology.R",sep=""))
 #################
 
 source(paste(gitpath,"Network.R",sep=""))
+#Load from source:
+load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
 #########################
 #Time Series Analysis of Hummingbird Presence along Elevation
