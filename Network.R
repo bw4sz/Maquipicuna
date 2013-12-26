@@ -28,6 +28,12 @@ netPath<-paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
 #Load image for convienance
 #load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
+
+#bring in clade data
+clades<-read.csv(paste(gitpath,"InputData//CladeList.txt",sep=""),header=FALSE)[,-1]
+colnames(clades)<-c("Clade","Genus","Species","double","English")
+clades<-clades[,1:5]
+
 ###################
 #Source Functions
 ###################
@@ -95,57 +101,38 @@ table(dat$Piercing)
 datPierce<-dat[dat$Piercing %in% c("Yes","YES"),]
 dat<-dat[!dat$Piercing %in% c("Yes","YES"),]
 
-################Flower Taxonomy and Cleaning
-#Capitalize Flowers
-dat$Flower<-factor(sapply(dat$Flower,function(x) {.simpleCap(as.character(x))}))
+################
+#Flower Taxonomy
+################
 
-#For now, to be conservative all these metrics will be quite sensitive to taxonomic repeats, misspellings, and other errors that inflate number of potential plants
-#Therefore let's just get plants we have full IDs for right now, sorry clusia
-tax_comp<-sapply(gregexpr("\\W+", levels(dat$Flower)), length) + 1
-print(data.frame(levels(dat$Flower),Words=sapply(gregexpr("\\W+", levels(dat$Flower)), length) + 1))
-final_levels<-levels(dat$Flower)[which(tax_comp ==3)]
+#Go through a series of data cleaning steps, at the end remove all rows that are undesired
 
-datF<-droplevels(dat[dat$Flower %in% final_levels,])
+#Repeat for species
+Species<-levels(factor(dat$Flower))
+iplant_names<-ResolveNames(Species)
+print(CompareNames(Species,iplant_names))
+Species_Result<-data.frame(Species,iplant_names)
 
-#Use the Iplant database to identify taxa changes, plus any nonsensical taxa?
-#Iplant wants just genus and species, seperated by an "_
-forIplant<-sapply(levels(datF$Flower),function(x){
-  s<-strsplit(x,split=" ")[[1]]
-  paste(s[2],tolower(s[3]),sep="_")
-})
-
-new.N<-ResolveNames(forIplant, max.per.call=100, verbose=TRUE)
-print(CompareNames(forIplant, new.N, verbose=TRUE))
-
-#Break iplant response back into data, create a new column
-plant.frame<-data.frame(Dat=forIplant,new.N)
-datF$Iplant<-NULL
-
-#Kinda a funky function, not sure how to do it better?
-#for each row in datF, get the name, match it to the column, make a new iplant column
-for (x in 1:nrow(datF)){
-  y<-datF[x,]
-  datF[x,"Iplant"]<-plant.frame[rownames(plant.frame) %in% as.character(y$Flower),"new.N"]   
+#Set the Species column
+for (x in 1:nrow(dat)){
+  y<-dat[x,]
+  toMatch<-y$Flower
+  dat[x,"Iplant_Double"]<-levels(droplevels(
+  Species_Result[Species_Result$Species %in% toMatch,"iplant_names"] ))   
 }
 
-#remove rows that did have an Iplant hit?
-datF<-droplevels(datF[!datF$Iplant %in% "",])
+#Lots of cleaning left to do, but that's a start. 
+#Final levels
+print(paste("Final Flower Species:", levels(factor(dat$Iplant_Double))))
 
-#View which levels will be called
-print(paste(levels(datF$Iplant),"included in the Network!"))
-print(paste(levels(datF$Hummingbird),"included in the Network!"))
-
-#Overall statistics
-#How many flowers Species
-paste("Number of Flower Species:",nlevels(datF$Iplant))
 
 #How many Birds Species
-paste("Number of Hummingbird Species:",nlevels(datF$Hummingbird))
-write.csv(datF,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
+paste("Number of Hummingbird Species:",nlevels(dat$Hummingbird))
+write.csv(dat,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
 ############################################
 #Run Network Function for the entire dataset
-NetworkC(datF,"Total")
+NetworkC(dat,"Total")
 ############################################
 
 ####################################################

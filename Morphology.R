@@ -157,3 +157,4 @@ list.files("Thesis/Maquipucuna_SantaLucia/Results/Network",recursive=TRUE,patter
 
 
 melt(sp.dist)
+save.image("Thesis/Maquipucuna_SantaLucia/Results/Morphology.Rdata")

@@ -11,6 +11,8 @@ library(plyr)
 require(plotKML)
 require(reshape)
 require(chron)
+require(taxize)
+require(rPlant)
 
 #Set DropBox Working Directory
 setwd("C:/Users/Ben/Dropbox/")
@@ -168,46 +170,41 @@ error_rows<-full.fl[full.fl$Iplant_Double %in% "",]
 print("Error_Rows")
 print(rownames(error_rows))
 
-GS<-levels(factor(full.fl$Iplant_Double))
-
-uids<-get_uid(GS)
-
-out <- classification(uids)
-taxize_N<-sapply(out, function(x){
-  if(is.na(x)){return(NA)}
-  print(x)
-  paste(x[x$Rank %in% "family","ScientificName"],x[x$Rank %in% "species","ScientificName"])
-})
-
-data.frame(GS,taxize_N)
-
-taxize_Name<-sapply(out, function(x){
-  if(is.na(x)){return(NA)}
-  x[x$Rank %in% "family","ScientificName"]
-})
-
-data.frame(levels(factor(full.fl$Family)),taxize_Name)
-
+# GS<-levels(factor(full.fl$Iplant_Double))
+# 
+# uids<-get_uid(GS)
+# 
+# out <- classification(uids)
+# taxize_N<-sapply(out, function(x){
+#   if(is.na(x)){return(NA)}
+#   print(x)
+#   paste(x[x$Rank %in% "family","ScientificName"],x[x$Rank %in% "species","ScientificName"])
+# })
+# 
+# data.frame(GS,taxize_N)
+# 
+# taxize_Name<-sapply(out, function(x){
+#   if(is.na(x)){return(NA)}
+#   x[x$Rank %in% "family","ScientificName"]
+# })
+# 
+# data.frame(levels(factor(full.fl$Family)),taxize_Name)
+# 
 #Family Genus Species, in future, create abreviations
-fl.all<-melt(table(paste(full.fl$Family,full.fl$Genus,full.fl$Species)))
+fl.all<-melt(table(full.fl$Iplant_Double))
 names(fl.all)<-c("Species","Count")
 ggplot(fl.all,aes(Species,Count)) + geom_bar() + coord_flip() + theme_bw()
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/SpeciesCount.jpeg",height=15,width=8)
 
-#Use this as the marker for now
-full.fl$Full<-paste(full.fl$Family,full.fl$Genus,full.fl$Species)
+###########################
+#Taxonomy Complete
+###########################
 
-#Get plant list, any obvious erros?
-levels(factor(full.fl$Full))
+###########################
+#Flower counts
+###########################
 
-uid<-get_uid(levels(factor(full.fl$Full)))
-out <- classification(uid)
-
-taxize_Name<-sapply(out, function(x){
-  if(is.na(x)){return(NA)}
-  paste(x[x$Rank %in% "family","ScientificName"],sep=x[x$Rank %in% "genus","ScientificName"],x[x$Rank %in% "species","ScientificName"])
-})
-
+print("FlowerCounts")
 
 #Create total flower column by multiplying the Flowers per stalk, by stalks and total inflorescens
 #For now, remove any rows that have no flowers
@@ -266,7 +263,7 @@ colnames(fl.totals)<-c("Elev","Month","Date","TotalFlowers")
 
 ##Flowers per month and elevation
 p<-ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=3) + geom_smooth(aes(group=Month)) + facet_wrap(~Month,nrow=2) + theme_bw() + labs(col="Month")
-p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerMonths.jpeg",height=8,width=10)
 
 #Flowers at each elevation over time
@@ -274,7 +271,7 @@ ggplot(fl.totals,aes(x=Month,TotalFlowers,col=Elev)) + geom_point(size=3) + them
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10)
 
 #Brief look at time series and taxonomy
-tax<-aggregate(full.fl[,c("Species","Genus","Family")],list(full.fl$month,full.fl$Transect_R,full.fl$Date),function(x){
+tax<-aggregate(full.fl[,c("Iplant_Double","Iplant_Genus","Family")],list(full.fl$month,full.fl$Transect_R,full.fl$Date),function(x){
   nlevels(factor(x))})
 
 colnames(tax)[1:3]<-c("month","Elev","Date")
@@ -285,7 +282,7 @@ ggplot(tax.m,aes(month,value,col=variable)) + geom_point(size=2) + geom_smooth(a
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TimeSeriesTaxonomy.jpeg",height=5,width=10)
 
 #Genus to Species Ratios
-ggplot(tax,aes(x=month,col=Elev,y=Genus/Species)) + geom_point() + geom_smooth(aes(group=1)) + xlab("Month") + facet_grid(~Elev,margins=TRUE) + theme_bw()
+ggplot(tax,aes(x=month,col=Elev,y=Iplant_Double/Iplant_Genus)) + geom_point() + geom_smooth(aes(group=1)) + xlab("Month") + facet_grid(~Elev,margins=TRUE) + theme_bw()
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TimeSeriesGSratio.jpeg",height=7,width=12)
 
 #This needs to be abundane based...

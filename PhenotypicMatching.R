@@ -7,7 +7,7 @@ fl.morph<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/FlowerMorphology.csv")
 hum.morph<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdMorphology.csv")
 
 #Bring in Interaction Matrix from the Network.R script
-int<-write.csv("Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
+int<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
 #Melt the interaction frame and match it with the traits
 m.dat<-melt(int)
@@ -23,3 +23,4 @@ m.datH<-merge(m.datH,fl.morph, by.x="Plant",by.y="X")
 #Difference Between Corolla and Bill Length
 
 
+save.image("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
