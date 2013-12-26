@@ -74,6 +74,8 @@ GenusOnly<-sapply(fl.leveln,function(x){
     split_x[[1]][1]
   })
 
+head(GenusOnly)
+
 Gtree_smith <- phylomatic_tree(GenusOnly, storedtree='smith2011', get='POST')
 Gtree_smith
 
@@ -88,7 +90,8 @@ Not successful
 I'm struggling a bit with the phylocom syntax since the sample is inconsistant, and it also disagrees with the documentation
 
 Phylomatic sample input reads: malvaceae/durio/durio_zibethinus, which to me looks like family/genus/genus_species
-======================
+================================
+
 Formatting for Phylomatic Online
 ---------------------------------
 #Go back to taxize classification, for each entry, format in Family/Genus/Genus_Species
