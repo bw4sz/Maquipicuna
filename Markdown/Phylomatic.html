@@ -317,6 +317,18 @@ GenusOnly &lt;- sapply(fl.leveln, function(x) {
     split_x[[1]][1]
 })
 
+head(GenusOnly)
+</code></pre>
+
+<pre><code>##               Alloplectus     Alloplectus purpureus 
+##             &quot;Alloplectus&quot;             &quot;Alloplectus&quot; 
+##        Alloplectus tenuis Alloplectus tetragonoides 
+##             &quot;Alloplectus&quot;             &quot;Alloplectus&quot; 
+##     Alloplectus teuscheri      Begonia longirostris 
+##             &quot;Alloplectus&quot;                 &quot;Begonia&quot;
+</code></pre>
+
+<pre><code class="r">
 Gtree_smith &lt;- phylomatic_tree(GenusOnly, storedtree = &quot;smith2011&quot;, get = &quot;POST&quot;)
 Gtree_smith
 </code></pre>
@@ -346,11 +358,13 @@ tree_APG3
 
 <p>I&#39;m struggling a bit with the phylocom syntax since the sample is inconsistant, and it also disagrees with the documentation</p>
 
-<h1>Phylomatic sample input reads: malvaceae/durio/durio_zibethinus, which to me looks like family/genus/genus_species</h1>
+<p>Phylomatic sample input reads: malvaceae/durio/durio_zibethinus,</p>
+
+<h1>family/genus/genus_species</h1>
 
 <h2>Formatting for Phylomatic Online</h2>
 
-<p>#Go back to taxize classification, for each entry, format in Family/Genus/Genus_Species</p>
+<p>Go back to taxize classification, for each entry, format in Family/Genus/Genus_Species</p>
 
 <pre><code class="r">class.taxize[[5]]
 </code></pre>
