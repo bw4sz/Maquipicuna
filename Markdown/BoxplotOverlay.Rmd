@@ -1,0 +1,39 @@
+Overlaying Boxplots on Scatter in ggplot2
+========================================================
+
+```{r,fig.height=6,fig.width=12}
+#Phenotypic Matching Among Plants and Birds
+require(reshape)
+require(ggplot2)
+require(chron)
+require(stringr)
+
+#Setwd if not run globally
+droppath<-"C:/Users/Ben/Dropbox/"
+setwd(droppath)
+
+load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
+
+#Begin by plotting Bill Length of the Hummingbird against the Corolla Length of the Flower
+#Start with xy scatter
+p<-ggplot(m.datH,aes(x=Bill,TotalCorolla,col=Hummingbird)) + geom_point()
+p
+
+#add smoothing line
+p<-p + geom_smooth(aes(group=1),method="lm")
+p
+
+#There are alot of overlapping points, show boxplots for each species
+p + geom_boxplot()
+
+#Anyway to enforce width? i know i'm trying to express alot of information on this graph.
+
+#I can try
+p<-ggplot(m.datH,aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_boxplot() + geom_smooth(method="lm",aes(group=1))
+p + geom_point()
+
+#But i'm very unsure the effect on the smoothing line, as evidence by
+
+p<-ggplot(m.datH,aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_boxplot() + geom_smooth(method="lm",aes(x=Bill,group=1))
+p + geom_point()
+```

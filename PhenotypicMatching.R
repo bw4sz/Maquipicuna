@@ -122,8 +122,19 @@ ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/HummingbirdSpace.svg",)
 nrow(m.datH[is.na(m.datH$Month),])
 
 #Start by plotting monthly breaks of corolla matching
-p<-ggplot(m.datH,aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_boxplot() + geom_smooth(method="lm",aes(group=1))
+p<-ggplot(m.datH,aes(x=Bill,TotalCorolla,col=Hummingbird)) + geom_boxplot(aes(x=factor(Hummingbird))) + geom_smooth(method="lm",aes(group=1))
+p + geom_point() + facet_wrap(~Month,nrow=4) + theme_bw()
+
+
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/Matching_Time.svg",)
+
+#Start by plotting monthly breaks of corolla matching
+p<-ggplot(m.datH,aes(x=factor(Bill),EffectiveCorolla,col=Hummingbird)) + geom_boxplot() + geom_smooth(method="lm",aes(group=1))
 p + geom_point() + facet_wrap(~Month)
 
+###############################################
 #Difference Between Corolla and Bill Length
+m.datH$BD<-m.datH$Bill-m.datH$TotalCorolla
+ggplot(m.datH,aes(x=BD,fill=Hummingbird)) + geom_density(position="dodge") + facet_wrap(~Clade,scale="free")
+
 save.image("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
