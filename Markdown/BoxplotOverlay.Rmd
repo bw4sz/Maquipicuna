@@ -1,7 +1,7 @@
 Overlaying Boxplots on Scatter in ggplot2
 ========================================================
 
-```{r,fig.height=6,fig.width=12}
+```{r,fig.height=6,fig.width=10}
 #Phenotypic Matching Among Plants and Birds
 require(reshape)
 require(ggplot2)
