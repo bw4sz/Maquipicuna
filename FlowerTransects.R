@@ -287,6 +287,7 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TimeSerie
 
 #This needs to be abundane based...
 
+
 # ##############################################
 # #Read in Spatial Data, still needs to be fixed. 
 # ##############################################
@@ -338,4 +339,5 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TimeSerie
 # p<-ggplot(fl.elev,aes(x=ele,y=Total_Flowers,col=Species),size=2) + geom_point() + theme_bw() + facet_wrap(~Family,scales='free_y') + guides(color="none")
 # p+stat_smooth(method='lm',aes(group=Family))
 
+#Write cleaned flower transect data?
 save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")

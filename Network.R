@@ -66,7 +66,6 @@ spnames<-read.table(paste(gitpath,"InputData/SpNameTree.txt",sep="") , sep = "\t
 tree$tip.label<-as.character(spnames$SpName) 
 head(dat)
 
-
 #Fix date format
 dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))
 
@@ -124,7 +123,6 @@ for (x in 1:nrow(dat)){
 #Lots of cleaning left to do, but that's a start. 
 #Final levels
 print(paste("Final Flower Species:", levels(factor(dat$Iplant_Double))))
-
 
 #How many Birds Species
 paste("Number of Hummingbird Species:",nlevels(dat$Hummingbird))
