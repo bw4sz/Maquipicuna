@@ -13,7 +13,8 @@ require(chron)
 require(reshape)
 
 #Set working directory
-droppath<-"C:/Users/Ben/Dropbox/"
+droppath<-"C:/Users/Jorge/Dropbox/"
+setwd(droppath)
 
 #Define selectivity function
 selective<-function(y){

@@ -1,9 +1,19 @@
+#Load GPS
 #Read and convert gpx points to a single dataframe and save it as a shapefile
 require(plotKML)
-require(reshape)
-f<-list.files("F:\\KarenGPS\\8_14_2013_Anushas",full.names=TRUE)
+require(reshape2)
+require(maptools)
 
-#loop through input files and find the errors. 
+#Set working directory
+droppath<-"C:/Users/Jorge/Dropbox/"
+setwd(droppath)
+
+###############################################
+#Read in GPS Data from Summer 2013 Field Season
+###############################################
+
+f<-list.files("Thesis\\Maquipucuna_SantaLucia\\Data2013\\GPS",full.names=TRUE,pattern=".gpx",recursive=TRUE)
+
 gpx<-list()
 for (x in 1:length(f)){
   print(x)
@@ -11,18 +21,25 @@ for (x in 1:length(f)){
   gpx[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
 }
 
+#################################################
+#Read in GPS Data from Holger Field Season
+#################################################
+
 ##Repeat for first gps
-f<-list.files("F:\\KarenGPS\\KarenFirstgps/",full.names=TRUE)
+g<-list.files("Holger\\Transect_Protocol_Holger\\WayPoints",full.names=TRUE,pattern=".gpx",recursive=TRUE)
 
 #loop through input files and find the errors. 
 gpx2<-list()
-for (x in 1:length(f)){
+for (x in 1:length(g)){
   print(x)
   try(
-    gpx2[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
+    gpx2[[x]]<-readGPX(g[x],waypoints=TRUE)$waypoints)
 }
-#Bind together the days taht contain data
-gpx.dat<-rbind(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]))
+
+#Need to remind nelly to upload her gps. 
+
+#Bind into one dataframe
+gpx.dat<-rbind.fill(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]))
 
 #create  spatial object
 dat.sp<-SpatialPointsDataFrame(coords=cbind(gpx.dat$lon,gpx.dat$lat),gpx.dat)

@@ -17,6 +17,14 @@ list.files(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013/csv",sep=""))
 #First set of scripts are desciptive that clean, aggregate and quantify flowers, morphology, and hummingbird interactions
 
 ##########################
+#Format Geospatial Data - 
+#read in gps and create spatial objects
+##########################
+
+source(paste(gitpath,"gpxtoshp.R",sep=""))
+
+
+#########################
 #Flowers
 #########################
 
