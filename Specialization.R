@@ -23,7 +23,6 @@ list.files(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013/csv",sep=""))
 
 source(paste(gitpath,"gpxtoshp.R",sep=""))
 
-
 #########################
 #Flowers
 #########################
@@ -40,10 +39,11 @@ source(paste(gitpath,"Nectar.R",sep=""))
 load("Thesis/Maquipucuna_SantaLucia/Results/Nectar.Rdata")
 
 ########################
-#Flower Phylogeny
+#Flower Phylogeny using Phylomatic
 ########################
 
 source(paste(gitpath,"Phylogeny.R",sep=""))
+save.image("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 
 ########################
 #Hummingbirds

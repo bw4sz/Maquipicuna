@@ -81,7 +81,7 @@ tree_APG3
 plot(tree_APG3,cex=.4)
 
 #write tree to file
-write.tree(tree_APG3,paste(gitpath,"FlowerSPPhylogeny.tre",sep=""))
+write.tree(tree_APG3,paste(gitpath,"InputData/FlowerSPPhylogeny.tre",sep=""))
 
 save.image("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 

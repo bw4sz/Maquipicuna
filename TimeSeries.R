@@ -1,7 +1,16 @@
 ##Time Series Analysis of Hummingbird Presences
-
 require(stringr)
-##Read in data
+require(maptools)
+
+#If not run globally.
+
+setwd("C:/Users/Ben/Dropbox/")
+##Read in:
+
+#GeospatialData
+gps<-readShapePoints(fn="Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSshape.shp")
+
+
 
 #################################
 #Species Presence and Time
@@ -30,52 +39,22 @@ dat$DateP<-as.POSIXlt(dat$DateP)
 
 head(dat)
 
-######################
-#Get Elevation GPS
-######################
+#What kind of records match?
+dat[dat$ID %in% gps$name,]
 
-# ##############################################
-# #Read in Spatial Data, still needs to be fixed. 
-# ##############################################
-# 
-# #Read and convert gpx points to a single dataframe and save it as a shapefile
-# f<-list.files("Holger/Transect_Protocol_Holger/WayPoints/",full.names=TRUE)
-# 
-# #loop through input files and find the errors. 
-# gpx<-list()
-# for (x in 1:length(f)){
-#   print(x)
-#   try(
-#     gpx[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
-# }
-# 
-# ##Repeat for Karen's GPS data, label Karen
-# f<-list.files("F:\\KarenGPS\\KarenFirstgps/",full.names=TRUE)
-# 
-# gpx2<-list()
-# for (x in 1:length(f)){
-#   print(x)
-#   try(
-#     gpx2[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
-# }
-# 
-# #Bind together the days that contain data
-# #Label Observer
-# holger.gps<-data.frame(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),Observer="Holger")
-# karen.gps<-data.frame(rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]),Observer="Karen")
-# 
-# #Combine data
-# gpx.dat<-rbind.fill(holger.gps,karen.gps)
-# 
-# full.fl$GPS_ID<-as.numeric(full.fl$GPS_ID)
-# 
-# #Match each point with an elevation
-# fl.elev<-merge(full.fl,gpx.dat,by.x=c("GPS_ID","Observer"),by.y=c("name","Observer"))
-# 
-# #How records were in fl, but not matched
-# full.fl[!full.fl$GPS_ID %in% fl.elev$GPS_ID,]$GPS_ID
+#What kind of records dont' match?
+dat[!dat$ID %in% gps$name,]
 
+#missing alot of records right now
+print(paste(dat[!dat$ID %in% gps$name,]$ID,"MissingGPSInfo"))
 
+#need to create double label column, by date and ID?
+#Merge data
+dat.e<-merge(dat,gps,by.x="ID",by.y="name")
+
+#Some weird years that are labeled 2020?
+
+dat$d
 #Overall Month_Day and Elevation
 ggplot(dat,aes(y=factor(Elevation),x=dat$Time_Stamp,col=Species)) + geom_point(size=3) + scale_x_datetime() + facet_wrap(~Species)
 ggsave("Thesis//Maquipucuna_SantaLucia/Results/DateElevation.svg",height=11,width=8,dpi=300)

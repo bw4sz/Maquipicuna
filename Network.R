@@ -26,7 +26,7 @@ netPath<-paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
 
 #############################
 #Load image for convienance
-#load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
+load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
 #bring in clade data
 clades<-read.csv(paste(gitpath,"InputData//CladeList.txt",sep=""),header=FALSE)[,-1]
@@ -80,6 +80,9 @@ dat$Hummingbird<-factor(sapply(dat$Hummingbird,function(x) {.simpleCap(as.charac
 
 #make a object, just to save typing
 h<-levels(dat$Hummingbird)
+
+#can taxize do english names? 
+
 #Fix common mistakes
 h[h %in% "Fawn Breasted Brilliant"] <- "Fawn-breasted Brilliant"
 h[h %in% "Gorgetted Sunangel"]<-"Gorgetted Sunangel"
@@ -122,12 +125,14 @@ for (x in 1:nrow(dat)){
 print(paste("Final Flower Species:", levels(factor(dat$Iplant_Double))))
 
 #How many Birds Species
-paste("Number of Hummingbird Species:",nlevels(dat$Hummingbird))
+print(paste("Number of Hummingbird Species:",nlevels(dat$Hummingbird)))
+print(paste("Final Hummingbird Species:",levels(dat$Hummingbird)))
+
 write.csv(dat,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
 ############################################
 #Run Network Function for the entire dataset
-NetworkC(dat,"Total")
+NetworkC(datf=dat,naming="Total")
 ############################################
 
 ####################################################

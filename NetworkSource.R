@@ -19,7 +19,6 @@ NetworkC<-function(datf,naming){
   svg(filename="WebPlot.svg",height=7,width=12)
   plotweb(F_H)
   dev.off()
-  
  
   jpeg(filename="MatrixPlotCompartments.jpeg",height=8,width=8,units="in",res=300)
   visweb(F_H,"compartment")
@@ -98,6 +97,8 @@ NetworkC<-function(datf,naming){
   #Relatedness and plant overlap
   ggplot(m.HH[m.HH$value>1,],aes(y=value,x=as.numeric(Relatedness),)) + geom_point() + geom_smooth(method="lm") + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") + geom_text(aes(label=paste(To,From)),size=3)
   ggsave("Relatedness_Overlap.svg",height=8,width=11)
+  
+  #need a null model here, based on abundance?
   
   #Plants 
   P_P<-as.one.mode(F_H,project="lower")

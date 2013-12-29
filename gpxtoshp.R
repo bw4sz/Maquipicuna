@@ -45,4 +45,4 @@ gpx.dat<-rbind.fill(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),rbind.fill(
 dat.sp<-SpatialPointsDataFrame(coords=cbind(gpx.dat$lon,gpx.dat$lat),gpx.dat)
 
 #create shapefile
-writePointsShape(dat.sp,"C:\\Users\\Jorge\\Dropbox\\Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\AnushaGPS.shp")
+writePointsShape(dat.sp,"Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSshape.shp")
