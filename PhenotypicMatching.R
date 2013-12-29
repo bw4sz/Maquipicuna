@@ -37,8 +37,10 @@ m.datH<-merge(m.datH,fl.morph, by.x="Iplant_Double",by.y="X")
 ######Univariate Phenotype Matching##########
 
 #Some of these observations are suspect, the booted racket-tail on the 50cm plant?
-p<-ggplot(m.datH,aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_boxplot() + geom_smooth(method="lm",aes(group=1))
-p + geom_point()
+#I think we need to do the regression seperately?
+p<-ggplot(m.datH,aes(x=round(Bill,1),TotalCorolla,col=factor(Hummingbird))) + geom_boxplot(aes(factor(Bill)))
++ geom_smooth(aes(group=1),method="lm")
+p<- p+ geom_boxplot() 
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/TotalCorollaMatching.svg",height=8,width=11,dpi=300)
 
 #Effective Corolla Matching
@@ -125,12 +127,13 @@ nrow(m.datH[is.na(m.datH$Month),])
 p<-ggplot(m.datH,aes(x=Bill,TotalCorolla,col=Hummingbird)) + geom_boxplot(aes(x=factor(Hummingbird))) + geom_smooth(method="lm",aes(group=1))
 p + geom_point() + facet_wrap(~Month,nrow=4) + theme_bw()
 
-
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/Matching_Time.svg",)
 
 #Start by plotting monthly breaks of corolla matching
 p<-ggplot(m.datH,aes(x=factor(Bill),EffectiveCorolla,col=Hummingbird)) + geom_boxplot() + geom_smooth(method="lm",aes(group=1))
 p + geom_point() + facet_wrap(~Month)
+
+
 
 ###############################################
 #Difference Between Corolla and Bill Length

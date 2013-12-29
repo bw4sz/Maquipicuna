@@ -31,51 +31,6 @@ save.image("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rd
 #Classify
 class.taxize<-classification(uids$tropicos)
 
-#Format into a dataframe
-m.t<-melt(class.taxize,"ScientificName")
-
-#Remove species with Na
-m.t<-m.t[complete.cases(m.t),]
-
-#Create list of plants to enter into Phylomatic
-fl.leveln<-levels(factor(m.t$L1))
-
-head(fl.leveln)
-
-#Okay now we have the taxa list, let's first try the taxize:: function to access the phylomatic API
-tree_smith <- phylomatic_tree(taxa=fl.leveln, storedtree='smith2011', get='POST')
-tree_smith
-plot(tree_smith)
-
-tree_APG3 <- phylomatic_tree(taxa=fl.leveln, storedtree='R20120829"', get='POST')
-tree_APG3
-
-#Just for fun, try genus only, in case its a species name problem?
-# count number of words in a string
-GenusOnly<-sapply(fl.leveln,function(x){
-    split_x<-strsplit(as.character(x),split=" ")
-    split_x[[1]][1]
-  })
-
-Gtree_smith <- phylomatic_tree(GenusOnly, storedtree='smith2011', get='POST')
-Gtree_smith
-
-tree_APG3 <- phylomatic_tree(taxa=GenusOnly, storedtree='R20120829"', get='POST')
-tree_APG3
-
-#Not successful
-##Okay, no big deal, i'll try to do it online.
-#I'm struggling a bit with the phylocom syntax since the sample is inconsistant, and it also disagrees with the documentation
-
-#Phylomatic sample input reads: malvaceae/durio/durio_zibethinus, which to me looks like family/genus/genus_species
-
-##Formatting for Phylomatic Online
-#Family Name
-
-#Go back to taxize classification, for each entry, format in Family/Genus/Genus_Species
-class.taxize[[5]]
-names(class.taxize[5])
-
 phyloN<-vector()
 for (i in 1:length(class.taxize)){
   y<-class.taxize[[i]]  
@@ -102,12 +57,34 @@ phyloN[!is.na(phyloN)]
 head(phyloN)
 
 #Write to phylomatic output
-write.table(phyloO,paste(gitpath,"names.txt",sep=""),row.names=FALSE, col.names=FALSE,quote=FALSE)
+write.table(phyloN,paste(gitpath,"names.txt",sep=""),row.names=FALSE, col.names=FALSE,quote=FALSE)
+ 
+phyloN.f<-phyloN[!is.na(phyloN)]
+       
+#Just for fun, try genus only, in case its a species name problem?
+# count number of words in a string
+GenusOnly<-sapply(phyloN.f,function(x){
+    split_x<-strsplit(x,split="/")
+    split_x[[1]][2]
+  })
 
-#Read in phylomatic output? Try both the phytools and ape options, the phytools just hangs.
-#tree<-read.newick(paste(gitpath,"PhyloM.txt",sep=""))
-tree<-read.tree(paste(gitpath,"PhyloM.txt",sep=""))
+#Format lists
+
+#Phylomatic Genus Tree - no branch Lengths
+tree_APG3 <- phylomatic_tree(taxa=GenusOnly, storedtree='R20120829', get='POST')
+tree_APG3
+plot(tree_APG3)
+
+#Phylomatic Species Tree, does it matter, it places polytomies as branches
+tree_APG3 <- phylomatic_tree(taxa=phyloN[!is.na(phyloN)], storedtree='R20120829', get='POST',taxnames=FALSE)
+tree_APG3
+plot(tree_APG3,cex=.4)
+
+#write tree to file
+write.tree(tree_APG3,paste(gitpath,"FlowerSPPhylogeny.tre",sep=""))
+
+save.image("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 
 #Run BLADJ in R?
-
+source("C:/Users/Ben/Desktop/phylocom-4.2/phylocom-4.2/R/phylocom.R")
 #view the file

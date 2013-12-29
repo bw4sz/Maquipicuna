@@ -28,7 +28,6 @@ netPath<-paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
 #Load image for convienance
 #load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
-
 #bring in clade data
 clades<-read.csv(paste(gitpath,"InputData//CladeList.txt",sep=""),header=FALSE)[,-1]
 colnames(clades)<-c("Clade","Genus","Species","double","English")
@@ -78,8 +77,6 @@ dat<-rbind.fill(dat,transect.FL)
 
 #Caps Hummingbird
 dat$Hummingbird<-factor(sapply(dat$Hummingbird,function(x) {.simpleCap(as.character(x))}))
-
-####Taxize here?
 
 #make a object, just to save typing
 h<-levels(dat$Hummingbird)

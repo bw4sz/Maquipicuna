@@ -5,7 +5,7 @@ require(reshape2)
 require(maptools)
 
 #Set working directory
-droppath<-"C:/Users/Jorge/Dropbox/"
+droppath<-"C:/Users/Ben/Dropbox/"
 setwd(droppath)
 
 ###############################################
