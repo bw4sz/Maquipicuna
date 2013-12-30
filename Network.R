@@ -15,11 +15,11 @@ require(rPlant)
 #############################
 #Set Dropbox Location
 #Read in flower videos
-droppath<-"C:/Users/Ben/Dropbox/"
+droppath<-"C:/Users/Jorge/Dropbox/"
 setwd(droppath)
 
 #Set Gitpath
-gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
 #Where are the outputs?
 netPath<-paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
@@ -64,6 +64,9 @@ spnames<-read.table(paste(gitpath,"InputData/SpNameTree.txt",sep="") , sep = "\t
 #Replace tip.label with Spnames#
 tree$tip.label<-as.character(spnames$SpName) 
 head(dat)
+
+#Read in trait distance between species, run from Morphology.R
+sp.dist<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdDist.csv",row.names=1)
 
 #Fix date format
 dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))

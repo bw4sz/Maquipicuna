@@ -77,15 +77,15 @@ NetworkC<-function(datf,naming){
   
   ER<-function(x){
     y<-m.HH[x,]
-    if(sum(clades$English %in% y[[1]])==0) {return("NA")}
-    if(sum(clades$English %in% y[[2]])==0) {return("NA")}
+    if(sum(clades$English %in% y[[1]])==0) {return(NA)}
+    if(sum(clades$English %in% y[[2]])==0) {return(NA)}
     sp1<-gsub(" ","_",clades[clades$English %in% y[[1]],"double"])
     sp2<-gsub(" ","_",clades[clades$English %in% y[[2]],"double"])
     
     return(
       tryCatch(ctrx[sp1,sp2],error=function(e) {
-        print(c(sp1,sp2))
-        return("NA")}
+        #print(c(sp1,sp2))
+        return(NA)}
       )
     )
   }
@@ -94,9 +94,40 @@ NetworkC<-function(datf,naming){
   m.HH$Relatedness<-sapply(1:nrow(m.HH),ER)
   colnames(m.HH)[1:2]<-c("To","From")
   
-  #Relatedness and plant overlap
+  #Phylogenetic Relatedness and plant overlap
   ggplot(m.HH[m.HH$value>1,],aes(y=value,x=as.numeric(Relatedness),)) + geom_point() + geom_smooth(method="lm") + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") + geom_text(aes(label=paste(To,From)),size=3)
   ggsave("Relatedness_Overlap.svg",height=8,width=11)
+  
+  #repeat for traits
+  ER.trait<-function(x){
+    y<-m.HH[x,]
+    if(sum(clades$English %in% y[[1]])==0) {return(NA)}
+    if(sum(clades$English %in% y[[2]])==0) {return(NA)}
+    sp1<-gsub(" ",".",clades[clades$English %in% y[[1]],"double"])
+    sp2<-gsub(" ",".",clades[clades$English %in% y[[2]],"double"])
+    
+    return(as.numeric(sp.dist[sp1,sp2]))
+      }
+  
+  #get cophenetic distance between species
+  m.HH$RelatednessT<-NA
+  
+  #can't figure out why this throwing a weird flag
+  for (x in 1:nrow(m.HH)){
+    print(x)
+      y<-m.HH[x,]
+      if(sum(clades$English %in% y[[1]])==0) {next}
+      if(sum(clades$English %in% y[[2]])==0) {next}
+      sp1<-gsub(" ",".",clades[clades$English %in% y[[1]],"double"])
+      sp2<-gsub(" ",".",clades[clades$English %in% y[[2]],"double"])
+    if(is.null(sp.dist[sp1,sp2])){next}
+      m.HH[x,"RelatednessT"]<-as.numeric(sp.dist[sp1,sp2])
+    }
+  
+  #Trait Relatedness and plant overlap
+  ggplot(m.HH[m.HH$value>1,],aes(y=value,x=RelatednessT)) + geom_point() + geom_smooth(method="lm") + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") + geom_text(aes(label=paste(To,From)),size=3)
+  ggsave("TraitRelatedness_Overlap.svg",height=8,width=11)
+  
   
   #need a null model here, based on abundance?
   

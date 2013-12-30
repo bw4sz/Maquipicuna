@@ -14,8 +14,8 @@ library(ggbiplot)
 #
 
 #setwd to dropbox
-#droppath<-"C:/Users/Ben/Dropbox/"
-#setwd(droppath)
+#droppath<-"C:/Users/Jorge/Dropbox/"
+setwd(droppath)
 #Set github path
 gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
@@ -162,13 +162,8 @@ ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x),ellipse=TRUE)
 #Create a distance matrix of morphological similarity among all species
 sp.dist<-as.matrix(dist(zscore))
 
-##########Morphological Similiarity and Niche Overlap
-#From the Network.R Script the number of shared plants
-
-#Bring in number of overlapping plants for either a month
-list.files("Thesis/Maquipucuna_SantaLucia/Results/Network",recursive=TRUE,pattern="Hummingbird_Resource_Overlap.csv")
-#need a more consistant measure of niche overlap, but atleast here is the number of shared records?
-
+#Write species distance to file
+write.csv(sp.dist,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdDist.csv")
 
 melt(sp.dist)
 save.image("Thesis/Maquipucuna_SantaLucia/Results/Morphology.Rdata")

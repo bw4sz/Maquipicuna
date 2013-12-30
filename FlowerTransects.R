@@ -15,7 +15,7 @@ require(taxize)
 require(rPlant)
 
 #Set DropBox Working Directory
-setwd("C:/Users/Ben/Dropbox/")
+setwd("C:/Users/Jorge/Dropbox/")
 
 #Read in workspace if desired for quick access
 #load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
@@ -170,26 +170,6 @@ error_rows<-full.fl[full.fl$Iplant_Double %in% "",]
 print("Error_Rows")
 print(rownames(error_rows))
 
-# GS<-levels(factor(full.fl$Iplant_Double))
-# 
-# uids<-get_uid(GS)
-# 
-# out <- classification(uids)
-# taxize_N<-sapply(out, function(x){
-#   if(is.na(x)){return(NA)}
-#   print(x)
-#   paste(x[x$Rank %in% "family","ScientificName"],x[x$Rank %in% "species","ScientificName"])
-# })
-# 
-# data.frame(GS,taxize_N)
-# 
-# taxize_Name<-sapply(out, function(x){
-#   if(is.na(x)){return(NA)}
-#   x[x$Rank %in% "family","ScientificName"]
-# })
-# 
-# data.frame(levels(factor(full.fl$Family)),taxize_Name)
-# 
 #Family Genus Species, in future, create abreviations
 fl.all<-melt(table(full.fl$Iplant_Double))
 names(fl.all)<-c("Species","Count")
@@ -284,60 +264,6 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TimeSerie
 #Genus to Species Ratios
 ggplot(tax,aes(x=month,col=Elev,y=Iplant_Double/Iplant_Genus)) + geom_point() + geom_smooth(aes(group=1)) + xlab("Month") + facet_grid(~Elev,margins=TRUE) + theme_bw()
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TimeSeriesGSratio.jpeg",height=7,width=12)
-
-#This needs to be abundane based...
-
-
-# ##############################################
-# #Read in Spatial Data, still needs to be fixed. 
-# ##############################################
-# 
-# #Read and convert gpx points to a single dataframe and save it as a shapefile
-# f<-list.files("Holger/Transect_Protocol_Holger/WayPoints/",full.names=TRUE)
-# 
-# #loop through input files and find the errors. 
-# gpx<-list()
-# for (x in 1:length(f)){
-#   print(x)
-#   try(
-#     gpx[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
-# }
-# 
-# ##Repeat for Karen's GPS data, label Karen
-# f<-list.files("F:\\KarenGPS\\KarenFirstgps/",full.names=TRUE)
-# 
-# gpx2<-list()
-# for (x in 1:length(f)){
-#   print(x)
-#   try(
-#     gpx2[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
-# }
-# 
-# #Bind together the days that contain data
-# #Label Observer
-# holger.gps<-data.frame(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),Observer="Holger")
-# karen.gps<-data.frame(rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]),Observer="Karen")
-# 
-# #Combine data
-# gpx.dat<-rbind.fill(holger.gps,karen.gps)
-# 
-# full.fl$GPS_ID<-as.numeric(full.fl$GPS_ID)
-# 
-# #Match each point with an elevation
-# fl.elev<-merge(full.fl,gpx.dat,by.x=c("GPS_ID","Observer"),by.y=c("name","Observer"))
-# 
-# #How records were in fl, but not matched
-# full.fl[!full.fl$GPS_ID %in% fl.elev$GPS_ID,]$GPS_ID
-# 
-# 
-# #spatially
-# ggplot(fl.elev,aes(x=coords.x1,y=coords.x2,col=Total_Flowers),size=200) + theme_bw() + geom_point() + scale_color_continuous(high="red",low="blue",limits=c(0,200))
-# 
-# #How many flowers at each elevation
-# ggplot(fl.elev,aes(ele,y=Total_Flowers)) + geom_line() + geom_point(aes(color=Family),size=2) + theme_bw() 
-# 
-# p<-ggplot(fl.elev,aes(x=ele,y=Total_Flowers,col=Species),size=2) + geom_point() + theme_bw() + facet_wrap(~Family,scales='free_y') + guides(color="none")
-# p+stat_smooth(method='lm',aes(group=Family))
 
 #Write cleaned flower transect data?
 save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")

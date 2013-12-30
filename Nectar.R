@@ -4,12 +4,6 @@
 #R script Ben Weinstein - Stony Brook University 7/7/2013
 #Under Git repository - Maquipucuna
 
-#################################
-#Goals
-#1
-#2
-##################################
-
 #Bring in packages
 require(ggplot2)
 require(reshape)
@@ -19,7 +13,7 @@ require(reshape)
 #############
 
 #Nectar Script, setwd if not running globally from specialization.R
-droppath<-"C:/Users/Ben/Dropbox/"
+#droppath<-"C:/Users/Jorge/Dropbox/"
 
 #Bring in nectar data
 Nectar <- read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/Nectar.csv",sep=""))
@@ -94,11 +88,19 @@ rownames(toPCA)<-toPCA$Group.1
 #Write morphology dataset to file
 write.csv(toPCA,"Thesis/Maquipucuna_SantaLucia/Results/FlowerMorphology.csv")
 
+#Perform PCA
 
 toPCA<-na.omit(toPCA[,-1])
 #toPCA<-na.omit(Nectar[-toRemove,c("TotalCorolla","EffectiveCorolla","Corolla.Width","Brix")])
 head(toPCA)
-biplot(prcomp(toPCA),cex=.5)
+
+#principal component traits and get euclidean distance matrix
+zscore <- apply(toPCA, 2, function(x){
+  y<-(x - mean(x))/sd(x)
+  return(y)
+})
+
+biplot(prcomp(zscore),cex=.5)
 
 #Some basic visualizations to check data clarity
 #number of records per species

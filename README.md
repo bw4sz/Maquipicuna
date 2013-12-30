@@ -45,7 +45,6 @@ PhenotypicMatching.R: Compare bill and flower corolla traits
 TimeSeries.R: Analyze range extent over the sampling period
 
 
-
 **Required Packages**
 =====================
 ggplot2

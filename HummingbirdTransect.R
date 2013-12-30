@@ -158,8 +158,8 @@ print("Matrix_Written")
 #Okay, but it looks like the network functions just want the raw rows. 
 #Get all the summer rows that have plants
 humNetwork<-hum.id[!is.na(hum.id$Plant.Species),]
-
 humNetwork<-humNetwork[,colnames(humNetwork) %in% c("ID","Plant.Species","Hummingbird.Species","Month","Date_F","Transect_R","GPS.ID")]
+
 #match up desired columns with holger's data
 colnames(humNetwork)
 colnames(holgerInter)<-c("ID","Hummingbird.Species","GPS.ID","Transect_R","Date_F","Month","Plant.Species")

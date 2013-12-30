@@ -8,9 +8,9 @@ require(reshape2)
 require(phytools)
 
 #Set DropBox Working Directory
-setwd("C:/Users/Ben/Dropbox/")
+setwd("C:/Users/Jorge/Dropbox/")
 
-gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
 #need to run flowerTransects.R, get flower names from file
 fl.names<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/Iplant_Names.txt",row.names=1)
@@ -26,7 +26,7 @@ uids<-get_ids(gsub("_"," ",fl.names$x[-1]),db="tropicos",ask=TRUE)
 save.image("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 
 #Optional start here on restart
-#load("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
+load("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 
 #Classify
 class.taxize<-classification(uids$tropicos)
@@ -86,5 +86,10 @@ write.tree(tree_APG3,paste(gitpath,"InputData/FlowerSPPhylogeny.tre",sep=""))
 save.image("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 
 #Run BLADJ in R?
-source("C:/Users/Ben/Desktop/phylocom-4.2/phylocom-4.2/R/phylocom.R")
-#view the file
+
+#This might need to be made directly
+paste(gitpath,"InputData/FlowerSPPhylogeny.tre",sep="")
+
+system("phylocom bladj > C:/Users/Jorge/Documents/Maquipicuna/InputData/FlowerSPPhylogeny.tre")
+p <- read.tree("C:/Users/Jorge/Documents/Maquipicuna/InputData/FlowerSPPhylogeny.tre")
+
