@@ -11,6 +11,7 @@ require(reshape)
 require(sna)
 require(stringr)
 require(rPlant)
+require(maptools)
 
 #############################
 #Set Dropbox Location
@@ -26,7 +27,7 @@ netPath<-paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
 
 #############################
 #Load image for convienance
-load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
 #bring in clade data
 clades<-read.csv(paste(gitpath,"InputData//CladeList.txt",sep=""),header=FALSE)[,-1]
@@ -74,15 +75,109 @@ dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))
 #Bind in the transect rows to the bottom of dat?
 dat<-rbind.fill(dat,transect.FL)
 
+####################################
+#GPS Info
+####################################
+#Read in GPS and round to nearest 10m
+gps<-readShapePoints("Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSshape.shp")
+gps$ele<-round(as.numeric(as.character(gps$ele)),-1)
+
+####Combine with GPS info seperately, due to weird IDs of old GPS, non-unique
+#Ben's GPS Summer 2013 had no dates
+
+#Create month ID column in the GPS data
+gps$MonthID<-sapply(gps$time,function(x){
+  b<-strsplit(as.character(x),"T")[[1]][1]
+  if(is.na(b)){
+    return("S")
+  }
+  return(as.numeric(format(as.POSIXlt(b),"%m")))
+})
+
+#Get levels from summer for Ben's GPS
+BenSummer<- gps[is.na(gps$time),]
+BenSummerpts<-dat[dat$Month %in% c(6,7,8),]
+
+#Merge first set of gps points
+dat_part1<-merge(BenSummerpts,BenSummer,by.x="ID",by.y="name")
+
+#Any missing levels, look up on the other GPS, probably taken by Karen or Anusha
+missingGPS<-levels(factor(BenSummerpts$ID))[!levels(factor(BenSummerpts$ID)) %in% BenSummer$name]
+
+#Combine missing levels
+found_Summer<-merge(BenSummerpts[BenSummerpts$ID %in% missingGPS,],gps,by.x="ID",by.y="name")
+print(paste("Ben Missing Levels:",missingGPS[!missingGPS %in% gps$name]))
+
+#Combine holger points
+#get the records that are not summer ("S") or 6 7 8 == monthID
+gpsH<-gps[!gps$MonthID %in% c("S","6","7","8"),]
+Holgerpts<-dat[!dat$Month %in% c(6,7,8),]
+
+#paste the month and ID together, assuming there are no overlapping IDs in a month
+gpsH$HolgerID<-paste(gpsH$MonthID,gpsH$name,sep="_")
+
+#paste month and ID together in the destination dat
+Holgerpts$HolgerID<-paste(Holgerpts$Month,Holgerpts$ID,sep="_")
+
+#Which dont levels match from Holger's GPS
+paste("Missing Holger Levels",levels(factor(Holgerpts[!Holgerpts$HolgerID %in% gpsH$HolgerID,]$HolgerID)))
+HolgerMatch<-merge(Holgerpts,gpsH,by="HolgerID")
+
+#Looks like holger added an additional space?
+holgerMissing<-levels(factor(Holgerpts[!Holgerpts$ID %in% gpsH$name,]$ID))
+HolgerMissingpts<-Holgerpts[Holgerpts$ID %in% holgerMissing,]
+HolgerMissingpts$ID_N<-paste("0",HolgerMissingpts$ID,sep="")
+HolgerMissingpts$HolgerID<-paste(HolgerMissingpts$Month,HolgerMissingpts$ID_N,sep="_")
+
+#remerge
+paste("Still Missing Holger Levels",levels(factor(HolgerMissingpts[!HolgerMissingpts$HolgerID %in% gpsH$HolgerID,]$HolgerID)))
+HolgerMatchMiss<-merge(HolgerMissingpts,gpsH,by="HolgerID")
+
+#Bind all levels together
+dat_GPS<-rbind(dat_part1,found_Summer)
+datelev<-rbind.fill(dat_GPS,HolgerMatch)
+datf<-rbind.fill(datelev,HolgerMatchMiss)
+
+#Okay what am i still missing
+finalMissing<-levels(factor(dat[!dat$ID %in% datf$ID,]$ID))
+
+print(paste(finalMissing,"Final Missing Elevation"))
+
+#Add the remaining levels with NA elevation until they can be corroborated?
+dat_e<-rbind.fill(datf,dat[dat$ID %in% finalMissing,])
+
+#humans can only be in one place at once, this should look like a step function
+ggplot(dat_e,aes(x=Date,y=ele)) + geom_point() + geom_line() + coord_flip()
+
+###### Add in manual elev branches for missing levels?
+
+dat_e[dat_e$ID %in% "FL066","ele"]<-1350
+dat_e[dat_e$ID %in% "FL084","ele"]<-1850
+dat_e[dat_e$ID %in% "FL049","ele"]<-1350
+dat_e[dat_e$ID %in% "FL050","ele"]<-1600
+dat_e[dat_e$ID %in% "FL053","ele"]<-1550
+dat_e[dat_e$ID %in% "FL054","ele"]<-1500
+dat_e[dat_e$ID %in% "FL066","ele"]<-1550
+
+#For the holger points, take the mean of the above and below point, can't have walked very far.
+
+for (x in c("864","887","868","892","898","899","901","930")){
+  tr<-dat_e[dat_e$ID %in% x,"Transect_R"]
+  el<-mean(as.numeric(strsplit(as.character(tr),split="_")[[1]]))
+  dat_e[dat_e$ID %in% x,"ele"]<-el
+}
+
+dat_e[is.na(dat_e$ele),]
+
 ###########################
 #Hummingbird Data Cleaning 
 ###########################
 
 #Caps Hummingbird
-dat$Hummingbird<-factor(sapply(dat$Hummingbird,function(x) {.simpleCap(as.character(x))}))
+dat_e$Hummingbird<-factor(sapply(dat_e$Hummingbird,function(x) {.simpleCap(as.character(x))}))
 
 #make a object, just to save typing
-h<-levels(dat$Hummingbird)
+h<-levels(dat_e$Hummingbird)
 
 #can taxize do english names? 
 
@@ -93,15 +188,15 @@ h[h %in% "Violet-tailed Slyph"]<-"Violet-tailed Sylph"
 h[h %in% "Booted Racketail"]<-"Booted Racket-tail"
 h[h %in% "Green-crowned Woodnymph"]<-"Crowned Woodnymph" 
 
-levels(dat$Hummingbird) <- h
+levels(dat_e$Hummingbird) <- h
 
 #Take our any bad data
-dat<-droplevels(dat[!dat$Hummingbird %in% c("","NANA","UKWN","Ukwn"),])
+dat_e<-droplevels(dat_e[!dat$Hummingbird %in% c("","NANA","UKWN","Ukwn"),])
 
 #Remove out piercing events for now?
-table(dat$Piercing)
-datPierce<-dat[dat$Piercing %in% c("Yes","YES"),]
-dat<-dat[!dat$Piercing %in% c("Yes","YES"),]
+table(dat_e$Piercing)
+datPierce<-dat_e[dat_e$Piercing %in% c("Yes","YES"),]
+dat_e<-dat_e[!dat_e$Piercing %in% c("Yes","YES"),]
 
 ################
 #Flower Taxonomy
@@ -110,38 +205,47 @@ dat<-dat[!dat$Piercing %in% c("Yes","YES"),]
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
 
 #Repeat for species
-Species<-levels(factor(dat$Flower))
+Species<-levels(factor(dat_e$Flower))
 iplant_names<-ResolveNames(Species)
 print(CompareNames(Species,iplant_names))
 Species_Result<-data.frame(Species,iplant_names)
 
 #Set the Species column
-for (x in 1:nrow(dat)){
-  y<-dat[x,]
+for (x in 1:nrow(dat_e)){
+  y<-dat_e[x,]
   toMatch<-y$Flower
-  dat[x,"Iplant_Double"]<-levels(droplevels(
+  dat_e[x,"Iplant_Double"]<-levels(droplevels(
   Species_Result[Species_Result$Species %in% toMatch,"iplant_names"] ))   
 }
 
 #Lots of cleaning left to do, but that's a start. 
 #Final levels
-print(paste("Final Flower Species:", levels(factor(dat$Iplant_Double))))
+print(paste("Final Flower Species:", levels(factor(dat_e$Iplant_Double))))
 
 #How many Birds Species
-print(paste("Number of Hummingbird Species:",nlevels(dat$Hummingbird)))
-print(paste("Final Hummingbird Species:",levels(dat$Hummingbird)))
+print(paste("Number of Hummingbird Species:",nlevels(dat_e$Hummingbird)))
+print(paste("Final Hummingbird Species:",levels(dat_e$Hummingbird)))
 
-write.csv(dat,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
+write.csv(dat_e,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
 ############################################
 #Run Network Function for the entire dataset
-NetworkC(datf=dat,naming="Total")
+NetworkC(datf=dat_e,naming="Total")
+############################################
+
+############################################
+#Run Network Function for the entire dataset, with elev seperatiton?
+dat.split<-split(dat_e,cut(dat_e$ele,breaks=c(1300,1700,2500),dig.lab=4,labels=c("Total_Low","Total_High")),drop=TRUE)
+
+for (x in 1:length(dat.split)){
+  NetworkC(datf=dat.split[[x]],naming=names(dat.split)[[x]])
+}
 ############################################
 
 ####################################################
 #Temporal Change in Network Structure
 ####################################################
-dat.split<-split(dat,dat$Month,drop=TRUE)
+dat.split<-split(dat_e,dat$Month,drop=TRUE)
 
 ##############################################
 #Compute metrics for each month

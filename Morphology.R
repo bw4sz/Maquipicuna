@@ -17,7 +17,7 @@ library(ggbiplot)
 #droppath<-"C:/Users/Jorge/Dropbox/"
 setwd(droppath)
 #Set github path
-gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+#gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
 #if not being sourced from Specialization.R, run the next line to get the env
 #load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
@@ -157,7 +157,7 @@ toCol<-clades[gsub(" ",".",clades$double) %in% rownames(trait_pc$x),"Clade"]
 ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x))
 
 #optionally add in circles
-ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x),ellipse=TRUE)
+#ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x),ellipse=TRUE)
 
 #Create a distance matrix of morphological similarity among all species
 sp.dist<-as.matrix(dist(zscore))
@@ -165,5 +165,4 @@ sp.dist<-as.matrix(dist(zscore))
 #Write species distance to file
 write.csv(sp.dist,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdDist.csv")
 
-melt(sp.dist)
 save.image("Thesis/Maquipucuna_SantaLucia/Results/Morphology.Rdata")

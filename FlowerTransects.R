@@ -31,8 +31,8 @@ holgerID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIIDHolger
 
 #Fix holger's ID elev columns, make them more general, transect delim
 for (x in 1:6){
-holgerID[holgerID$Transect %in% x,"Elevation.Begin"]<-1100 + 200*x 
-holgerID[holgerID$Transect %in% x,"Elevation.End"]<-1300 + 200*x
+  holgerID[holgerID$Transect %in% x,"Elevation.Begin"]<-1100 + 200*x 
+  holgerID[holgerID$Transect %in% x,"Elevation.End"]<-1300 + 200*x
 }
 
 #This is causing a real headache, for now just take the last two chracters of the year
@@ -114,7 +114,6 @@ full.fl$Transect_R<-factor(paste(full.fl$Elevation.Begin,full.fl$Elevation.End,s
 ################
 
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
-
 Families<-levels(factor(full.fl$Family))
 iplant_names<-ResolveNames(names=Families)
 CompareNames(Families,iplant_names)
@@ -177,7 +176,7 @@ ggplot(fl.all,aes(Species,Count)) + geom_bar() + coord_flip() + theme_bw()
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/SpeciesCount.jpeg",height=15,width=8)
 
 ###########################
-#Taxonomy Complete
+#Taxonomy Check Complete
 ###########################
 
 ###########################
@@ -209,8 +208,8 @@ full.fl$mean_inflorescences<-sapply(full.fl$Inflorescences.Plants,function(x) {
   mean(as.numeric(strsplit(as.character(as.list(x)[[1]]),",")[[1]]))
 })
 
+#Merge flower stalks
 full.fl$Total_Flowers<-full.fl$mean_flowerStalk*full.fl$mean_Stalk*full.fl$mean_inflorescences
-hist(full.fl$Total_Flowers)
 
 #Visualize total flowers by species
 #ggplot(data=full.fl,aes(Full,Total_Flowers)) + geom_boxplot() + coord_flip()
@@ -229,10 +228,10 @@ for (j in 1:nrow(full.fl)){
   if(x[["Observer"]] %in% c("Karen","Ben")){
     full.fl[j,"month"]<-months(chron(as.character(x$Date)))
   }
-    if(x[["Observer"]] %in% "Holger"){
-      full.fl[j,"month"]<-months(chron(as.character(x[x$Observer %in% "Holger","Date"]),format="d/m/y"))
-    }
+  if(x[["Observer"]] %in% "Holger"){
+    full.fl[j,"month"]<-months(chron(as.character(x[x$Observer %in% "Holger","Date"]),format="d/m/y"))
   }
+}
 
 #There is the one unique transect where holger did the transect with us. 
 head(full.fl[is.na(full.fl$month),])

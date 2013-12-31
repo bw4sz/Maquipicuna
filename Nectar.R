@@ -102,26 +102,26 @@ zscore <- apply(toPCA, 2, function(x){
 
 biplot(prcomp(zscore),cex=.5)
 
-#Some basic visualizations to check data clarity
-#number of records per species
-m.Nectar<-melt(table(Nectar[!is.na(Nectar$Brix),]$Iplant_Double))
-ggplot(m.Nectar,aes(Var.1,value)) + geom_point(size=5)+ theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
-
-#Sugar Concentration's of 0 to NA
-#No records should be 0
-Nectar[Nectar$Brix==0 & is.finite(Nectar$Brix),]
-
-#Is the tube given in diameter?
-#tube column needs to have correct math.
-as.numeric(Nectar$Tube.Type)/2 * 2*pi * Nectar$TubeLength
-ggplot(m.Nectar,aes(x=Var.1,value)) + geom_bar() + coord_flip() + geom_text(aes(label=value),col="red",hjust=1) + theme_bw()
-p<-ggplot(Nectar[!is.na(Nectar$Brix),],aes(x=Species,y=Brix)) + geom_point() + facet_wrap(~Family,scales="free_x")
-p+ theme_bw() +theme(axis.text.x = element_text(angle = 90,size=10))
-p<-ggplot(Nectar[!is.na(Nectar$TotalCorolla),],aes(x=Species,y=TotalCorolla)) + geom_point() + facet_wrap(~Family,scales="free_x")
-p+ theme_bw() +theme(axis.text.x = element_text(angle = 90,size=10)) + geom_point()
-
-ggplot(Nectar,aes(x=TotalCorolla,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm")
-ggplot(Nectar,aes(x=EffectiveCorolla,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm") + geom_text(aes(label=Family),size=2)
-ggplot(Nectar,aes(x=Corolla.Width,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm") 
+# #Some basic visualizations to check data clarity
+# #number of records per species
+# m.Nectar<-melt(table(Nectar[!is.na(Nectar$Brix),]$Iplant_Double))
+# ggplot(m.Nectar,aes(Var.1,value)) + geom_point(size=5)+ theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+# 
+# #Sugar Concentration's of 0 to NA
+# #No records should be 0
+# Nectar[Nectar$Brix==0 & is.finite(Nectar$Brix),]
+# 
+# #Is the tube given in diameter?
+# #tube column needs to have correct math.
+# as.numeric(Nectar$Tube.Type)/2 * 2*pi * Nectar$TubeLength
+# ggplot(m.Nectar,aes(x=Var.1,value)) + geom_bar() + coord_flip() + geom_text(aes(label=value),col="red",hjust=1) + theme_bw()
+# p<-ggplot(Nectar[!is.na(Nectar$Brix),],aes(x=Species,y=Brix)) + geom_point() + facet_wrap(~Family,scales="free_x")
+# p+ theme_bw() +theme(axis.text.x = element_text(angle = 90,size=10))
+# p<-ggplot(Nectar[!is.na(Nectar$TotalCorolla),],aes(x=Species,y=TotalCorolla)) + geom_point() + facet_wrap(~Family,scales="free_x")
+# p+ theme_bw() +theme(axis.text.x = element_text(angle = 90,size=10)) + geom_point()
+# 
+# ggplot(Nectar,aes(x=TotalCorolla,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm")
+# ggplot(Nectar,aes(x=EffectiveCorolla,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm") + geom_text(aes(label=Family),size=2)
+# ggplot(Nectar,aes(x=Corolla.Width,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm") 
 
 save.image("Thesis/Maquipucuna_SantaLucia/Results/Nectar.Rdata")
