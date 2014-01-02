@@ -7,6 +7,8 @@
 #Bring in packages
 require(ggplot2)
 require(reshape)
+require(rPlant)
+library(ggbiplot)
 
 #############
 #setwd
@@ -20,9 +22,6 @@ Nectar <- read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/Ne
 
 #Fix colnames that are ugly
 colnames(Nectar)[c(8,10,11,12,13)]<-c("Height","TubeLength","Brix","EffectiveCorolla","TotalCorolla")
-#Some weird records?
-toRemove<-c(567,415)
-Nectar<-Nectar[-toRemove,]
 
 ################
 #Flower Taxonomy
@@ -77,6 +76,7 @@ print(paste("Final Flower Species:", levels(factor(Nectar$Iplant_Double))))
 
 #Write 
 write.csv(levels(factor(Nectar$Iplant_Double)),"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/Iplant_Names.txt")
+
 #################################################################################
 
 #View morphological distance
@@ -100,7 +100,16 @@ zscore <- apply(toPCA, 2, function(x){
   return(y)
 })
 
-biplot(prcomp(zscore),cex=.5)
+pcA<-prcomp(zscore)
+
+biplot(pcA)
+
+#Color by genus
+genera<-sapply(as.character(rownames(zscore)),function(x){
+  strsplit(x,"_")[[1]][1]
+})
+ggbiplot(pcA,groups=genera) 
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/FloralPCA.svg",height=10,width=10,dpi=300)
 
 # #Some basic visualizations to check data clarity
 # #number of records per species

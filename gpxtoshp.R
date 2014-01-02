@@ -5,8 +5,8 @@ require(reshape2)
 require(maptools)
 
 #Set working directory
-droppath<-"C:/Users/Ben/Dropbox/"
-setwd(droppath)
+#droppath<-"C:/Users/Ben/Dropbox/"
+#setwd(droppath)
 
 ###############################################
 #Read in GPS Data from Summer 2013 Field Season

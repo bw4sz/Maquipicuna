@@ -156,6 +156,10 @@ for (x in 1:nrow(full.fl)){
 }
 
 #Lots of cleaning left to do, but that's a start. 
+
+#Fix any known ID mistakes
+full.fl[full.fl$Iplant_Double %in% "Heppiella_ulmifolia","Iplant_Double"]<-"Glossoloma_oblongicalyx"
+
 #Final levels
 print(paste("Final Flower Species:", levels(factor(full.fl$Iplant_Double))))
 

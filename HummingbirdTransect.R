@@ -80,15 +80,72 @@ holgerID$ID[!holgerID$ID %in% holger.hum$ID]
 levels(droplevels(holger.hum$ID[!holger.hum$ID %in% holgerID$ID]))
 holger.full<-merge(holger.hum,holgerID,"ID")
 
+
 #Get all the rows in holger.hum that have species
 holger.full$Full<-paste(holger.full$Family,holger.full$Genus,holger.full$Species)
 holgerInter<-holger.full[!holger.full$Full %in% "  " ,]
 
+################
+#Flower Taxonomy
+################
+
+#Go through a series of data cleaning steps, at the end remove all rows that are undesired
+Families<-levels(factor(holgerInter$Family))
+iplant_names<-ResolveNames(names=Families)
+CompareNames(Families,iplant_names)
+
+Fam_Result<-data.frame(Families,iplant_names)
+Fam_Errors<-Fam_Result[Fam_Result$iplant_names %in% "","Families"]
+
+#Post to output which plant families need to be address
+print(paste(Fam_Errors,"not found in taxonomy database"))
+
+#Repeat for genus
+Genus<-levels(factor(holgerInter$Genus))
+iplant_names<-ResolveNames(names=Genus)
+CompareNames(Genus,iplant_names)
+
+Genus_Result<-data.frame(Genus,iplant_names)
+Genus_Errors<-Genus_Result[Genus_Result$iplant_names %in% "","Genus"]
+
+#Post to output which plant families need to be address
+print(paste(Genus_Errors,"not found in taxonomy database"))
+
+#Set the Genus column
+for (x in 1:nrow(holgerInter)){
+  y<-holgerInter[x,]
+  holgerInter[x,"Iplant_Genus"]<-levels(droplevels(Genus_Result[Genus_Result$Genus %in% y$Genus,"iplant_names"] ))   
+}
+
+#Repeat for species
+Species<-levels(factor(paste(holgerInter$Iplant_Genus,holgerInter$Species,sep="_")))
+iplant_names<-ResolveNames(Species)
+print(CompareNames(Species,iplant_names))
+Species_Result<-data.frame(Species,iplant_names)
+
+#Set the Species column
+for (x in 1:nrow(holgerInter)){
+  y<-holgerInter[x,]
+  toMatch<-paste(y$Iplant_Genus,y$Species,sep="_")
+  holgerInter[x,"Iplant_Double"]<-levels(droplevels(
+    Species_Result[Species_Result$Species %in% toMatch,"iplant_names"] ))   
+}
+
+#Lots of cleaning left to do, but that's a start. 
+
+#Fix any known ID mistakes
+
+holgerInter[holgerInter$Iplant_Double %in% "Heppiella_ulmifolia","Iplant_Double"]<-"Glossoloma_oblongicalyx"
+
+#Final levels
+print(paste("Final Flower Species:", levels(factor(holgerInter$Iplant_Double))))
+
+
 #get the desired columns
 colnames(holgerInter)
-holgerInter<-holgerInter[,colnames(holgerInter) %in% c("ID","Hummingbird.Species","Full","Way.Point","Month","Date_F.y","Transect_R")]
+holgerInter<-holgerInter[,colnames(holgerInter) %in% c("ID","Hummingbird.Species","Iplant_Double","Way.Point","Month","Date_F.y","Transect_R")]
 
-monthInter<-melt(table(holgerInter$Hummingbird.Species,holgerInter$Full,holgerInter$Month))
+monthInter<-melt(table(holgerInter$Hummingbird.Species,holgerInter$Iplant_Double,holgerInter$Month))
 colnames(monthInter)<-c("Hummingbird","Plant","Month","value")
 
 #visualize holger only data
@@ -125,13 +182,34 @@ hum.id$Date_F<-as.Date(as.character(hum.id$Date),"%m/%d/%Y")
 hum.id$Month<-as.numeric(format(as.Date(hum.id$Date_F),"%m"))
 hum.id$Transect_R<-paste(hum.id$Elevation.Begin,hum.id$Elevation.End,sep="_")
 
+#Take out empty rows?
+hum.id<-hum.id[!is.na(hum.id$Plant.Species),]
+
+###Taxonomoy of plant names
+#Repeat for genus
+plants<-levels(factor(hum.id$Plant.Species))
+iplant_names<-ResolveNames(names=plants)
+CompareNames(plants,iplant_names)
+
+Genus_Result<-data.frame(plants,iplant_names)
+Genus_Errors<-Genus_Result[Genus_Result$iplant_names %in% "","Genus"]
+
+#Post to output which plant families need to be address
+print(paste(Genus_Errors,"not found in taxonomy database"))
+
+#Set the plant column
+for (x in 1:nrow(hum.id)){
+  y<-hum.id[x,]
+  hum.id[x,"Iplant_Double"]<-levels(droplevels(Genus_Result[Genus_Result$plants %in% y$Plant.Species,"iplant_names"] )) 
+}
+
 ################################################
 #Interaction table for summer data
 ################################################
 
 #Cap all species names
 levels(hum.id$Hummingbird.Species)<-sapply(levels(hum.id$Hummingbird.Species),function(x){.simpleCap(tolower(x))})
-humInter<-melt(table(hum.id$Hummingbird.Species,hum.id$Plant.Species,hum.id$Month))
+humInter<-melt(table(hum.id$Hummingbird.Species,hum.id$Iplant_Double,hum.id$Month))
 colnames(humInter)<-c("Hummingbird","Plant","Month","value")
 
 #visualize summer only data

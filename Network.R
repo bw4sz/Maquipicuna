@@ -16,11 +16,11 @@ require(maptools)
 #############################
 #Set Dropbox Location
 #Read in flower videos
-droppath<-"C:/Users/Jorge/Dropbox/"
-setwd(droppath)
+#droppath<-"C:/Users/Jorge/Dropbox/"
+#setwd(droppath)
 
 #Set Gitpath
-gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
+#gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
 #Where are the outputs?
 netPath<-paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
@@ -147,7 +147,7 @@ print(paste(finalMissing,"Final Missing Elevation"))
 dat_e<-rbind.fill(datf,dat[dat$ID %in% finalMissing,])
 
 #humans can only be in one place at once, this should look like a step function
-ggplot(dat_e,aes(x=Date,y=ele)) + geom_point() + geom_line() + coord_flip()
+#ggplot(dat_e,aes(x=Date,y=ele)) + geom_point() + geom_line() + coord_flip()
 
 ###### Add in manual elev branches for missing levels?
 
@@ -191,32 +191,12 @@ h[h %in% "Green-crowned Woodnymph"]<-"Crowned Woodnymph"
 levels(dat_e$Hummingbird) <- h
 
 #Take our any bad data
-dat_e<-droplevels(dat_e[!dat$Hummingbird %in% c("","NANA","UKWN","Ukwn"),])
+dat_e<-droplevels(dat_e[!dat_e$Hummingbird %in% c("","NANA","UKWN","Ukwn"),])
 
 #Remove out piercing events for now?
 table(dat_e$Piercing)
 datPierce<-dat_e[dat_e$Piercing %in% c("Yes","YES"),]
 dat_e<-dat_e[!dat_e$Piercing %in% c("Yes","YES"),]
-
-################
-#Flower Taxonomy
-################
-
-#Go through a series of data cleaning steps, at the end remove all rows that are undesired
-
-#Repeat for species
-Species<-levels(factor(dat_e$Flower))
-iplant_names<-ResolveNames(Species)
-print(CompareNames(Species,iplant_names))
-Species_Result<-data.frame(Species,iplant_names)
-
-#Set the Species column
-for (x in 1:nrow(dat_e)){
-  y<-dat_e[x,]
-  toMatch<-y$Flower
-  dat_e[x,"Iplant_Double"]<-levels(droplevels(
-  Species_Result[Species_Result$Species %in% toMatch,"iplant_names"] ))   
-}
 
 #Lots of cleaning left to do, but that's a start. 
 #Final levels

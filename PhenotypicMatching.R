@@ -5,8 +5,8 @@ require(chron)
 require(stringr)
 
 #Setwd if not run globally
-droppath<-"C:/Users/Ben/Dropbox/"
-setwd(droppath)
+#droppath<-"C:/Users/Jorge/Dropbox/"
+#setwd(droppath)
 
 #read in flower morphology data, comes from Nectar.R
 fl.morph<-read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/FlowerMorphology.csv",sep=""))
@@ -27,25 +27,30 @@ levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English]
 
 #This needs to be checked
 print(paste(levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English],"not matched"))
-levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English]<-c("Green-crowned Woodnymph","Gorgeted Sunangel","Tyrian Metaltail")
+levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English]<-c("Green-crowned Woodnymph","Gorgeted Sunangel","Tyrian Metaltail","UKWN","UKWN")
 m.datH<-merge(m.dat,hum.morph, by.x="Hummingbird",by.y="English")
 
 #Merge to flowers
-levels(factor(m.datH$Iplant_Double))
+int.FLlevels<-levels(factor(m.datH$Iplant_Double))
+int.FLlevels
+
+#Which flowers are we missing info for?
+missingTraits<-int.FLlevels[!int.FLlevels %in% fl.morph$X]
+
+print(paste("Missing Trait Information:",missingTraits))
 m.datH<-merge(m.datH,fl.morph, by.x="Iplant_Double",by.y="X")
 
 ######Univariate Phenotype Matching##########
 
 #Some of these observations are suspect, the booted racket-tail on the 50cm plant?
 #I think we need to do the regression seperately?
-p<-ggplot(m.datH,aes(x=round(Bill,1),TotalCorolla,col=factor(Hummingbird))) + geom_boxplot(aes(factor(Bill)))
-+ geom_smooth(aes(group=1),method="lm")
-p<- p+ geom_boxplot() 
+p<-ggplot(m.datH,aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_point() + geom_boxplot(aes(group=factor(Bill)))
+p + geom_smooth(aes(group=1),method="lm")
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/TotalCorollaMatching.svg",height=8,width=11,dpi=300)
 
 #Effective Corolla Matching
-p<-ggplot(m.datH,aes(x=factor(Bill),EffectiveCorolla,col=Hummingbird)) + geom_boxplot() + geom_smooth(method="lm",aes(group=1))
-p + geom_point()
+p<-ggplot(m.datH,aes(x=factor(Bill),EffectiveCorolla,col=Hummingbird)) + geom_point() + geom_boxplot(aes(group=factor(Bill)))
+p + geom_smooth(aes(group=1),method="lm")
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/EffectiveCorollaMatching.svg",height=8,width=11,dpi=300)
 
 #Corolla Width Matching
