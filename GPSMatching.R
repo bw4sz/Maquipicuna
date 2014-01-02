@@ -5,8 +5,8 @@ require(reshape2)
 require(maptools)
 
 #Set working directory
-#droppath<-"C:/Users/Ben/Dropbox/"
-#setwd(droppath)
+droppath<-"C:/Users/Jorge/Dropbox/"
+setwd(droppath)
 
 ###############################################
 #Read in GPS Data from Summer 2013 Field Season
@@ -59,20 +59,7 @@ tomatch$name<-as.character(tomatch$name)
 gpx.all<-rbind.fill(gpx.dat,tomatch)
 
 #create  spatial object
-dat.sp<-SpatialPointsDataFrame(coords=cbind(gpx.all$lon,gpx.all$lat),gpx.all)
-
-#create shapefile
-writePointsShape(dat.sp,"Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSshape.shp")
-
-####################################
-#GPS Info
-####################################
-#Read in GPS and round to nearest 10m
-gps<-readShapePoints("Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSshape.shp")
-gps$ele<-round(as.numeric(as.character(gps$ele)),-1)
-
-####Combine with GPS info seperately, due to weird IDs of old GPS, non-unique
-#Ben's GPS Summer 2013 had no dates
+gps<-SpatialPointsDataFrame(coords=cbind(gpx.all$lon,gpx.all$lat),gpx.all)
 
 #Create month ID column in the GPS data
 gps$MonthID<-sapply(gps$time,function(x){
@@ -82,6 +69,90 @@ gps$MonthID<-sapply(gps$time,function(x){
   }
   return(as.numeric(format(as.POSIXlt(b),"%m")))
 })
+
+#Round to the nearest 10m 
+gps$ele<-round(as.numeric(as.character(gps$ele)),-1)
+
+#create shapefile
+writePointsShape(gps,"Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSshape.shp")
+
+############################################
+##############Merge GPS Info with Data######
+############################################
+
+#Bring in Holger Flower Transect Data
+full.fl<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/CleanedHolgerTransect.csv")
+
+#Combine holger points
+#get the records that are not summer ("S") or 6 7 8 == monthID
+gpsH<-gps[!gps$MonthID %in% c("S","6","7","8"),]
+Holgerpts<-full.fl[!full.fl$month %in% c(6,7,8),]
+
+#paste the month and ID together, assuming there are no overlapping IDs in a month
+gpsH$HolgerID<-paste(gpsH$MonthID,gpsH$name,sep="_")
+
+#paste month and ID together in the destination dat
+Holgerpts$HolgerID<-paste(Holgerpts$month,Holgerpts$GPS_ID,sep="_")
+
+#Which dont levels match from Holger's GPS
+paste("Missing Holger GPS IDS",levels(factor(Holgerpts[!Holgerpts$HolgerID %in% gpsH$HolgerID,]$HolgerID)))
+
+#merge dataframes
+HolgerMatch<-merge(Holgerpts,gpsH,by="HolgerID")
+
+#Looks like holger added an additional space to numbers below 100?
+holgerMissing<-levels(factor(Holgerpts[!Holgerpts$GPS_ID %in% gpsH$name,]$GPS_ID))
+HolgerMissingpts<-Holgerpts[Holgerpts$GPS_ID %in% holgerMissing,]
+HolgerMissingpts$ID_N<-paste("0",HolgerMissingpts$GPS_ID,sep="")
+HolgerMissingpts$HolgerID<-paste(HolgerMissingpts$month,HolgerMissingpts$ID_N,sep="_")
+
+#remerge
+paste("Still Missing Holger Levels",levels(factor(HolgerMissingpts[!HolgerMissingpts$HolgerID %in% gpsH$HolgerID,]$HolgerID)))
+HolgerMatchMiss<-merge(HolgerMissingpts,gpsH,by="HolgerID")
+
+#maybe even again?
+holgerMissing<-levels(factor(Holgerpts[!Holgerpts$GPS_ID %in% gpsH$name,]$GPS_ID))
+HolgerMissingpts<-Holgerpts[Holgerpts$GPS_ID %in% holgerMissing,]
+HolgerMissingpts$ID_N<-paste("0",HolgerMissingpts$GPS_ID,sep="")
+HolgerMissingpts$HolgerID<-paste(HolgerMissingpts$month,HolgerMissingpts$ID_N,sep="_")
+
+
+#Bind all levels together
+dat_GPS<-rbind(dat_part1,found_Summer)
+datelev<-rbind.fill(dat_GPS,HolgerMatch)
+datf<-rbind.fill(datelev,HolgerMatchMiss)
+
+#Okay what am i still missing
+finalMissing<-levels(factor(dat[!dat$ID %in% datf$ID,]$ID))
+
+print(paste(finalMissing,"Final Missing Elevation"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+####Combine with GPS info seperately, due to weird IDs of old GPS, non-unique
+#Ben's GPS Summer 2013 had no dates
+
+
+
+
 
 #Get levels from summer for Ben's GPS
 BenSummer<- gps[is.na(gps$time),]
@@ -97,40 +168,6 @@ missingGPS<-levels(factor(BenSummerpts$ID))[!levels(factor(BenSummerpts$ID)) %in
 found_Summer<-merge(BenSummerpts[BenSummerpts$ID %in% missingGPS,],gps,by.x="ID",by.y="name")
 print(paste("Ben Missing Levels:",missingGPS[!missingGPS %in% gps$name]))
 
-#Combine holger points
-#get the records that are not summer ("S") or 6 7 8 == monthID
-gpsH<-gps[!gps$MonthID %in% c("S","6","7","8"),]
-Holgerpts<-dat[!dat$Month %in% c(6,7,8),]
-
-#paste the month and ID together, assuming there are no overlapping IDs in a month
-gpsH$HolgerID<-paste(gpsH$MonthID,gpsH$name,sep="_")
-
-#paste month and ID together in the destination dat
-Holgerpts$HolgerID<-paste(Holgerpts$Month,Holgerpts$ID,sep="_")
-
-#Which dont levels match from Holger's GPS
-paste("Missing Holger Levels",levels(factor(Holgerpts[!Holgerpts$HolgerID %in% gpsH$HolgerID,]$HolgerID)))
-HolgerMatch<-merge(Holgerpts,gpsH,by="HolgerID")
-
-#Looks like holger added an additional space?
-holgerMissing<-levels(factor(Holgerpts[!Holgerpts$ID %in% gpsH$name,]$ID))
-HolgerMissingpts<-Holgerpts[Holgerpts$ID %in% holgerMissing,]
-HolgerMissingpts$ID_N<-paste("0",HolgerMissingpts$ID,sep="")
-HolgerMissingpts$HolgerID<-paste(HolgerMissingpts$Month,HolgerMissingpts$ID_N,sep="_")
-
-#remerge
-paste("Still Missing Holger Levels",levels(factor(HolgerMissingpts[!HolgerMissingpts$HolgerID %in% gpsH$HolgerID,]$HolgerID)))
-HolgerMatchMiss<-merge(HolgerMissingpts,gpsH,by="HolgerID")
-
-#Bind all levels together
-dat_GPS<-rbind(dat_part1,found_Summer)
-datelev<-rbind.fill(dat_GPS,HolgerMatch)
-datf<-rbind.fill(datelev,HolgerMatchMiss)
-
-#Okay what am i still missing
-finalMissing<-levels(factor(dat[!dat$ID %in% datf$ID,]$ID))
-
-print(paste(finalMissing,"Final Missing Elevation"))
 
 #Add the remaining levels with NA elevation until they can be corroborated?
 dat_e<-rbind.fill(datf,dat[dat$ID %in% finalMissing,])
