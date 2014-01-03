@@ -15,10 +15,10 @@ require(taxize)
 require(rPlant)
 
 #Set DropBox Working Directory
-setwd("C:/Users/Jorge/Dropbox/")
+setwd("C:/Users/Ben/Dropbox/")
 
 #Read in workspace if desired for quick access
-#load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
 #Read in Flower Transect Data from summer field season
 fl<-read.csv(file="Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerTransects.csv")
@@ -248,8 +248,8 @@ colnames(fl.totals)<-c("Elev","Month","Date","TotalFlowers")
 write.csv(full.fl,"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/CleanedHolgerTransect.csv")
 
 ##Flowers per month and elevation
-p<-ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=3) + geom_smooth(aes(group=Month)) + facet_wrap(~Month,nrow=2) + theme_bw() + labs(col="Month")
-p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+p<-ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=3)  + stat_smooth(aes(group=Month),method="loess",se=FALSE) + facet_wrap(~Month,nrow=2) + theme_bw() + labs(col="Month")
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerMonths.jpeg",height=8,width=10)
 
 #Flowers at each elevation over time
