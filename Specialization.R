@@ -52,6 +52,12 @@ save.image("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rd
 source(paste(gitpath,"HummingbirdTransect.R",sep=""))
 load("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
 
+########################
+#Match GPS Records - Also merges flower video file. 
+########################
+
+source(paste(gitpath,"GPSMatching.R",sep=""))
+
 #########################
 #Hummingbird Morphological Analysis
 #########################

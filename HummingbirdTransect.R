@@ -376,7 +376,7 @@ colnames(HMatch)
 Hrows<-HMatch[,colnames(HMatch) %in% c("Way.Point" ,"Iplant_Double","Hummingbird.Species","Month","Date_F.y","Transect_R","ID","ele","lat","lon")]
 
 colnames(Hrows)
-colnames(Brows)[colnames(Brows) %in% c("altitude","long")]<-c("ele","lon")
+colnames(Brows)[colnames(Brows) %in% c("altitude","long")]<-c("lon","ele")
 colnames(Hrows)[colnames(Hrows) %in% c("Way.Point","Date_F.y")]<-c("GPS.ID","Date_F")
 
 transectRows<-rbind.fill(Brows,Hrows)

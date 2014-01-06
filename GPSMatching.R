@@ -103,11 +103,24 @@ writePointsShape(gps,"Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSs
 
 dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideo.csv")
 
-#one repeat 
-gps[gps$GPS.ID %in%  "FL061",]
+#error rows
+#merge
+datg<-merge(dat,gps,by.x="ID",by.y="GPS.ID",all.x=TRUE)
 
-gps<-gps[-2167,]
+dim(dat)
+dim(datg)
 
+
+#find duplicates
+d<-data.frame(table(dat$ID),table(datg$ID))
+
+dups<-d[which(!d$Freq == d$Freq.1),]$Var1
+
+#Repeat merge at elim duplicates
+dup.g<-gps[gps$GPS.ID %in% dups,]
+dup.g[order(dup.g$GPS.ID),]
+
+gps<-gps[-c(5198,663),]
 
 #merge
 datg<-merge(dat,gps,by.x="ID",by.y="GPS.ID",all.x=TRUE)
@@ -125,8 +138,27 @@ datg[datg$ID %in% "FL049","ele"]<-1350
 datg[datg$ID %in% "FL050","ele"]<-1600
 datg[datg$ID %in% "FL053","ele"]<-1550
 datg[datg$ID %in% "FL054","ele"]<-1500
-datg[datg$ID %in% "FL085","ele"]<-1950
-datg[datg$ID %in% "FL086","ele"]<-1950
+
+
+################
+#Flower Taxonomy
+################
+
+#Go through a series of data cleaning steps, at the end remove all rows that are undesired
+
+#Repeat for species
+Species<-levels(factor(datg$Flower))
+iplant_names<-ResolveNames(Species)
+print(CompareNames(Species,iplant_names))
+Species_Result<-data.frame(Species,iplant_names)
+
+#Set the Species column
+for (x in 1:nrow(datg)){
+  y<-datg[x,]
+  toMatch<-y$Flower
+  datg[x,"Iplant_Double"]<-levels(droplevels(
+  Species_Result[Species_Result$Species %in% toMatch,"iplant_names"] ))   
+}
 
 #Write camera data to file
 write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoClean.csv")

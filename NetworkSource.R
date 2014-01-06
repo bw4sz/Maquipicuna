@@ -5,8 +5,8 @@ NetworkC<-function(datf,naming){
   
   #Set a working directory, create a folder for each run
   setwd(droppath)
-  toset<-paste("Thesis/Maquipucuna_SantaLucia/Results/Network/",naming,sep="")
-  dir.create(toset,showWarnings=FALSE)
+  toset<-paste(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep=""),naming,sep="")
+  dir.create(toset)
   setwd(toset)
   
   #Drop any unused factors?
@@ -19,11 +19,11 @@ NetworkC<-function(datf,naming){
   write.csv(F_H,"BirdXFlower.csv")
   
   #View Web
-  svg(filename="WebPlot.svg",height=7,width=12)
+  svg(filename="WebPlot.svg",height=7,width=15)
   plotweb(F_H)
   dev.off()
  
-  jpeg(filename="MatrixPlotCompartments.jpeg",height=8,width=8,units="in",res=300)
+  jpeg(filename="MatrixPlotCompartments.jpeg",height=10,width=10,units="in",res=300)
   visweb(F_H,"compartment")
   dev.off()
   
@@ -55,6 +55,9 @@ NetworkC<-function(datf,naming){
   birds.spl<-data.frame(lapply(birds.special,data.frame))
   colnames(birds.spl)<-names(birds.special)
   birds.spl$Species<-rownames(birds.spl)
+  
+  #size by sample size?
+  
   
   ggplot(birds.spl,aes(x=Species,y=dprime)) + geom_point() + theme_bw() + theme(axis.text.x=element_text(angle=90))
   ggsave("Specialization.svg",height=8,width=9)
@@ -143,6 +146,7 @@ NetworkC<-function(datf,naming){
   visweb(F_H)
   dev.off()
   
+  setwd(droppath)
 }
 print("Function Defined")
 

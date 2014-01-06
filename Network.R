@@ -16,7 +16,7 @@ require(maptools)
 #Set Dropbox Location
 #Read in flower videos
 #droppath<-"C:/Users/Jorge/Dropbox/"
-#setwd(droppath)
+setwd(droppath)
 
 #Set Gitpath
 #gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
@@ -42,15 +42,6 @@ clades<-read.csv(paste(gitpath,"InputData//CladeList.txt",sep=""),header=FALSE)[
 colnames(clades)<-c("Clade","Genus","Species","double","English")
 clades<-clades[,1:5]
 
-#Read in Flower Camera Dataset
-dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideo.csv")
-
-####Bring in interaction matrix for the flower transects, see FlowerTransects.R
-transect.FL<-read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv",sep=""))[,-1]
-
-#make the columns as similiar as possible to videodata
-colnames(transect.FL)<-c("TransectID","Hummingbird","ID","Flower","Date","Month","Transect_R")
-
 #Bring in the phylogeny
 tree<-read.nexus(paste(gitpath,"InputData/ColombiaPhylogenyUM.tre",sep=""))
 
@@ -59,33 +50,34 @@ spnames<-read.table(paste(gitpath,"InputData/SpNameTree.txt",sep="") , sep = "\t
 
 #Replace tip.label with Spnames#
 tree$tip.label<-as.character(spnames$SpName) 
-head(dat)
 
 #Read in trait distance between species, run from Morphology.R
 sp.dist<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdDist.csv",row.names=1)
 
+###Read in Flower Camera Dataset####
+dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoClean.csv")
+
+#Get desired columns
+dat<-dat[,colnames(dat) %in% c("ID","Video","Date","Iplant_Double","Time","Hummingbird","Sex","Temp","Piercing","lon","lat","ele")]
+
+#Fix date format
+dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))
+
+####Bring in interaction matrix for the flower transects, see FlowerTransects.R
+transect.FL<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv",row.names=1)
+
+
+#make the columns as similiar as possible to videodata
+colnames(transect.FL)<-c("GPS.ID","TransectID","Hummingbird","Date","Month","Transect_R","Iplant_Double","lat","lon","ele")
+
+##############Data Imported#####################
+
 #Bind in the transect rows to the bottom of dat?
 dat<-rbind.fill(dat,transect.FL)
-
-#Lots of cleaning left to do, but that's a start. 
-#Final levels
-print(paste("Final Flower Species:", levels(factor(dat_e$Iplant_Double))))
-
-#How many Birds Species
-print(paste("Number of Hummingbird Species:",nlevels(dat_e$Hummingbird)))
-print(paste("Final Hummingbird Species:",levels(dat_e$Hummingbird)))
-
-write.csv(dat_e,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
 ############################################
 ##############Data Import Complete##########
 ############################################
-
-#Quick Data cleaning
-###Flower Video Cleaning
-
-#Fix date format
-dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))
 
 ###########################
 #Hummingbird Data Cleaning 
@@ -118,8 +110,19 @@ dat_e<-droplevels(dat[!dat$Hummingbird %in% c("","NANA","UKWN","Ukwn"),])
 
 #Remove out piercing events for now?
 table(dat$Piercing)
-datPierce<-dat[dat_e$Piercing %in% c("Yes","YES"),]
-dat_e<-dat[!dat$Piercing %in% c("Yes","YES"),]
+datPierce<-dat_e[dat_e$Piercing %in% c("Yes","YES"),]
+dat_e<-dat_e[!dat_e$Piercing %in% c("Yes","YES"),]
+
+#################Data Cleaning Complete################
+
+#Final levels
+print(paste("Final Flower Species:", levels(factor(dat_e$Iplant_Double))))
+
+#How many Birds Species
+print(paste("Number of Hummingbird Species:",nlevels(dat_e$Hummingbird)))
+print(paste("Final Hummingbird Species:",levels(dat_e$Hummingbird)))
+
+write.csv(dat_e,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
 ############################################
 #Run Network Function for the entire dataset
@@ -137,21 +140,19 @@ for (x in 1:length(dat.split)){
 #############################################
 #Temporal Change in Network Structure
 #############################################
-dat.split<-split(dat_e,dat$Month,drop=TRUE)
+dat.split<-split(dat_e,dat_e$Month,drop=TRUE)
 
 #############################################
 #Compute metrics for each month
 #############################################
 
 for (x in 1:length(dat.split)){
-  NetworkC(datf=dat.split[[x]],naming=names(dat.split)[[x]])
+  NetworkC(datf=dat.split[[x]],naming=paste("Temporal",names(dat.split)[[x]],sep="/"))
 }
-
 
 ############################################
 ##############Networks Created##############
 ############################################
-
 
 ##################################
 #Retrieve Classes, name them, melt 
