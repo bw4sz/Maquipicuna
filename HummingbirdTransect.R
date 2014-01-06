@@ -14,6 +14,7 @@ require(plyr)
 require(plotKML)
 require(reshape)
 require(chron)
+require(rPlant)
 
 #Set DropBox Working Directory
 #setwd("C:/Users/Ben/Dropbox/")
@@ -80,10 +81,12 @@ holgerID$ID[!holgerID$ID %in% holger.hum$ID]
 levels(droplevels(holger.hum$ID[!holger.hum$ID %in% holgerID$ID]))
 holger.full<-merge(holger.hum,holgerID,"ID")
 
-
 #Get all the rows in holger.hum that have species
 holger.full$Full<-paste(holger.full$Family,holger.full$Genus,holger.full$Species)
-holgerInter<-holger.full[!holger.full$Full %in% "  " ,]
+#holgerInter<-holger.full[!holger.full$Full %in% "  " ,]
+
+#legacy change, keep all observations
+holgerInter<-holger.full
 
 ################
 #Flower Taxonomy
@@ -140,7 +143,6 @@ holgerInter[holgerInter$Iplant_Double %in% "Heppiella_ulmifolia","Iplant_Double"
 #Final levels
 print(paste("Final Flower Species:", levels(factor(holgerInter$Iplant_Double))))
 
-
 #get the desired columns
 colnames(holgerInter)
 holgerInter<-holgerInter[,colnames(holgerInter) %in% c("ID","Hummingbird.Species","Iplant_Double","Way.Point","Month","Date_F.y","Transect_R")]
@@ -154,6 +156,93 @@ monthInter<-monthInter[!monthInter$value==0,]
 p<-ggplot(monthInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
 p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 print(p)
+
+#########################
+####Add GPS information
+#########################
+
+##Repeat for first gps
+g<-list.files("Holger\\Transect_Protocol_Holger\\WayPoints",full.names=TRUE,pattern=".gpx",recursive=TRUE)
+
+#loop through input files and find the errors. 
+gpx2<-list()
+for (x in 1:length(g)){
+  print(x)
+  try(
+    gpx2[[x]]<-readGPX(g[x],waypoints=TRUE)$waypoints)
+}
+
+#Need to remind nelly to upload her gps. 
+
+#Bind into one dataframe
+gpx.dat<-rbind.fill(rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]))
+gpx.dat$name<-as.character(gpx.dat$name)
+
+#Combine gps types
+colnames(gpx.dat)
+
+#create  spatial object
+gps<-SpatialPointsDataFrame(coords=cbind(gpx.all$lon,gpx.all$lat),gpx.all)
+
+#Create month ID column in the GPS data
+gps$MonthID<-sapply(gps$time,function(x){
+  b<-strsplit(as.character(x),"T")[[1]][1]
+  if(is.na(b)){
+    return("S")
+  }
+  return(as.numeric(format(as.POSIXlt(b),"%m")))
+})
+
+#Date column
+#Create month ID column in the GPS data
+gps$Date_F<-sapply(gps$time,function(x){
+  b<-strsplit(as.character(x),"T")[[1]][1]
+  if(is.na(b)){
+    return("S")
+  }
+  return(format(as.POSIXlt(b),"%Y-%m-%d"))
+})
+
+#Round to the nearest 10m 
+gps$ele<-round(as.numeric(as.character(gps$ele)),-1)
+
+#remove weird place holger from values below 100
+gps$GPS.ID<-sapply(gps$name,function(x){
+  a<-as.numeric(as.character(x))
+  if(is.na(a)){
+    return(x)
+  }
+  if(is.numeric(a)){
+    return(a)
+  }
+})
+
+#################
+#Merge GPS info with transects
+
+#Merge all that fit the month and ID?
+HMatch<-merge(holgerInter,gps,by.x=c("Way.Point","Month"),by.y=c("GPS.ID","MonthID"),all.x=TRUE,all.y=FALSE)
+
+dim(HMatch)
+dim(holgerInter)
+
+#how many are missing?
+nrow(HMatch[is.na(HMatch$ele),])
+missingGPS<-HMatch[is.na(HMatch$ele),]$Way.Point
+
+#For missing data, take the mean of the transect?
+#For any data still missing gps, take the mean of the transect
+for (x in missingGPS){
+  print(x)
+  tr<-HMatch[HMatch$Way.Point %in% x,"Transect_R"]
+  el<-mean(as.numeric(strsplit(as.character(tr),split="_")[[1]]))
+  HMatch[HMatch$Way.Point %in% x,"ele"]<-el
+}
+
+qplot(HMatch$ele,"point")
+
+#create shapefile
+write.csv(HMatch,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HolgerHummingbirdTransectsCleaned.csv")
 
 #################################
 #Clean Summer 2013 Data
@@ -171,7 +260,7 @@ table(Hum$Plant.Species)
 levels(Hum$Plant.Species)[levels(Hum$Plant.Species) %in% ""]<-NA
 table(Hum$Plant.Species)
 
-#Select the flower transects
+#Select the Bird transects
 TID.f<-TID[TID$Type %in% "Hummingbird",]
 TID$TransectID<-as.factor(TID$TransectID)
 Hum$ID
@@ -203,13 +292,55 @@ for (x in 1:nrow(hum.id)){
   hum.id[x,"Iplant_Double"]<-levels(droplevels(Genus_Result[Genus_Result$plants %in% y$Plant.Species,"iplant_names"] )) 
 }
 
+###########################
+#Attach GPS information
+########################
+
+formerGPS<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/GPS/Ben2013SummerGPS.txt",header=TRUE)
+
+#remove weird place holger from values below 100
+formerGPS$GPS.ID<-sapply(as.character(formerGPS$ident),function(x){
+  a<-as.numeric(x)
+  if(is.na(a)){
+    return(x)
+  }
+  if(!is.na(a)){
+    return(a)
+  }
+})
+
+#Merge all that fit the month and ID?
+BMatch<-merge(hum.id,formerGPS,"GPS.ID",all.x=TRUE,all.y=FALSE)
+
+dim(BMatch)
+dim(hum.id)
+
+#how many are missing?
+nrow(BMatch[is.na(BMatch$altitude),])
+
+missingGPS<-BMatch[is.na(BMatch$altitude),]$GPS.ID
+
+
+#For missing data, take the mean of the transect?
+#For any data still missing gps, take the mean of the transect
+for (x in missingGPS){
+  print(x)
+  tr<-BMatch[BMatch$GPS.ID %in% x,"Transect_R"]
+  el<-mean(as.numeric(strsplit(as.character(tr),split="_")[[1]]))
+  BMatch[BMatch$GPS.ID %in% x,"altitude"]<-el
+}
+
+#round to the nearest 10m
+BMatch$altitude<-round(BMatch$altitude,-1)
+qplot(BMatch$altitude,"point")
+
 ################################################
 #Interaction table for summer data
 ################################################
 
 #Cap all species names
-levels(hum.id$Hummingbird.Species)<-sapply(levels(hum.id$Hummingbird.Species),function(x){.simpleCap(tolower(x))})
-humInter<-melt(table(hum.id$Hummingbird.Species,hum.id$Iplant_Double,hum.id$Month))
+levels(BMatch$Hummingbird.Species)<-sapply(levels(BMatch$Hummingbird.Species),function(x){.simpleCap(tolower(x))})
+humInter<-melt(table(BMatch$Hummingbird.Species,BMatch$Iplant_Double,BMatch$Month))
 colnames(humInter)<-c("Hummingbird","Plant","Month","value")
 
 #visualize summer only data
@@ -233,16 +364,23 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/Humm
 write.csv(fullInter,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectMatrix.csv")
 print("Matrix_Written")
 
-#Okay, but it looks like the network functions just want the raw rows. 
-#Get all the summer rows that have plants
-humNetwork<-hum.id[!is.na(hum.id$Plant.Species),]
-humNetwork<-humNetwork[,colnames(humNetwork) %in% c("ID","Plant.Species","Hummingbird.Species","Month","Date_F","Transect_R","GPS.ID")]
+##############################
+#Combine transect Rows
+##############################
+head(BMatch)
+head(HMatch)
 
-#match up desired columns with holger's data
-colnames(humNetwork)
-colnames(holgerInter)<-c("ID","Hummingbird.Species","GPS.ID","Transect_R","Date_F","Month","Plant.Species")
+Brows<-BMatch[,colnames(BMatch) %in% c("GPS.ID","Iplant_Double","Hummingbird.Species","Month","Date_F","Transect_R","ID","altitude","lat","long")]
 
-transectRows<-rbind(humNetwork,holgerInter)
+colnames(HMatch)
+Hrows<-HMatch[,colnames(HMatch) %in% c("Way.Point" ,"Iplant_Double","Hummingbird.Species","Month","Date_F.y","Transect_R","ID","ele","lat","lon")]
+
+colnames(Hrows)
+colnames(Brows)[colnames(Brows) %in% c("altitude","long")]<-c("ele","lon")
+colnames(Hrows)[colnames(Hrows) %in% c("Way.Point","Date_F.y")]<-c("GPS.ID","Date_F")
+
+transectRows<-rbind.fill(Brows,Hrows)
+
 write.csv(transectRows,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv")
 
 #Return end of file
