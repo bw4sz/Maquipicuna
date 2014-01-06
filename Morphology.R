@@ -14,10 +14,10 @@ library(ggbiplot)
 #
 
 #setwd to dropbox
-#droppath<-"C:/Users/Jorge/Dropbox/"
+droppath<-"C:/Users/Ben/Dropbox/"
 setwd(droppath)
 #Set github path
-#gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 #if not being sourced from Specialization.R, run the next line to get the env
 #load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
@@ -137,7 +137,8 @@ write.csv(trait17F,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdMorphology.
 
 #take out columns unwanted in the PCA
 head(trait17)
-trait17<-trait17[,-c(1,2,3,4)]
+colnames(trait17)
+trait17<-trait17[,-c(1,2,3,4,7,8,10,11,12,14,16,17,18,19)]
 
 #Standard the matrix to correct for different units by subtracting the means and dividing by sd
 zscore <- apply(trait17, 2, function(x){
@@ -154,8 +155,8 @@ biplot(trait_pc,cex=.5)
 toCol<-clades[gsub(" ",".",clades$double) %in% rownames(trait_pc$x),"Clade"]
 
 #Label species names and clades
-ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x))
-
+p<-ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x))
+p + theme_bw()
 #optionally add in circles
 #ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x),ellipse=TRUE)
 
