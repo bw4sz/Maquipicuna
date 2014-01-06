@@ -12,6 +12,7 @@ require(sna)
 require(stringr)
 require(rPlant)
 require(maptools)
+require(taxize)
 
 #Set Dropbox Location
 #Read in flower videos
@@ -66,7 +67,6 @@ dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))
 ####Bring in interaction matrix for the flower transects, see FlowerTransects.R
 transect.FL<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv",row.names=1)
 
-
 #make the columns as similiar as possible to videodata
 colnames(transect.FL)<-c("GPS.ID","TransectID","Hummingbird","Date","Month","Transect_R","Iplant_Double","lat","lon","ele")
 
@@ -79,6 +79,29 @@ dat<-rbind.fill(dat,transect.FL)
 ##############Data Import Complete##########
 ############################################
 
+#Create Universal Date Stamp
+
+dat$DateP<-sapply(dat$Date,function(x){
+  #print(x)
+  if(is.na(x)){
+    return(NA)
+  }
+  if(str_detect(x,"-")){
+    toR<-as.character(strptime(x,"%Y-%m-%d"))
+    #print(toR)
+    return(toR)
+  }
+  
+  if(str_detect(x,"/")){
+    toR<-as.character(strptime(x,format="%m/%d/%Y"))
+    #print(toR)
+    return(toR)
+  }
+})
+
+dat$DateP<-as.POSIXlt(dat$DateP)
+
+head(dat)
 ###########################
 #Hummingbird Data Cleaning 
 ###########################
@@ -94,7 +117,22 @@ dat$Hummingbird<-factor(sapply(dat$Hummingbird,function(x) {.simpleCap(as.charac
 #make a object, just to save typing
 h<-levels(dat$Hummingbird)
 
+missp<-h[!h %in% clades$English]
+
+paste("misspelled levels",missp)
+h[h %in% missp]
+
+spellC<-c("Booted Racket-tail","Green-crowned Woodnymph","Fawn-breasted Brilliant","Gorgeted Sunangel","Tyrian Metaltail","UKWN","Violet-tailed Sylph","Violet-tailed Sylph")
+
+paste("Spelling Correction",spellC)
+
+h[h %in% missp]<-spellC
+
+#I also think that one western emerland 
+
+head(clades)
 #can taxize do english names? 
+gnr_resolve(h)
 
 #Fix common mistakes
 h[h %in% "Fawn Breasted Brilliant"] <- "Fawn-breasted Brilliant"

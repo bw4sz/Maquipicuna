@@ -1,65 +1,24 @@
 ##Time Series Analysis of Hummingbird Presences
 require(stringr)
 require(maptools)
-
+require(ggplot2)
+require(scales)
 #If not run globally.
 
 setwd("C:/Users/Jorge/Dropbox/")
 ##Read in:
+dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
-#GeospatialData
-gps<-readShapePoints(fn="Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSshape.shp")
-
-#################################
-#Species Presence and Time
-##################################
-
-#Bring in Transect Data and Camera Data
-dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv",row.names=1)
-
-#make a date column
-dat$POSIXd<-NULL
-
-dat$DateP<-sapply(dat$Date,function(x){
-  #print(x)
-  if(is.na(x)){
-    return(NA)
-  }
-  if(str_detect(x,"-")){
-    toR<-as.character(strptime(x,"%Y-%m-%d"))
-    #print(toR)
-    return(toR)
-  }
-  
-  if(str_detect(x,"/")){
-    toR<-as.character(strptime(x,format="%m/%d/%Y"))
-    #print(toR)
-    return(toR)
-  }
-})
-
+#reformat date column
 dat$DateP<-as.POSIXlt(dat$DateP)
 
-head(dat)
+#one mislabled year?
+dat[which(dat$Date =="6/4/2012"),"DateP"]<-"2013-06-04"
 
-#What kind of records match?
-dat[dat$ID %in% gps$name,]
-
-#What kind of records dont' match?
-dat[!dat$ID %in% gps$name,]$ID
-
-#missing alot of records right now
-print(paste("Missing Spatial Data",levels(factor(dat[!dat$ID %in% gps$name,]$ID))))
-
-#need to create double label column, by date and ID?
-#Merge data
-dat.e<-merge(dat,gps,by.x="ID",by.y="name")
-
-#elevation read as factor?, plus round to nearest 10?
-dat.e$ele<-round(as.numeric(as.character(dat.e$ele)),-1)
 
 #Overall Month_Day and Elevation
-ggplot(dat.e,aes(y=ele,x=DateP,col=Hummingbird)) + geom_point(size=3) + scale_x_datetime() + facet_wrap(~Hummingbird)
+p<-ggplot(dat,aes(y=ele,x=DateP,col=Hummingbird)) + geom_point(size=3) + facet_wrap(~Hummingbird)
+p + scale_x_datetime(breaks = date_breaks("1 months"),labels = date_format("%b"))
 ggsave("Thesis//Maquipucuna_SantaLucia/Results/DateElevation.svg",height=11,width=8,dpi=300)
 
 ############################

@@ -12,6 +12,9 @@ NetworkC<-function(datf,naming){
   #Drop any unused factors?
   datf<-droplevels(datf)
   
+  #Drop any observations without plants
+  datf<-datf[!datf$Iplant_Double %in% "",]
+  
   #Interaction of flowers and birds
   F_H<-as.data.frame.array(table(datf$Iplant_Double,datf$Hummingbird))
   
