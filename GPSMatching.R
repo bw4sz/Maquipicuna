@@ -5,7 +5,7 @@ require(reshape2)
 require(maptools)
 
 #Set working directory
-droppath<-"C:/Users/Jorge/Dropbox/"
+droppath<-"C:/Users/Ben/Dropbox/"
 setwd(droppath)
 
 ###############################################
@@ -46,11 +46,10 @@ for (x in 1:length(g)){
 
 #Bind into one dataframe
 gpx.dat<-rbind.fill(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]))
-
 gpx.dat$name<-as.character(gpx.dat$name)
+
 #Combine gps types
 colnames(gpx.dat)
-
 tomatch<-formerGPS[,colnames(formerGPS) %in% c("lat" ,"long","altitude","ident")]
 
 colnames(tomatch)<-c("name","lat","lon","ele")
@@ -70,8 +69,29 @@ gps$MonthID<-sapply(gps$time,function(x){
   return(as.numeric(format(as.POSIXlt(b),"%m")))
 })
 
+#Date column
+#Create month ID column in the GPS data
+gps$Date_F<-sapply(gps$time,function(x){
+  b<-strsplit(as.character(x),"T")[[1]][1]
+  if(is.na(b)){
+    return("S")
+  }
+  return(format(as.POSIXlt(b),"%Y-%m-%d"))
+})
+
 #Round to the nearest 10m 
 gps$ele<-round(as.numeric(as.character(gps$ele)),-1)
+
+#remove weird place holger from values below 100
+gps$GPS.ID<-sapply(gps$name,function(x){
+  a<-as.numeric(as.character(x))
+  if(is.na(a)){
+    return(x)
+  }
+  if(is.numeric(a)){
+    return(a)
+  }
+})
 
 #create shapefile
 writePointsShape(gps,"Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSshape.shp")
@@ -80,45 +100,83 @@ writePointsShape(gps,"Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSs
 ##############Merge GPS Info with Data######
 ############################################
 
-#Bring in Holger Flower Transect Data
-full.fl<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/CleanedHolgerTransect.csv")
+dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideo.csv")
+
+datg<-merge(dat,gps,by.x="ID",by.y="GPS.ID")
+
+dim(dat)
+dim(datg)
+
+datg[datg$ID %in% dat$"GPS.ID",]
+
+levels(factor(datg[is.na(datg$ele),]$ID))
+
+###### Add in manual elev branches for missing levels?
+
+datg[datg$ID %in% "FL066","ele"]<-1350
+datg[datg$ID %in% "FL084","ele"]<-1850
+datg[datg$ID %in% "FL049","ele"]<-1350
+datg[datg$ID %in% "FL050","ele"]<-1600
+datg[datg$ID %in% "FL053","ele"]<-1550
+datg[datg$ID %in% "FL054","ele"]<-1500
+
+#Write camera data to file
+write.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideo.csv")
+
+#########################################################3
+
+#Start with hummingbird observations on transects
+transectRows<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv",row.names=1)
+
+#match gps type
+transectRows$MonthID<-sapply(transectRows$Month,function(x){
+  if(x == c(6,7,8)){
+    return("S")
+  }
+  if(!x==c(6,7,8)){
+    return(x)
+  }
+})
+
+#Merge all that fit the month and ID?
+TransectMatch<-merge(transectRows,gps,by.x=c("GPS.ID","MonthID"),by.y=c("name","MonthID"),all.x=TRUE,all.y=FALSE)
+
+#Which points are missing information
+
 
 #Combine holger points
 #get the records that are not summer ("S") or 6 7 8 == monthID
 gpsH<-gps[!gps$MonthID %in% c("S","6","7","8"),]
-Holgerpts<-full.fl[!full.fl$month %in% c(6,7,8),]
-
-#paste the month and ID together, assuming there are no overlapping IDs in a month
-gpsH$HolgerID<-paste(gpsH$MonthID,gpsH$name,sep="_")
-
-#paste month and ID together in the destination dat
-Holgerpts$HolgerID<-paste(Holgerpts$month,Holgerpts$GPS_ID,sep="_")
-
-#Which dont levels match from Holger's GPS
-paste("Missing Holger GPS IDS",levels(factor(Holgerpts[!Holgerpts$HolgerID %in% gpsH$HolgerID,]$HolgerID)))
+Holgerpts<-transectRows[!transectRows$Month %in% c(6,7,8),]
 
 #merge dataframes
-HolgerMatch<-merge(Holgerpts,gpsH,by="HolgerID")
+HolgerMatch<-merge(Holgerpts,gpsH,by.x=c("GPS.ID","Month"),by.y=c("name","MonthID"),all.x=TRUE)
 
-#Looks like holger added an additional space to numbers below 100?
-holgerMissing<-levels(factor(Holgerpts[!Holgerpts$GPS_ID %in% gpsH$name,]$GPS_ID))
-HolgerMissingpts<-Holgerpts[Holgerpts$GPS_ID %in% holgerMissing,]
-HolgerMissingpts$ID_N<-paste("0",HolgerMissingpts$GPS_ID,sep="")
-HolgerMissingpts$HolgerID<-paste(HolgerMissingpts$month,HolgerMissingpts$ID_N,sep="_")
+#Get missing GPS IDs
+holgerMissing<-HolgerMatch[is.na(HolgerMatch$ele),]$GPS.ID
+HolgerMatch[HolgerMatch$GPS.ID %in% holgerMissing,"HolgerID"]<-as.numeric(as.character(holgerMissing)))
+
+for (x in holgerMissing){
+  print(x)
+  lookup<-HolgerMatch[HolgerMatch$ID_N %in% x,"ID_N"]
+  gpsH[gpsH$HolgerID %in% lookup,"ele"]<-HolgerMatch[HolgerMatch$ID_N %in% x,"ele"]
+}
 
 #remerge
 paste("Still Missing Holger Levels",levels(factor(HolgerMissingpts[!HolgerMissingpts$HolgerID %in% gpsH$HolgerID,]$HolgerID)))
 HolgerMatchMiss<-merge(HolgerMissingpts,gpsH,by="HolgerID")
 
-#maybe even again?
-holgerMissing<-levels(factor(Holgerpts[!Holgerpts$GPS_ID %in% gpsH$name,]$GPS_ID))
-HolgerMissingpts<-Holgerpts[Holgerpts$GPS_ID %in% holgerMissing,]
-HolgerMissingpts$ID_N<-paste("0",HolgerMissingpts$GPS_ID,sep="")
-HolgerMissingpts$HolgerID<-paste(HolgerMissingpts$month,HolgerMissingpts$ID_N,sep="_")
-
-
 #Bind all levels together
-dat_GPS<-rbind(dat_part1,found_Summer)
+Holger_tran<-rbind.fill(HolgerMatch,HolgerMatchMiss)
+missingInfo<-Holgerpts[!Holgerpts$GPS.ID %in% Holger_tran$GPS.ID,]$GPS.ID
+
+#For any data still missing gps, take the mean of the transect
+for (x in missingInfo){
+  tr<-dat_e[dat_e$ID %in% x,"Transect_R"]
+  el<-mean(as.numeric(strsplit(as.character(tr),split="_")[[1]]))
+  dat_e[dat_e$ID %in% x,"ele"]<-el
+}
+
 datelev<-rbind.fill(dat_GPS,HolgerMatch)
 datf<-rbind.fill(datelev,HolgerMatchMiss)
 
@@ -174,16 +232,6 @@ dat_e<-rbind.fill(datf,dat[dat$ID %in% finalMissing,])
 
 #humans can only be in one place at once, this should look like a step function
 #ggplot(dat_e,aes(x=Date,y=ele)) + geom_point() + geom_line() + coord_flip()
-
-###### Add in manual elev branches for missing levels?
-
-dat_e[dat_e$ID %in% "FL066","ele"]<-1350
-dat_e[dat_e$ID %in% "FL084","ele"]<-1850
-dat_e[dat_e$ID %in% "FL049","ele"]<-1350
-dat_e[dat_e$ID %in% "FL050","ele"]<-1600
-dat_e[dat_e$ID %in% "FL053","ele"]<-1550
-dat_e[dat_e$ID %in% "FL054","ele"]<-1500
-dat_e[dat_e$ID %in% "FL066","ele"]<-1550
 
 #For the holger points, take the mean of the above and below point, can't have walked very far.
 
