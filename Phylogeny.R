@@ -20,7 +20,7 @@ fl.names<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/Iplant
 #Unfortunately, using the tropicos dp leads to lots of conflicts because of the number of subspecies, we just want rank = sp.
 #Not a big deal, just can't show here.
 
-uids<-get_ids(gsub("_"," ",fl.names$x[-1]),db="tropicos",ask=TRUE)
+uids<-get_ids(gsub("_"," ",fl.names$x[-1]),db="tropicos",ask=FALSE)
 
 #Save image, so we don't have to manually do that everytime.
 save.image("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
@@ -30,6 +30,9 @@ load("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 
 #Classify
 class.taxize<-classification(uids$tropicos)
+
+#name the output
+names(class.taxize)<-names(uids$tropicos)
 
 phyloN<-vector()
 for (i in 1:length(class.taxize)){
@@ -41,13 +44,13 @@ for (i in 1:length(class.taxize)){
   GS<-gsub(" ","_",names(class.taxize[i]))
   
   #If there is not a species name
-  if(length(y[y$Rank %in% "genus","ScientificName"])==0){
-    phyloN[i]<-paste(y[y$Rank %in% "family","ScientificName"],GS,sep="/")}
+  if(length(y[y$Rank %in% "genus","name"])==0){
+    phyloN[i]<-paste(y[y$rank %in% "family","name"],GS,sep="/")}
   
   #If is genus, no species name
-  if(!length(y[y$Rank %in% "genus","ScientificName"])==0){
-    str1<-paste(y[y$Rank %in% "genus","ScientificName"],GS,sep="/")
-    phyloN[i]<-paste(y[y$Rank %in% "family","ScientificName"],str1,sep="/")}
+  if(!length(y[y$rank %in% "genus","name"])==0){
+    str1<-paste(y[y$rank %in% "genus","name"],GS,sep="/")
+    phyloN[i]<-paste(y[y$rank %in% "family","name"],str1,sep="/")}
 }
 
 #remove Na's
@@ -78,7 +81,7 @@ plot(tree_APG3)
 #Phylomatic Species Tree, does it matter, it places polytomies as branches
 tree_APG3 <- phylomatic_tree(taxa=phyloN[!is.na(phyloN)], storedtree='R20120829', get='POST',taxnames=FALSE)
 tree_APG3
-plot(tree_APG3,cex=.4)
+plot(tree_APG3,cex=.7)
 
 #write tree to file
 write.tree(tree_APG3,paste(gitpath,"InputData/FlowerSPPhylogeny.tre",sep=""))
