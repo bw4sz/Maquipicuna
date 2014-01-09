@@ -25,7 +25,23 @@ NetworkC<-function(datf,naming){
   svg(filename="WebPlot.svg",height=7,width=15)
   plotweb(F_H)
   dev.off()
- 
+    
+  #create a order for hummingbirds
+  toOrd<-merge(clades,data.frame(English=colnames(F_H)),sort=FALSE,all.y=TRUE)$English
+      
+  #create a order for plants
+  Hlab<-names(which(!apply(F_H,2,sum)==0))
+
+  toOrd<-as.character(merge(clades,data.frame(English=Hlab),sort=FALSE,all.y=TRUE)$English)
+  
+  Plab<-names(which(!apply(F_H,1,sum)==0))
+  
+  sequ<-list(seq.high=toOrd,seq.low=Plab)
+  
+  svg(filename="WebPlotOrder.svg",height=7,width=15)
+  plotweb(F_H,sequence=sequ)
+  dev.off()
+  
   jpeg(filename="MatrixPlotCompartments.jpeg",height=10,width=10,units="in",res=300)
   visweb(F_H,"compartment")
   dev.off()

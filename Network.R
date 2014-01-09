@@ -132,7 +132,6 @@ h[h %in% missp]<-spellC
 
 head(clades)
 #can taxize do english names? 
-gnr_resolve(h)
 
 #Fix common mistakes
 h[h %in% "Fawn Breasted Brilliant"] <- "Fawn-breasted Brilliant"
@@ -178,6 +177,7 @@ for (x in 1:length(dat.split)){
 #############################################
 #Temporal Change in Network Structure
 #############################################
+
 dat.split<-split(dat_e,dat_e$Month,drop=TRUE)
 
 #############################################

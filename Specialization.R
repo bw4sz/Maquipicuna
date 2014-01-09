@@ -58,13 +58,6 @@ load("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
 
 source(paste(gitpath,"GPSMatching.R",sep=""))
 
-#########################
-#Hummingbird Morphological Analysis
-#########################
-
-source(paste(gitpath,"Morphology.R",sep=""))
-load("Thesis/Maquipucuna_SantaLucia/Results/Morphology.Rdata")
-
 #Next set of scripts take in the descriptive stats and perform analysis
 
 #################
@@ -74,6 +67,13 @@ load("Thesis/Maquipucuna_SantaLucia/Results/Morphology.Rdata")
 source(paste(gitpath,"Network.R",sep=""))
 #Load from source:
 load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
+
+#########################
+#Hummingbird Morphological Analysis
+#########################
+
+source(paste(gitpath,"Morphology.R",sep=""))
+load("Thesis/Maquipucuna_SantaLucia/Results/Morphology.Rdata")
 
 #########################
 #Time Series Analysis of Hummingbird Presence along Elevation

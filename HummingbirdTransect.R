@@ -182,7 +182,7 @@ gpx.dat$name<-as.character(gpx.dat$name)
 colnames(gpx.dat)
 
 #create  spatial object
-gps<-SpatialPointsDataFrame(coords=cbind(gpx.all$lon,gpx.all$lat),gpx.all)
+gps<-SpatialPointsDataFrame(coords=cbind(gpx.dat$lon,gpx.dat$lat),gpx.dat)
 
 #Create month ID column in the GPS data
 gps$MonthID<-sapply(gps$time,function(x){
