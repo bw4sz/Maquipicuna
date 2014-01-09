@@ -76,8 +76,7 @@ NetworkC<-function(datf,naming){
   birds.spl$Species<-rownames(birds.spl)
   
   #size by sample size?
-  
-  
+    
   ggplot(birds.spl,aes(x=Species,y=dprime)) + geom_point() + theme_bw() + theme(axis.text.x=element_text(angle=90))
   ggsave("Specialization.svg",height=8,width=9)
   
@@ -89,10 +88,11 @@ NetworkC<-function(datf,naming){
   #Collapse Matrix into Hummingbird by Hummingbird Matrix
   #Hummingbird
   H_H<-as.one.mode(F_H,project="higher")
-  diag(H_H)<-NA
-  H_H[upper.tri(H_H)]<-NA
-  m.HH<-melt(H_H)
-  
+
+  #Bird Bray Distance
+  m.HH<-as.matrix(vegdist(t(F_H),"bray"))
+  diag(m.HH)<-NA
+  m.HH<-melt(as.matrix(m.HH))
   #Plot Resource overlap between hummingbird Species
   ggplot(m.HH,aes(X1,X2,fill=value)) + geom_tile() + scale_fill_continuous(low="blue",high="red",na.value="white") + theme(axis.text.x = element_text(angle = 90, hjust = 1),panel.background=element_rect(color="white"))
   ggsave("ResourceOverlap.svg",height=8,width=11)
@@ -118,9 +118,10 @@ NetworkC<-function(datf,naming){
   #get cophenetic distance between species, might need to the new phylogeny, which species don't match?
   m.HH$Relatedness<-sapply(1:nrow(m.HH),ER)
   colnames(m.HH)[1:2]<-c("To","From")
-  
+    hist(m.HH$value)
   #Phylogenetic Relatedness and plant overlap
-  ggplot(m.HH[m.HH$value>1,],aes(y=value,x=as.numeric(Relatedness),)) + geom_point() + geom_smooth(method="lm") + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") + geom_text(aes(label=paste(To,From)),size=3)
+  p<-ggplot(m.HH[,],aes(y=value,x=as.numeric(Relatedness),)) + geom_jitter() + geom_smooth() + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") 
+p+ geom_text(aes(label=paste(To,From)),size=2,vjust=1)
   ggsave("Relatedness_Overlap.svg",height=8,width=11)
   
   
@@ -139,7 +140,7 @@ NetworkC<-function(datf,naming){
     }
   
   #Trait Relatedness and plant overlap
-  ggplot(m.HH[m.HH$value>1,],aes(y=value,x=RelatednessT)) + geom_point() + geom_smooth(method="lm") + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") + geom_text(aes(label=paste(To,From)),size=3)
+  ggplot(m.HH[,],aes(y=value,x=RelatednessT)) + geom_point() + geom_smooth() + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") #+ geom_text(aes(label=paste(To,From)),size=3)
   ggsave("TraitRelatedness_Overlap.svg",height=8,width=11)
   
   #Plants 
