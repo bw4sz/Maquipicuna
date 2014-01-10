@@ -61,7 +61,6 @@ head(phyloN)
 
 #Write to phylomatic output
 write.table(phyloN,paste(gitpath,"names.txt",sep=""),row.names=FALSE, col.names=FALSE,quote=FALSE)
- 
 phyloN.f<-phyloN[!is.na(phyloN)]
        
 #Just for fun, try genus only, in case its a species name problem?
@@ -88,11 +87,23 @@ write.tree(tree_APG3,paste(gitpath,"InputData/FlowerSPPhylogeny.tre",sep=""))
 
 save.image("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 
-#Run BLADJ in R?
+#load already made tree?
+load("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 
-#This might need to be made directly
-paste(gitpath,"InputData/FlowerSPPhylogeny.tre",sep="")
+# read, then write files to where phylocom executable is
+age <- read.table(ages)
+write.tree(tree_APG3, paste(gitpath,"InputData/phylo",sep=""))
+write.table(age, file = paste(gitpath,"ages",sep=""), sep = "\t", col.names = F, row.names = F, quote = F)
 
-system("phylocom bladj > C:/Users/Jorge/Documents/Maquipicuna/InputData/FlowerSPPhylogeny.tre")
-p <- read.tree("C:/Users/Jorge/Documents/Maquipicuna/InputData/FlowerSPPhylogeny.tre")
+#Run phylocom's bladj, need to set in the PATH!
+bladjT<-system(paste("phylocom bladj > ",sep=gitpath,"OutData/phyloout.txt"),intern=TRUE) 
 
+#create tree
+tree<-read.tree(text=bladjT[[1]])
+
+plot(tree,cex=.5)
+
+#relatedness among plants
+pco<-cophenetic(tree)
+
+write.csv(pco,paste(gitpath,"InputData/PlantRelatedness.csv",sep=""))
