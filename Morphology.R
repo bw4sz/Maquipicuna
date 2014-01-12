@@ -8,22 +8,22 @@ require(ggplot2)
 require(grid)
 
 #needs dev library ggbiplot
-require(devtools)
+#require(devtools)
 #install_github("ggbiplot", "vqv")
 library(ggbiplot)
 #
 
 #setwd to dropbox
-droppath<-"C:/Users/Ben/Dropbox/"
+droppath<-"C:/Users/Jorge/Dropbox/"
 setwd(droppath)
 #Set github path
-gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
 #if not being sourced from Specialization.R, run the next line to get the env
 #load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
 #Get Hummingbird Interaction - just used for rownames, hummingbird species list.
-int<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectMatrix.csv")
+int<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
 #bring in clade data
 clades<-read.csv(paste(gitpath,"InputData//CladeList.txt",sep=""),header=FALSE)[,-1]
@@ -65,11 +65,15 @@ errors<-levels(int$Hummingbird)[!levels(int$Hummingbird) %in% clades$English]
 
 print(paste(errors,"not matched"))
 #Fix the levels
-levels(int$Hummingbird)[!levels(int$Hummingbird) %in% clades$English]<-c("Booted Racket-tail","Green-Crowned Woodnymph","UKWN","Violet-tailed Sylph")
+levels(int$Hummingbird)[!levels(int$Hummingbird) %in% clades$English]<-c("Green-Crowned Woodnymph")
 
-#Add a species never seen, but known from the siote
-sp.list<-c(levels(int$Hummingbird),"Empress Brilliant","Green-fronted Lancebill","Tyrian Metaltail")
+#Add a species never seen, but known from the site
+sp.list<-c(levels(int$Hummingbird))
+
+#write species list to file
+
 sci.name<-clades[clades$English %in% sp.list,"double"]
+#write.csv(sci.name,paste(gitpath,"InputData//HummingbirdSpecies.csv",sep=""))
 
 #The trait dataset has . instead of " "
 site.trait<-zscore[rownames(zscore) %in% gsub(" ",".",sci.name),]
@@ -84,11 +88,10 @@ toCol<-clades[gsub(" ",".",clades$double) %in% rownames(trait_pc$x),"Clade"]
 #Label species names and clades
 ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x))
 
-#optionally add in circles
-ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x),ellipse=TRUE)
+######################################
+#PCA USING 17 TRAIT DATA FROM STILES 
+######################################
 
-#########################
-#Okay try 17 trait 
 morph17 <- read.csv(paste(gitpath,"InputData//Morphology_Full.csv",sep=""),na.strings=9999)
 
 #only want the first 21 cols and spname 
@@ -123,42 +126,51 @@ missing<-gsub(" ",".",sci.name)[!gsub(" ",".",sci.name) %in% rownames(mon)]
 print(paste("Missing morphology:",missing))
 
 #Add in closest related species for the species we are missing
-#trait17<-rbind(trait17,mon[c("Heliangelus.exortis","Thalurania.furcata"),])
+trait17_fullsp<-rbind(trait17,mon[c("Heliangelus.exortis","Thalurania.furcata"),])
+rownames(trait17_fullsp)[rownames(trait17_fullsp) %in% c("Heliangelus.exortis","Thalurania.furcata")] <- c("Heliangelus.strophianus","Thalurania.fannyi")
 
 #Another option is just to add from the three trait data?
-head(mon3trait)
+#head(mon3trait)
 
-trait17_fullsp<-rbind.fill(trait17,mon3trait[missing,])
-rownames(trait17_fullsp)<-c(rownames(trait17),rownames(mon3trait[missing,]))
+#trait17_fullsp<-rbind.fill(trait17,mon3trait[missing,])
+#rownames(trait17_fullsp)<-c(rownames(trait17),rownames(mon3trait[missing,]))
 #merge with clade info to write to file
 clades$double.<-gsub(" ",".",clades$double)
 trait17F<-merge(trait17_fullsp,clades,by.x="row.names",by.y="double.")
 write.csv(trait17F,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdMorphology.csv")
 
 #take out columns unwanted in the PCA
-head(trait17)
-colnames(trait17)
-trait17<-trait17[,-c(1,2,3,4,7,8,10,11,12,14,16,17,18,19)]
+head(trait17_fullsp)
+colnames(trait17_fullsp)
+trait17_fullsp<-trait17_fullsp[,-c(1,2,3,4,7,8,10,11,12,13,14,16,17,18,19)]
 
 #Standard the matrix to correct for different units by subtracting the means and dividing by sd
-zscore <- apply(trait17, 2, function(x){
+zscore <- apply(trait17_fullsp, 2, function(x){
   y<-(x - mean(x))/sd(x)
   return(y)
 })
 
-trait_pc<-prcomp(zscore)
+#Import role file
+roles<-read.csv(paste(gitpath,"InputData//HummingbirdSpecies.csv",sep=""))
+
+#match the roles to the trait_pc
+#get order of pca from rownames
+
+ord<-data.frame(Species=rownames(zscore))
+m.ord<-merge(ord,roles,by="Species",sort=FALSE,all.x=TRUE)
+
+trait_pc<-prcomp(zscore[!m.ord$Role %in% "UKWN",])
 
 #normal plot, kinda ugly, need to zoom in
 biplot(trait_pc,cex=.5)
 
-#Try the ggplot biplot to color by clades (or later, behavioral roles)
-toCol<-clades[gsub(" ",".",clades$double) %in% rownames(trait_pc$x),"Clade"]
-
 #Label species names and clades
-p<-ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x))
-p + theme_bw()
+p<-ggbiplot(trait_pc,groups=m.ord$Role[!m.ord$Role %in% "UKWN"],labels=rownames(trait_pc$x))
+p + theme_bw() + geom_point()
+
 #optionally add in circles
-#ggbiplot(trait_pc,groups=toCol,labels=rownames(trait_pc$x),ellipse=TRUE)
+ggbiplot(trait_pc,groups=m.ord$Role[!m.ord$Role %in% "UKWN"],labels=rownames(trait_pc$x),ellipse=TRUE) + geom_point()
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/RoleMorphology.svg",dpi=300)
 
 #Create a distance matrix of morphological similarity among all species
 sp.dist<-as.matrix(dist(zscore))

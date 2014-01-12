@@ -3,10 +3,11 @@
 require(plotKML)
 require(reshape2)
 require(maptools)
+require(reshape)
 
 #Set working directory
-#droppath<-"C:/Users/Ben/Dropbox/"
-setwd(droppath)
+#droppath<-"C:/Users/Jorge/Dropbox/"
+#setwd(droppath)
 
 ###############################################
 #Read in GPS Data from Summer 2013 Field Season
@@ -102,14 +103,32 @@ writePointsShape(gps,"Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSs
 
 dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideo.csv")
 
-datg<-merge(dat,gps,by.x="ID",by.y="GPS.ID")
+#error rows
+#merge
+datg<-merge(dat,gps,by.x="ID",by.y="GPS.ID",all.x=TRUE)
 
 dim(dat)
 dim(datg)
 
-datg[datg$ID %in% dat$"GPS.ID",]
 
-levels(factor(datg[is.na(datg$ele),]$ID))
+#find duplicates
+d<-data.frame(table(dat$ID),table(datg$ID))
+
+dups<-d[which(!d$Freq == d$Freq.1),]$Var1
+
+#Repeat merge at elim duplicates
+dup.g<-gps[gps$GPS.ID %in% dups,]
+dup.g[order(dup.g$GPS.ID),]
+
+gps<-gps[-c(5198,663),]
+
+#merge
+datg<-merge(dat,gps,by.x="ID",by.y="GPS.ID",all.x=TRUE)
+
+dim(dat)
+dim(datg)
+
+paste("Missing Cameras GPS:",levels(factor(datg[is.na(datg$ele),]$ID)))
 
 ###### Add in manual elev branches for missing levels?
 
@@ -120,100 +139,26 @@ datg[datg$ID %in% "FL050","ele"]<-1600
 datg[datg$ID %in% "FL053","ele"]<-1550
 datg[datg$ID %in% "FL054","ele"]<-1500
 
+
+################
+#Flower Taxonomy
+################
+
+#Go through a series of data cleaning steps, at the end remove all rows that are undesired
+
+#Repeat for species
+Species<-levels(factor(datg$Flower))
+iplant_names<-ResolveNames(Species)
+print(CompareNames(Species,iplant_names))
+Species_Result<-data.frame(Species,iplant_names)
+
+#Set the Species column
+for (x in 1:nrow(datg)){
+  y<-datg[x,]
+  toMatch<-y$Flower
+  datg[x,"Iplant_Double"]<-levels(droplevels(
+  Species_Result[Species_Result$Species %in% toMatch,"iplant_names"] ))   
+}
+
 #Write camera data to file
-write.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideo.csv")
-
-#########################################################3
-
-#Start with hummingbird observations on transects
-transectRows<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv",row.names=1)
-
-#match gps type
-transectRows$MonthID<-sapply(transectRows$Month,function(x){
-  if(x == c(6,7,8)){
-    return("S")
-  }
-  if(!x==c(6,7,8)){
-    return(x)
-  }
-})
-
-#Merge all that fit the month and ID?
-TransectMatch<-merge(transectRows,gps,by.x=c("GPS.ID","MonthID"),by.y=c("name","MonthID"),all.x=TRUE,all.y=FALSE)
-
-#Which points are missing information
-
-
-#Combine holger points
-#get the records that are not summer ("S") or 6 7 8 == monthID
-gpsH<-gps[!gps$MonthID %in% c("S","6","7","8"),]
-Holgerpts<-transectRows[!transectRows$Month %in% c(6,7,8),]
-
-#merge dataframes
-HolgerMatch<-merge(Holgerpts,gpsH,by.x=c("GPS.ID","Month"),by.y=c("name","MonthID"),all.x=TRUE)
-
-#Get missing GPS IDs
-holgerMissing<-HolgerMatch[is.na(HolgerMatch$ele),]$GPS.ID
-HolgerMatch[is.na(HolgerMatch$ele),"HolgerID"]<-as.numeric(as.character(holgerMissing))
-
-for (x in holgerMissing){
-  print(x)
-  lookup<-HolgerMatch[HolgerMatch$ID_N %in% x,"ID_N"]
-  gpsH[gpsH$HolgerID %in% lookup,"ele"]<-HolgerMatch[HolgerMatch$ID_N %in% x,"ele"]
-}
-
-#remerge
-paste("Still Missing Holger Levels",levels(factor(HolgerMissingpts[!HolgerMissingpts$HolgerID %in% gpsH$HolgerID,]$HolgerID)))
-HolgerMatchMiss<-merge(HolgerMissingpts,gpsH,by="HolgerID")
-
-#Bind all levels together
-Holger_tran<-rbind.fill(HolgerMatch,HolgerMatchMiss)
-missingInfo<-Holgerpts[!Holgerpts$GPS.ID %in% Holger_tran$GPS.ID,]$GPS.ID
-
-#For any data still missing gps, take the mean of the transect
-for (x in missingInfo){
-  tr<-dat_e[dat_e$ID %in% x,"Transect_R"]
-  el<-mean(as.numeric(strsplit(as.character(tr),split="_")[[1]]))
-  dat_e[dat_e$ID %in% x,"ele"]<-el
-}
-
-datelev<-rbind.fill(dat_GPS,HolgerMatch)
-datf<-rbind.fill(datelev,HolgerMatchMiss)
-
-#Okay what am i still missing
-finalMissing<-levels(factor(dat[!dat$ID %in% datf$ID,]$ID))
-
-print(paste(finalMissing,"Final Missing Elevation"))
-
-###Combine with GPS info seperately, due to weird IDs of old GPS, non-unique
-#Ben's GPS Summer 2013 had no dates
-
-#Get levels from summer for Ben's GPS
-BenSummer<- gps[is.na(gps$time),]
-BenSummerpts<-dat[dat$Month %in% c(6,7,8),]
-
-#Merge first set of gps points
-dat_part1<-merge(BenSummerpts,BenSummer,by.x="ID",by.y="name")
-
-#Any missing levels, look up on the other GPS, probably taken by Karen or Anusha
-missingGPS<-levels(factor(BenSummerpts$ID))[!levels(factor(BenSummerpts$ID)) %in% BenSummer$name]
-
-#Combine missing levels
-found_Summer<-merge(BenSummerpts[BenSummerpts$ID %in% missingGPS,],gps,by.x="ID",by.y="name")
-print(paste("Ben Missing Levels:",missingGPS[!missingGPS %in% gps$name]))
-
-#Add the remaining levels with NA elevation until they can be corroborated?
-dat_e<-rbind.fill(datf,dat[dat$ID %in% finalMissing,])
-
-#humans can only be in one place at once, this should look like a step function
-#ggplot(dat_e,aes(x=Date,y=ele)) + geom_point() + geom_line() + coord_flip()
-
-#For the holger points, take the mean of the above and below point, can't have walked very far.
-
-for (x in c("864","887","868","892","898","899","901","930")){
-  tr<-dat_e[dat_e$ID %in% x,"Transect_R"]
-  el<-mean(as.numeric(strsplit(as.character(tr),split="_")[[1]]))
-  dat_e[dat_e$ID %in% x,"ele"]<-el
-}
-
-save.image()
+write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoClean.csv")

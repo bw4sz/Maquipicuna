@@ -5,12 +5,15 @@ NetworkC<-function(datf,naming){
   
   #Set a working directory, create a folder for each run
   setwd(droppath)
-  toset<-paste("Thesis/Maquipucuna_SantaLucia/Results/Network/",naming,sep="")
-  dir.create(toset,showWarnings=FALSE)
+  toset<-paste(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep=""),naming,sep="")
+  dir.create(toset)
   setwd(toset)
   
   #Drop any unused factors?
   datf<-droplevels(datf)
+  
+  #Drop any observations without plants
+  datf<-datf[!datf$Iplant_Double %in% "",]
   
   #Interaction of flowers and birds
   F_H<-as.data.frame.array(table(datf$Iplant_Double,datf$Hummingbird))
@@ -19,11 +22,27 @@ NetworkC<-function(datf,naming){
   write.csv(F_H,"BirdXFlower.csv")
   
   #View Web
-  svg(filename="WebPlot.svg",height=7,width=12)
+  svg(filename="WebPlot.svg",height=7,width=15)
   plotweb(F_H)
   dev.off()
- 
-  jpeg(filename="MatrixPlotCompartments.jpeg",height=8,width=8,units="in",res=300)
+    
+  #create a order for hummingbirds
+  toOrd<-merge(clades,data.frame(English=colnames(F_H)),sort=FALSE,all.y=TRUE)$English
+      
+  #create a order for plants
+  Hlab<-names(which(!apply(F_H,2,sum)==0))
+
+  toOrd<-as.character(merge(clades,data.frame(English=Hlab),sort=FALSE,all.y=TRUE)$English)
+  
+  Plab<-names(which(!apply(F_H,1,sum)==0))
+  
+  sequ<-list(seq.high=toOrd,seq.low=Plab)
+  
+  svg(filename="WebPlotOrder.svg",height=7,width=15)
+  plotweb(F_H,sequence=sequ)
+  dev.off()
+  
+  jpeg(filename="MatrixPlotCompartments.jpeg",height=10,width=10,units="in",res=300)
   visweb(F_H,"compartment")
   dev.off()
   
@@ -56,6 +75,8 @@ NetworkC<-function(datf,naming){
   colnames(birds.spl)<-names(birds.special)
   birds.spl$Species<-rownames(birds.spl)
   
+  #size by sample size?
+    
   ggplot(birds.spl,aes(x=Species,y=dprime)) + geom_point() + theme_bw() + theme(axis.text.x=element_text(angle=90))
   ggsave("Specialization.svg",height=8,width=9)
   
@@ -67,10 +88,11 @@ NetworkC<-function(datf,naming){
   #Collapse Matrix into Hummingbird by Hummingbird Matrix
   #Hummingbird
   H_H<-as.one.mode(F_H,project="higher")
-  diag(H_H)<-NA
-  H_H[upper.tri(H_H)]<-NA
-  m.HH<-melt(H_H)
-  
+
+  #Bird Bray Distance
+  m.HH<-as.matrix(vegdist(t(F_H),"bray"))
+  diag(m.HH)<-NA
+  m.HH<-melt(as.matrix(m.HH))
   #Plot Resource overlap between hummingbird Species
   ggplot(m.HH,aes(X1,X2,fill=value)) + geom_tile() + scale_fill_continuous(low="blue",high="red",na.value="white") + theme(axis.text.x = element_text(angle = 90, hjust = 1),panel.background=element_rect(color="white"))
   ggsave("ResourceOverlap.svg",height=8,width=11)
@@ -96,9 +118,10 @@ NetworkC<-function(datf,naming){
   #get cophenetic distance between species, might need to the new phylogeny, which species don't match?
   m.HH$Relatedness<-sapply(1:nrow(m.HH),ER)
   colnames(m.HH)[1:2]<-c("To","From")
-  
+    hist(m.HH$value)
   #Phylogenetic Relatedness and plant overlap
-  ggplot(m.HH[m.HH$value>1,],aes(y=value,x=as.numeric(Relatedness),)) + geom_point() + geom_smooth(method="lm") + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") + geom_text(aes(label=paste(To,From)),size=3)
+  p<-ggplot(m.HH[,],aes(y=value,x=as.numeric(Relatedness),)) + geom_jitter() + geom_smooth() + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") 
+p+ geom_text(aes(label=paste(To,From)),size=2,vjust=1)
   ggsave("Relatedness_Overlap.svg",height=8,width=11)
   
   
@@ -117,7 +140,7 @@ NetworkC<-function(datf,naming){
     }
   
   #Trait Relatedness and plant overlap
-  ggplot(m.HH[m.HH$value>1,],aes(y=value,x=RelatednessT)) + geom_point() + geom_smooth(method="lm") + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") + geom_text(aes(label=paste(To,From)),size=3)
+  ggplot(m.HH[,],aes(y=value,x=RelatednessT)) + geom_point() + geom_smooth() + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") #+ geom_text(aes(label=paste(To,From)),size=3)
   ggsave("TraitRelatedness_Overlap.svg",height=8,width=11)
   
   #Plants 
@@ -143,6 +166,7 @@ NetworkC<-function(datf,naming){
   visweb(F_H)
   dev.off()
   
+  setwd(droppath)
 }
 print("Function Defined")
 

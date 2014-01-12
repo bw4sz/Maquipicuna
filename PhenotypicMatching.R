@@ -3,7 +3,7 @@ require(reshape)
 require(ggplot2)
 require(chron)
 require(stringr)
-
+require(directlabels)
 #Setwd if not run globally
 #droppath<-"C:/Users/Jorge/Dropbox/"
 #setwd(droppath)
@@ -50,7 +50,7 @@ ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/TotalCorollaMatching.svg
 
 #Effective Corolla Matching
 p<-ggplot(m.datH,aes(x=factor(Bill),EffectiveCorolla,col=Hummingbird)) + geom_point() + geom_boxplot(aes(group=factor(Bill)))
-p + geom_smooth(aes(group=1),method="lm")
+p + geom_smooth(aes(group=1),method="lm") + xlab("Bill")
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/EffectiveCorollaMatching.svg",height=8,width=11,dpi=300)
 
 #Corolla Width Matching
@@ -107,21 +107,35 @@ colnames(m.datH)[colnames(m.datH) %in% c("PC1","PC2")] <- c("H.PC1","H.PC2")
 #####################################
 
 #polygons on trait use by hummingbirds
-p<-ggplot(m.datH,aes(x=Fl.PC1,y=Fl.PC2,fill=Hummingbird)) + geom_polygon() + facet_wrap(~Clade,drop=TRUE) + scale_fill_discrete()
+p<-ggplot(m.datH,aes(x=Fl.PC1,y=Fl.PC2,fill=Hummingbird)) + geom_polygon(alpha=.8) + facet_wrap(~Clade,drop=TRUE) + scale_fill_discrete()
 p + geom_point()
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/FlowerSpace.svg",height=8,width=11,dpi=300)
 
 #Another way to look at this? getting closer.
 ggplot(m.datH,aes(x=Fl.PC1,y=Fl.PC2,col=Hummingbird)) + stat_densi() + facet_wrap(~Clade)
 
+
 #polygons on flower use by hummingbirds traits
 #create a flower genus column?
 m.datH$FLGenus<-sapply(m.datH$Iplant_Double,function(x) strsplit(as.character(x),split="_")[[1]][[1]])
-p<-ggplot(m.datH,aes(x=H.PC1,y=H.PC2,fill=FLGenus,alpha=.02)) + geom_polygon() + facet_wrap(~FLGenus,drop=TRUE) + geom_point()
-p + geom_text(aes(label=Hummingbird),size=3)
-ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/HummingbirdSpace.svg",)
+p<-ggplot(m.datH,aes(x=H.PC1,y=H.PC2,fill=FLGenus,alpha=.02)) + geom_polygon() + facet_wrap(~FLGenus,drop=TRUE)
 
-####################################################################################
+toFL<-table(m.datH$Hummingbird, m.datH$FLGenus)
+toFL<-melt(toFL)
+toFL<-toFL[!toFL$value==0,]
+
+tolabS<-merge(toFL,hum_load,by.x="Var.1",by.y="row.names")
+colnames(tolabS)<-c("Hummingbird","FLGenus","value","H.PC1","H.PC2")
+p  + geom_point(size=.5,col="red") + geom_text(data=tolabS,aes(label=Hummingbird),size=2.5)
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/HummingbirdSpace.svg",height=10,width=10,dpi=300)
+
+#Build a label dataframe
+toLab<-data.frame(Species=rownames(hum_load),hum_load)
+p + geom_point(size=2,col="red") + annotate("text",label=toLab$Species,x=toLab$PC1,y=toLab$PC2,size=2)
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/HummingbirdSpace_AllLabels.svg",height=20,width=20,dpi=300)
+
+################
+####################################################################
 #Time Cycles
 ####################################################################################
 
