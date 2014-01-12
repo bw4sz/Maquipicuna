@@ -3,9 +3,9 @@ require(reshape)
 require(ggplot2)
 require(chron)
 require(stringr)
-require(directlabels)
+
 #Setwd if not run globally
-#droppath<-"C:/Users/Jorge/Dropbox/"
+#droppath<-"C:/Users/Ben/Dropbox/"
 #setwd(droppath)
 
 #read in flower morphology data, comes from Nectar.R
@@ -15,19 +15,20 @@ fl.morph<-read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/FlowerM
 hum.morph<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdMorphology.csv")
 
 #Bring in Interaction Matrix from the Network.R script
-int<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
+int<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv",row.names=1)
 
 #Melt the interaction frame and match it with the traits
-m.dat<-melt(int,id.vars=c("ID","Video","Flower","Time","Hummingbird","Sex","Comments","PhotoID","VideoClip","TransectID","Transect_R","Iplant_Double","Piercing","Date","Month"))
+m.dat<-melt(int,id.vars=c("ID","Video","Time","Hummingbird","Sex","TransectID","Transect_R","Iplant_Double","Piercing","Date","Month"))
 
 #Fix spacing to match clades
+
 #Which are matching
 hum.morph$English
 levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English]
 
 #This needs to be checked
 print(paste(levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English],"not matched"))
-levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English]<-c("Green-crowned Woodnymph","Gorgeted Sunangel","Tyrian Metaltail","UKWN","UKWN")
+levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English]<-c("Green-crowned Woodnymph")
 m.datH<-merge(m.dat,hum.morph, by.x="Hummingbird",by.y="English")
 
 #Merge to flowers
@@ -112,7 +113,7 @@ p + geom_point()
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/FlowerSpace.svg",height=8,width=11,dpi=300)
 
 #Another way to look at this? getting closer.
-ggplot(m.datH,aes(x=Fl.PC1,y=Fl.PC2,col=Hummingbird)) + stat_densi() + facet_wrap(~Clade)
+ggplot(m.datH,aes(x=Fl.PC1,y=Fl.PC2,col=Hummingbird)) + stat_density() + facet_wrap(~Clade)
 
 
 #polygons on flower use by hummingbirds traits

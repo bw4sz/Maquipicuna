@@ -87,3 +87,9 @@ source(paste(gitpath,"TimeSeries.R",sep=""))
 
 source(paste(gitpath,"PhenotypicMatching.R",sep=""))
 load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
+
+########################
+#Network Topology
+#######################
+
+source(paste(gitpath,"PhenotypicMatching.R",sep=""))
