@@ -197,14 +197,14 @@ for (x in 1:length(dat.split)){
 #Start with networkwide properties
 ##################################
 
-#Get the desired files from paths
-fil.list<-list.files(netPath,pattern="NetworkProperties.csv",recursive=TRUE,full.names=TRUE)
+#Get the desired files from paths - within time?
+fil.list<-list.files(paste(netPath,"Temporal",sep="/"),pattern="NetworkProperties.csv",recursive=TRUE,full.names=TRUE)
 
 fil<-list()
 #Read and name each file
 for (x in 1:length(fil.list)){
   fil[[x]]<-read.csv(fil.list[[x]])
-  names(fil)[x]<-strsplit(fil.list[[x]],"/")[[1]][10]
+  names(fil)[x]<-strsplit(fil.list[[x]],"/")[[1]][11]
 }
 
 #melt the outputs to a single dataframe
@@ -227,9 +227,13 @@ droplevels(month.Prop)
 metricskeep<-c("connectance","links per species","nestedness","Shannon diversity","H2","niche overlap","robustness.HL","number of compartments","robustness.LL","number.of.species.HL")
 
 month.Prop<-droplevels(month.Prop[month.Prop$Metric %in% metricskeep,])
+
 #Quick and dirty look at all metrics
-p<-ggplot(na.omit(month.Prop),aes(x=as.numeric(Time),y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level)) + facet_wrap(~Metric,scales="free_y")
+month.Prop$Time<-factor(month.Prop$Time,c("6","7","8","9","10","11","12","1","2","3","4","5"))
+
+p<-ggplot(na.omit(month.Prop),aes(x=factor(Time),y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level)) + facet_wrap(~Metric,scales="free_y") + scale_x_discrete(breaks=c(6:12,1))
 p + theme_bw() 
+
 ggsave("MetricsFacet.svg",height=8,width=11)
 
 dir.create("Metric_TimePlots")
@@ -254,13 +258,13 @@ for(x in levels(month.Prop$Metric)) {
 ##############################################
 
 #Get the desired files from paths
-fil.list<-list.files(netPath,pattern="HummingbirdMetrics.csv",recursive=TRUE,full.names=TRUE)
+fil.list<-list.files(paste(netPath,"Temporal",sep="/"),pattern="HummingbirdMetrics.csv",recursive=TRUE,full.names=TRUE)
 
 fil<-list()
 #Read and name each file
 for (x in 1:length(fil.list)){
   fil[[x]]<-read.csv(fil.list[[x]])
-  names(fil)[x]<-strsplit(fil.list[[x]],"/")[[1]][10]
+  names(fil)[x]<-strsplit(fil.list[[x]],"/")[[1]][11]
 }
 
 Hum.Time<-melt(fil)
@@ -274,10 +278,12 @@ metricskeep<-c("nestedrank","resource.range","betweenness","d","degree","species
 
 #Probably should exclude rare species?
 H.c<-cast(Hum.Time,...~Metric)
-Hum.Time<-melt(H.c[H.c$degree > 2,])
+Hum.Time<-melt(H.c)
+
+Hum.Time$Time<-factor(Hum.Time$Time,c("6","7","8","9","10","11","12","1","2","3","4","5"))
 
 #Quick and dirty look across species 
-ggplot(Hum.Time,aes(as.numeric(Time),value,col=Species)) + facet_wrap(~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
+ggplot(Hum.Time,aes(Time,value,col=Species)) + facet_wrap(~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
 ggsave(paste(netPath,"TimeFigures/HumSpecies_Time.svg",sep=""),height=8,width=11)
 
 #Plot for each species, or for each metric?
@@ -313,6 +319,13 @@ head(month.Prop)
 setwd(droppath)
 load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
+#THIS NEEDS TO BE FIXED
+#setwd to dropbox
+droppath<-"C:/Users/Ben/Dropbox/"
+setwd(droppath)
+#Set github path
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+
 #The aggregate totals of the flower assemblage
 head(fl.totals)
 
@@ -327,8 +340,8 @@ month.Hum<-month.Prop[month.Prop$Level == "Hummingbirds",]
 network.fl<-merge(month.totals,month.Hum,by.x="Month",by.y="Time")
 
 #Quick visualization
-ggplot(network.fl,aes(Flowers,value,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point() + geom_smooth(method="lm",aes(group=1))
-ggsave(paste(netPath,"NetworkProp_Flowers.svg",sep=""),height=8,width=11,dpi=300)
+p<-ggplot(network.fl,aes(Flowers,value,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point(size=3) + geom_smooth(method="lm",aes(group=1))
+ggsave(paste(netPath,"NetworkPropFlowers.svg",sep=""),height=8,width=11,dpi=300)
 
 ###############################################
 #Hummingbird Properties and Available Resources
@@ -349,7 +362,7 @@ species_keep<-month_Pres[which(month_Pres$x > 1),]$Group.1
 #remove an unknwon species
 species_keep<-species_keep[!species_keep %in% "UKWN"]
 ggplot(hum.fl[hum.fl$Species %in% species_keep,],aes(as.numeric(Flowers),value,col=as.factor(Month))) + facet_grid(Metric~Species,scale="free") + geom_point() + geom_smooth(method="lm",aes(group=1))
-ggsave(paste(netPath,"SpeciesProp_Flowers.svg",sep=""),height=8,width=11,dpi=300)
+ggsave(paste(netPath,"SpeciesPropFlowers.svg",sep=""),height=8,width=11,dpi=300)
 
 #Save image to file
 setwd(droppath)
