@@ -8,9 +8,9 @@ require(reshape2)
 require(phytools)
 
 #Set DropBox Working Directory
-setwd("C:/Users/Jorge/Dropbox/")
+#setwd("C:/Users/Jorge/Dropbox/")
 
-gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
+#gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
 #need to run flowerTransects.R, get flower names from file
 fl.names<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/Iplant_Names.txt",row.names=1)

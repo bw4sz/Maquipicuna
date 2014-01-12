@@ -69,13 +69,13 @@ dat<-rbind.fill(dat,transect.FL)
 
 #Lots of cleaning left to do, but that's a start. 
 #Final levels
-print(paste("Final Flower Species:", levels(factor(dat_e$Iplant_Double))))
+print(paste("Final Flower Species:", levels(factor(dat$Iplant_Double))))
 
 #How many Birds Species
-print(paste("Number of Hummingbird Species:",nlevels(dat_e$Hummingbird)))
-print(paste("Final Hummingbird Species:",levels(dat_e$Hummingbird)))
+print(paste("Number of Hummingbird Species:",nlevels(dat$Hummingbird)))
+print(paste("Final Hummingbird Species:",levels(dat$Hummingbird)))
 
-write.csv(dat_e,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
+write.csv(dat,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
 ############################################
 ##############Data Import Complete##########

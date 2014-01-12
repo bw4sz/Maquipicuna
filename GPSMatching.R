@@ -5,7 +5,7 @@ require(reshape2)
 require(maptools)
 
 #Set working directory
-droppath<-"C:/Users/Ben/Dropbox/"
+#droppath<-"C:/Users/Ben/Dropbox/"
 setwd(droppath)
 
 ###############################################
@@ -154,7 +154,7 @@ HolgerMatch<-merge(Holgerpts,gpsH,by.x=c("GPS.ID","Month"),by.y=c("name","MonthI
 
 #Get missing GPS IDs
 holgerMissing<-HolgerMatch[is.na(HolgerMatch$ele),]$GPS.ID
-HolgerMatch[HolgerMatch$GPS.ID %in% holgerMissing,"HolgerID"]<-as.numeric(as.character(holgerMissing)))
+HolgerMatch[is.na(HolgerMatch$ele),"HolgerID"]<-as.numeric(as.character(holgerMissing))
 
 for (x in holgerMissing){
   print(x)
@@ -185,32 +185,8 @@ finalMissing<-levels(factor(dat[!dat$ID %in% datf$ID,]$ID))
 
 print(paste(finalMissing,"Final Missing Elevation"))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-####Combine with GPS info seperately, due to weird IDs of old GPS, non-unique
+###Combine with GPS info seperately, due to weird IDs of old GPS, non-unique
 #Ben's GPS Summer 2013 had no dates
-
-
-
-
 
 #Get levels from summer for Ben's GPS
 BenSummer<- gps[is.na(gps$time),]
@@ -226,7 +202,6 @@ missingGPS<-levels(factor(BenSummerpts$ID))[!levels(factor(BenSummerpts$ID)) %in
 found_Summer<-merge(BenSummerpts[BenSummerpts$ID %in% missingGPS,],gps,by.x="ID",by.y="name")
 print(paste("Ben Missing Levels:",missingGPS[!missingGPS %in% gps$name]))
 
-
 #Add the remaining levels with NA elevation until they can be corroborated?
 dat_e<-rbind.fill(datf,dat[dat$ID %in% finalMissing,])
 
@@ -241,4 +216,4 @@ for (x in c("864","887","868","892","898","899","901","930")){
   dat_e[dat_e$ID %in% x,"ele"]<-el
 }
 
-dat_e[is.na(dat_e$ele),]
+save.image()

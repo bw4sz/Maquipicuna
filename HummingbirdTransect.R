@@ -14,13 +14,19 @@ require(plyr)
 require(plotKML)
 require(reshape)
 require(chron)
-
+require(rPlant)
 #Set DropBox Working Directory
 #setwd("C:/Users/Ben/Dropbox/")
 
 #Read in workspace if desired for quick access
 #load("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
 
+#define cap function
+.simpleCap <- function(x) {
+  s <- strsplit(x, " ")[[1]]
+  paste(toupper(substring(s, 1, 1)), substring(s, 2),
+        sep = "", collapse = " ")
+}
 #Read in Ben's transect data
 Hum<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HummingbirdTransect.csv")
 head(Hum)
@@ -34,6 +40,8 @@ head(holger.hum)
 
 #Bring in holger transect data
 holgerID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIIDHolger.csv")
+
+
 
 #Fix holger's ID elev columns, make them more general, transect delim
 for (x in 1:6){
