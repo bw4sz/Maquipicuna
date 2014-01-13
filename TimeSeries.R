@@ -5,7 +5,7 @@ require(ggplot2)
 require(scales)
 #If not run globally.
 
-setwd("C:/Users/Jorge/Dropbox/")
+#setwd("C:/Users/Jorge/Dropbox/")
 ##Read in:
 dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
@@ -20,6 +20,7 @@ dat[dat$Hummingbird %in% "Western Emerald","Hummingbird"]<-"Andean Emerald"
 #Overall Month_Day and Elevation
 p<-ggplot(dat,aes(y=ele,x=DateP,col=Hummingbird)) + geom_point(size=3) + facet_wrap(~Hummingbird)
 p + scale_x_datetime(breaks = date_breaks("1 months"),labels = date_format("%b")) + geom_smooth(method="lm") + scale_y_continuous(breaks=seq(1300,2500,200),labels=seq(1300,2500,200)) + xlab("Month") + ylab("Elevation(m)")
+print(p)
 ggsave("Thesis//Maquipucuna_SantaLucia/Results/DateElevation.jpeg",height=10,width=17,dpi=350)
 ggsave("Thesis//Maquipucuna_SantaLucia/Results/DateElevation.svg",height=8,width=13,dpi=300)
 
@@ -28,14 +29,14 @@ p<-ggplot(dat[dat$Month %in% c(6,7,8),],aes(y=ele,x=DateP,col=Hummingbird)) + ge
 p<-p+ scale_y_continuous(breaks=seq(1300,2500,200),labels=seq(1300,2500,200),limits=c(1300,2500))
 p<-p + scale_x_datetime(breaks = date_breaks("1 months"),labels = date_format("%b")) 
 p+ geom_smooth(method="lm")  
-p 
+print(p) 
 ggsave("Thesis//Maquipucuna_SantaLucia/Results/DateElevation.svg",height=11,width=8,dpi=300)
 
 #Range by months
 
-p<-ggplot(dat,aes(y=ele,x=Month,col=Hummingbird)) + geom_point() + facet_wrap(~Hummingbird) + geom_boxplot(aes(group=Month))
-p
-p + scale_x_datetime(breaks = date_breaks("1 months"),labels = date_format("%b")) + stat_boxplot(width=)
+#p<-ggplot(dat,aes(y=ele,x=Month,col=Hummingbird)) + geom_point() + facet_wrap(~Hummingbird) + geom_boxplot(aes(group=Month))
+#p
+#p + scale_x_datetime(breaks = date_breaks("1 months"),labels = date_format("%b")) + stat_boxplot(width=)
 ############################
 #Feeders
 ############################

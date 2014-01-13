@@ -13,11 +13,11 @@ require(grid)
 library(ggbiplot)
 #
 
-#setwd to dropbox
-droppath<-"C:/Users/Jorge/Dropbox/"
-setwd(droppath)
-#Set github path
-gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
+# #setwd to dropbox
+# droppath<-"C:/Users/Jorge/Dropbox/"
+# setwd(droppath)
+# #Set github path
+# gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
 #if not being sourced from Specialization.R, run the next line to get the env
 #load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
@@ -165,12 +165,17 @@ trait_pc<-prcomp(zscore[!m.ord$Role %in% "UKWN",])
 biplot(trait_pc,cex=.5)
 
 #Label species names and clades
-p<-ggbiplot(trait_pc,groups=m.ord$Role[!m.ord$Role %in% "UKWN"],labels=rownames(trait_pc$x))
+p<-ggbiplot(trait_pc,labels=rownames(trait_pc$x))
 p + theme_bw() + geom_point()
 
 #optionally add in circles
 ggbiplot(trait_pc,groups=m.ord$Role[!m.ord$Role %in% "UKWN"],labels=rownames(trait_pc$x),ellipse=TRUE) + geom_point()
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Morphology.svg",dpi=300)
+
+#optionally add in circles
+ggbiplot(trait_pc,groups=m.ord$Role[!m.ord$Role %in% "UKWN"],labels=rownames(trait_pc$x),ellipse=TRUE) + geom_point()
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/RoleMorphology.svg",dpi=300)
+
 
 #Create a distance matrix of morphological similarity among all species
 sp.dist<-as.matrix(dist(zscore))

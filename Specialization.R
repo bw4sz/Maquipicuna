@@ -5,10 +5,10 @@
 #Under Git repository - Maquipucuna
 
 #setwd to dropbox
-droppath<-"C:/Users/Jorge/Dropbox/"
+droppath<-"C:/Users/Ben/Dropbox/"
 setwd(droppath)
 #Set github path
-gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 ##########################
 #The latest version of the input files need to be set at 
@@ -21,7 +21,7 @@ list.files(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013/csv",sep=""))
 #read in gps and create spatial objects
 ##########################
 
-source(paste(gitpath,"gpxtoshp.R",sep=""))
+source(paste(gitpath,"GPSMatching.R",sep=""))
 
 #########################
 #Flowers
@@ -43,7 +43,7 @@ load("Thesis/Maquipucuna_SantaLucia/Results/Nectar.Rdata")
 ########################
 
 source(paste(gitpath,"Phylogeny.R",sep=""))
-save.image("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
+load("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 
 ########################
 #Hummingbirds
@@ -87,3 +87,9 @@ source(paste(gitpath,"TimeSeries.R",sep=""))
 
 source(paste(gitpath,"PhenotypicMatching.R",sep=""))
 load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
+
+########################
+#Network Topology
+#######################
+
+source(paste(gitpath,"PhenotypicMatching.R",sep=""))
