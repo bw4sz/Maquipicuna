@@ -182,7 +182,7 @@ gpx.dat$name<-as.character(gpx.dat$name)
 colnames(gpx.dat)
 
 #create  spatial object
-gps<-SpatialPointsDataFrame(coords=cbind(gpx.all$lon,gpx.all$lat),gpx.all)
+gps<-SpatialPointsDataFrame(coords=cbind(gpx.dat$lon,gpx.dat$lat),gpx.dat)
 
 #Create month ID column in the GPS data
 gps$MonthID<-sapply(gps$time,function(x){
@@ -376,7 +376,7 @@ colnames(HMatch)
 Hrows<-HMatch[,colnames(HMatch) %in% c("Way.Point" ,"Iplant_Double","Hummingbird.Species","Month","Date_F.y","Transect_R","ID","ele","lat","lon")]
 
 colnames(Hrows)
-colnames(Brows)[colnames(Brows) %in% c("altitude","long")]<-c("ele","lon")
+colnames(Brows)[colnames(Brows) %in% c("altitude","long")]<-c("lon","ele")
 colnames(Hrows)[colnames(Hrows) %in% c("Way.Point","Date_F.y")]<-c("GPS.ID","Date_F")
 
 transectRows<-rbind.fill(Brows,Hrows)

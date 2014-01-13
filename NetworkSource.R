@@ -2,18 +2,19 @@
 #Create function to compute network parameters
 #The general strategy is to write all metrics to file, and develop call statements at the end to retrieve them
 NetworkC<-function(datf,naming){
-  
+  print(naming)
   #Set a working directory, create a folder for each run
   setwd(droppath)
   toset<-paste(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep=""),naming,sep="")
-  dir.create(toset)
+  
+  dir.create(toset,recursive=TRUE)
   setwd(toset)
   
   #Drop any unused factors?
   datf<-droplevels(datf)
   
   #Drop any observations without plants
-  datf<-datf[!datf$Iplant_Double %in% "",]
+  datf<-droplevels(datf[!datf$Iplant_Double %in% "",])
   
   #Interaction of flowers and birds
   F_H<-as.data.frame.array(table(datf$Iplant_Double,datf$Hummingbird))
@@ -42,13 +43,29 @@ NetworkC<-function(datf,naming){
   plotweb(F_H,sequence=sequ)
   dev.off()
   
-  jpeg(filename="MatrixPlotCompartments.jpeg",height=10,width=10,units="in",res=300)
-  visweb(F_H,"compartment")
-  dev.off()
+  #jpeg(filename="MatrixPlotCompartments.jpeg",height=10,width=10,units="in",res=300)
+  #visweb(F_H,"compartment")
+  #dev.off()
+  rm(birds.prop)
   
   #Metrics across entire
-  birds.prop<-data.frame(HummingbirdNetwork=networklevel(F_H,level="higher"))
-  plants.prop<-data.frame(PlantNetwork=networklevel(F_H,level="lower"))
+  tryCatch(birds.prop<-data.frame(HummingbirdNetwork=networklevel(F_H,level="higher")),error=function(e)
+    print(e))
+  
+  #Add in a flag if the network is just too small. 
+  if(!exists("birds.prop")){
+    return("Not Enough Hummingbird Species")
+  }
+  
+  #Network prop for plants
+  #Metrics across entire
+  tryCatch(plants.prop<-data.frame(HummingbirdNetwork=networklevel(F_H,level="lower")),error=function(e)
+    print(e))
+  
+  #Add in a flag if the network is just too small. 
+  if(!exists("plants.prop")){
+    return("Not Enough Plant Species")
+  }
   
   #Merge networks
   NetworkProp<-data.frame(birds.prop,plants.prop)
@@ -57,13 +74,27 @@ NetworkC<-function(datf,naming){
   write.csv(NetworkProp,"NetworkProperties.csv")
   
   #Metrics across species, write to file
-  H.species.prop<-specieslevel(F_H,level="higher")
+  tryCatch(H.species.prop<-specieslevel(F_H,level="higher"),error = function(e) {
+    print(paste("Not enough Species:",e))})
+  
+  if(!exists("H.species.prop")){
+    return("Not Enough Hummingbird Species")
+  }
   
   #Hummingbird Properties
+  
   write.csv(H.species.prop,"HummingbirdMetrics.csv")
   
+  
   #Plant Network Metrics  
-  P.species.prop<-specieslevel(F_H,level="lower")
+  #Metrics across species, write to file
+  tryCatch(P.species.prop<-specieslevel(F_H,level="lower"),error = function(e) {
+    print(paste("Not enough plant Species:",e))})
+  
+  if(!exists("P.species.prop")){
+    return("Not Enough Plant Species")
+  }
+  
   write.csv(P.species.prop,"PlantMetrics.csv")
   
   ##################################################

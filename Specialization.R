@@ -5,10 +5,10 @@
 #Under Git repository - Maquipucuna
 
 #setwd to dropbox
-droppath<-"C:/Users/Ben/Dropbox/"
+droppath<-"C:/Users/Jorge/Dropbox/"
 setwd(droppath)
 #Set github path
-gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
 ##########################
 #The latest version of the input files need to be set at 

@@ -161,6 +161,7 @@ print(paste("Final Hummingbird Species:",levels(dat_e$Hummingbird)))
 
 write.csv(dat_e,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
+print("data cleaned")
 ############################################
 #Run Network Function for the entire dataset
 NetworkC(datf=dat_e,naming="Total")
@@ -186,6 +187,16 @@ dat.split<-split(dat_e,dat_e$Month,drop=TRUE)
 
 for (x in 1:length(dat.split)){
   NetworkC(datf=dat.split[[x]],naming=paste("Temporal",names(dat.split)[[x]],sep="/"))
+}
+
+#############################################
+#Compute metrics for each month split by elev
+#############################################
+dat.split<-split(dat_e,list(dat_e$Month,cut(dat_e$ele,breaks=c(1300,1700,2500),dig.lab=4,labels=c("Low","High"))),drop=TRUE)
+
+names(dat.split)<-gsub("\\.","/",names(dat.split))
+for (x in 1:length(dat.split)){
+  NetworkC(datf=dat.split[[x]],naming=paste("Temporal_Split",names(dat.split)[[x]],sep="/"))
 }
 
 ############################################
