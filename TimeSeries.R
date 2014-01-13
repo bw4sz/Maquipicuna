@@ -17,7 +17,6 @@ dat[which(dat$Date =="6/4/2012"),"DateP"]<-"2013-06-04"
 
 dat[dat$Hummingbird %in% "Western Emerald","Hummingbird"]<-"Andean Emerald"
 
-
 #Overall Month_Day and Elevation
 p<-ggplot(dat,aes(y=ele,x=DateP,col=Hummingbird)) + geom_point(size=3) + facet_wrap(~Hummingbird)
 p + scale_x_datetime(breaks = date_breaks("1 months"),labels = date_format("%b")) + geom_smooth(method="lm") + scale_y_continuous(breaks=seq(1300,2500,200),labels=seq(1300,2500,200)) + xlab("Month") + ylab("Elevation(m)")
@@ -31,7 +30,6 @@ p<-p + scale_x_datetime(breaks = date_breaks("1 months"),labels = date_format("%
 p+ geom_smooth(method="lm")  
 p 
 ggsave("Thesis//Maquipucuna_SantaLucia/Results/DateElevation.svg",height=11,width=8,dpi=300)
-
 
 #Range by months
 
