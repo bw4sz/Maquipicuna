@@ -122,7 +122,7 @@ colnames(selective.matrix)[1]<-"Elevation"
 
 #unweighted
 p<-ggplot(selective.matrix,aes(x=Elevation,Selectivity,col=Species)) + geom_point(size=3) + facet_wrap(~Species) + geom_smooth(aes(group=1))
-p
+p + ylim(0,1)
 ggsave(paste(droppath,"Thesis//Maquipucuna_SantaLucia/Results/Selectivity/Selectivity_Elevation_Unweighted.svg",sep=""),height=8,width=15)
 
 #weighted

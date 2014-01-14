@@ -38,6 +38,7 @@ sum(d)
 plot(ecdf(d))
 
 mean(d)
+
 median(d)
 
 ###################
