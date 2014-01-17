@@ -176,7 +176,6 @@ ggsave("Thesis/Maquipucuna_SantaLucia/Results/Morphology.svg",dpi=300)
 ggbiplot(trait_pc,groups=m.ord$Role[!m.ord$Role %in% "UKWN"],labels=rownames(trait_pc$x),ellipse=TRUE) + geom_point()
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/RoleMorphology.svg",dpi=300)
 
-
 #Create a distance matrix of morphological similarity among all species
 sp.dist<-as.matrix(dist(zscore))
 

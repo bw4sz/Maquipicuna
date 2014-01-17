@@ -93,10 +93,16 @@ curve(dpois(x,lambda=mean(binomP)),add=TRUE,col="red",type="l")
 
 ks.test(binomP,rpois(n=length(binomP),lambda=mean(binomP)))
 
-#Log transform, add +.001 to not get infinite values?
-rlnorm(n=ld,meanlog=mean(ld),sdlog=sd(ld))
-
 ld<-log(d+.0001)
+
+#Log transform, add +.001 to not get infinite values?
+#rlnorm(n=ld,meanlog=mean(ld),sdlog=sd(ld))
+
+###########################
+Predicting overlap?
+###########################
+
+
 
 
 

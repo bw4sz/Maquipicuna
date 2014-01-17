@@ -5,10 +5,10 @@
 #Under Git repository - Maquipucuna
 
 #setwd to dropbox
-droppath<-"C:/Users/Jorge/Dropbox/"
+droppath<-"C:/Users/Ben/Dropbox/"
 setwd(droppath)
 #Set github path
-gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 ##########################
 #The latest version of the input files need to be set at 
@@ -92,4 +92,4 @@ load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
 #Network Topology
 #######################
 
-source(paste(gitpath,"PhenotypicMatching.R",sep=""))
+source(paste(gitpath,"Topology.R",sep=""))
