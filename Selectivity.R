@@ -116,6 +116,9 @@ selective.matrix$Minutes_Total<-selective.matrix$Minutes_Low+selective.matrix$Mi
 #Rename column
 colnames(selective.matrix)[1]<-"Elevation"
 
+#Add month column?
+selective.matrix$MonthA<-format(as.POSIXct(selective.matrix$Date,format="%m/%d/%Y"),"%b")
+
 ###############
 #Plotting Selectivity
 ###############
@@ -130,9 +133,18 @@ p<-ggplot(selective.matrix,aes(x=as.numeric(Elevation),Selectivity,col=Species,s
 p
 p  + geom_smooth(method="glm",family="binomial",aes(weight=Minutes_Total)) + theme_bw() + xlab("Elevation")
 
+#weighted and time
+p<-ggplot(selective.matrix,aes(x=as.numeric(Elevation),Selectivity,col=MonthA,size=Minutes_Total)) + geom_point() + facet_wrap(~Species)
+p
+p  + geom_smooth(method="glm",family="binomial",aes(weight=Minutes_Total)) + theme_bw() + xlab("Elevation")
+
+
 ## Write selectivity tables to file
 write.csv(selective.matrix,paste(droppath,"Thesis//Maquipucuna_SantaLucia/Results/Selectivity/Selectivity_Elevation.csv",sep=""))
 
+
+##Split out by date?
+head(selective.matrix)
 ##########################################
 #Compare Selectivity to Available Resource, incomplete, needs to be adjusted to per day
 ##########################################
