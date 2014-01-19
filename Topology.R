@@ -98,6 +98,11 @@ ld<-log(d+.0001)
 #Log transform, add +.001 to not get infinite values?
 #rlnorm(n=ld,meanlog=mean(ld),sdlog=sd(ld))
 
+
+############################
+#Rarifaction to test sampling.
+############################
+
 ###########################
 Predicting overlap?
 ###########################

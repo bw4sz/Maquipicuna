@@ -185,7 +185,7 @@ ggplot(data=m.datH,aes(x=TotalCorolla)) + facet_wrap(~Hummingbird,scales="free")
 ggplot(data=m.datH,aes(x=TotalCorolla)) + geom_density(binwidth=1,data=transectM,aes(x=TotalCorolla),fill="black") + geom_density(binwidth=1,alpha=.5,aes(fill=Hummingbird)) + facet_grid(Hummingbird~Month,scales="free")
 
 ######################################
-#Compared to just what was sampled?
+#Compared to each other?
 ######################################
 #without month percentages
 p<-ggplot(data=m.datH,aes(x=TotalCorolla)) + facet_wrap(~Hummingbird,scale="free") + geom_bar(binwidth=1,data=transform(m.datH,Hummingbird=NULL),aes(y = (..count..)/sum(..count..)),fill="black") 
