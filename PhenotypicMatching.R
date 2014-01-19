@@ -3,13 +3,17 @@ require(reshape)
 require(ggplot2)
 require(chron)
 require(stringr)
+require(scales)
 
 #Setwd if not run globally
-#droppath<-"C:/Users/Ben/Dropbox/"
-#setwd(droppath)
+droppath<-"C:/Users/Ben/Dropbox/"
+setwd(droppath)
 
 #read in flower morphology data, comes from Nectar.R
 fl.morph<-read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/FlowerMorphology.csv",sep=""))
+
+#First row is empty
+fl.morph<-fl.morph[-1,]
 
 #Bring in Hummingbird Morphology Dataset, comes from
 hum.morph<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdMorphology.csv")
@@ -155,9 +159,48 @@ p + geom_point() + facet_wrap(~Month)
 
 
 
-###############################################
-#Difference Between Corolla and Bill Length
+#####################################################################
+#Difference Between Corolla and Bill Length of interactions measured
+#####################################################################
+
+
 m.datH$BD<-m.datH$Bill-m.datH$TotalCorolla
-ggplot(m.datH,aes(x=BD,fill=Hummingbird)) + geom_density(position="dodge") + facet_wrap(~Clade,scale="free")
+p<-ggplot(m.datH,aes(x=BD,fill=Hummingbird)) + geom_density(position="dodge") + facet_wrap(~Clade,scale="free")
+
+####################################################################
+#Compared usage to available resources??
+####################################################################
+
+#Bring in flower transect data
+full.fl<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/CleanedHolgerTransect.csv",row.names=1)
+
+#Merge with flower morphology
+transectM<-merge(full.fl,fl.morph, by.x="Iplant_Double",by.y="X")
+qplot(transectM$TotalCorolla,binwidth=1,geom="histogram") + theme_bw()
+
+#Density plot of resource selection
+ggplot(data=m.datH,aes(x=TotalCorolla)) + facet_wrap(~Hummingbird,scales="free") + geom_density(binwidth=1,data=transectM,aes(x=TotalCorolla),fill="black") + geom_density(fill="red",binwidth=1,alpha=.5)
+
+#Density plot of resource selection and month
+ggplot(data=m.datH,aes(x=TotalCorolla)) + geom_density(binwidth=1,data=transectM,aes(x=TotalCorolla),fill="black") + geom_density(binwidth=1,alpha=.5,aes(fill=Hummingbird)) + facet_grid(Hummingbird~Month,scales="free")
+
+######################################
+#Compared to just what was sampled?
+######################################
+#without month percentages
+p<-ggplot(data=m.datH,aes(x=TotalCorolla)) + facet_wrap(~Hummingbird,scale="free") + geom_bar(binwidth=1,data=transform(m.datH,Hummingbird=NULL),aes(y = (..count..)/sum(..count..)),fill="black") 
+p + geom_bar(binwidth=1,aes(y = (..count..)/sum(..count..)),fill="red",alpha=.4) + scale_y_continuous("Resource Use",labels = percent_format()) + xlab("Corolla Length")
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/FLUsePercent.svg",height=8,width=9)
+
+#One one figure?
+p<-ggplot(data=m.datH,aes(x=TotalCorolla)) + geom_bar(data=transform(m.datH,Hummingbird=NULL),aes(y = (..count..)/sum(..count..)),fill="black") + facet_wrap(~Clade,scales="free")
+p + geom_bar(aes(y = (..count..)/sum(..count..),fill=Hummingbird),alpha=.9,position="dodge") + scale_y_continuous("Resource Use",labels = percent_format()) + xlab("Corolla Length")
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/FLUsePercent.svg",height=8,width=9)
+
+#One one figure?
+p<-ggplot(data=m.datH,aes(x=TotalCorolla)) + geom_density(data=transform(m.datH,Clade=NULL),fill="black") + facet_wrap(~Clade)
+p + geom_density(aes(fill=Hummingbird),alpha=.5,position="dodge") + ylab("Resource Use") + xlab("Corolla Length")
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/FLUsePercent.svg",height=8,width=9)
+
 
 save.image("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
