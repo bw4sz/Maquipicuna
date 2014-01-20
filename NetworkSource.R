@@ -219,6 +219,7 @@ NetworkC<-function(datf,naming){
   #Phylogenetic niche breadth of plants
   ########################################
   
+  F_H[rownames(F_H) %in% rownames(pco),]
   #####################################################3
   #Phylogenetic Diversity of Each network compartment
   ######################################################3

@@ -44,7 +44,7 @@ clades<-read.csv(paste(gitpath,"InputData//CladeList.txt",sep=""),header=FALSE)[
 colnames(clades)<-c("Clade","Genus","Species","double","English")
 clades<-clades[,1:5]
 
-#Bring in the phylogeny
+#Bring in the hummingbird phylogeny
 tree<-read.nexus(paste(gitpath,"InputData/ColombiaPhylogenyUM.tre",sep=""))
 
 #Read in names file to replace names in Nexis file
@@ -55,6 +55,9 @@ tree$tip.label<-as.character(spnames$SpName)
 
 #Read in trait distance between species, run from Morphology.R
 sp.dist<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdDist.csv",row.names=1)
+
+#Read in plant phylogeny 
+pco<-read.csv(paste(gitpath,"InputData/PlantRelatedness.csv",sep=""))
 
 ###Read in Flower Camera Dataset####
 dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoClean.csv")
@@ -228,7 +231,6 @@ setwd(paste(netPath,"TimeFigures",sep=""))
 droplevels(month.Prop)
 
 metricskeep<-c("connectance","links per species","nestedness","Shannon diversity","H2","niche overlap","robustness.HL","number of compartments","robustness.LL","number.of.species.HL")
-
 month.Prop<-droplevels(month.Prop[month.Prop$Metric %in% metricskeep,])
 
 #Quick and dirty look at all metrics
