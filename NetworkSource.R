@@ -26,13 +26,13 @@ NetworkC<-function(datf,naming){
   svg(filename="WebPlot.svg",height=7,width=15)
   plotweb(F_H)
   dev.off()
-    
+  
   #create a order for hummingbirds
   toOrd<-merge(clades,data.frame(English=colnames(F_H)),sort=FALSE,all.y=TRUE)$English
-      
+  
   #create a order for plants
   Hlab<-names(which(!apply(F_H,2,sum)==0))
-
+  
   toOrd<-as.character(merge(clades,data.frame(English=Hlab),sort=FALSE,all.y=TRUE)$English)
   
   Plab<-names(which(!apply(F_H,1,sum)==0))
@@ -100,14 +100,14 @@ NetworkC<-function(datf,naming){
   ##################################################
   #Specialization for each species
   ##################################################
-   
+  
   birds.special<-dfun(t(F_H))
   birds.spl<-data.frame(lapply(birds.special,data.frame))
   colnames(birds.spl)<-names(birds.special)
   birds.spl$Species<-rownames(birds.spl)
   
   #size by sample size?
-    
+  
   ggplot(birds.spl,aes(x=Species,y=dprime)) + geom_point() + theme_bw() + theme(axis.text.x=element_text(angle=90))
   ggsave("Specialization.svg",height=8,width=9)
   
@@ -115,11 +115,10 @@ NetworkC<-function(datf,naming){
   #Resource overlap between Hummingbird species
   #############################################
   
-  #Boris suggest that we consider a distance based framework for the Y axis (consider Niche overlap from Schoener?)
   #Collapse Matrix into Hummingbird by Hummingbird Matrix
   #Hummingbird
   H_H<-as.one.mode(F_H,project="higher")
-
+  
   #Bird Bray Distance
   m.HH<-as.matrix(vegdist(t(F_H),"bray"))
   diag(m.HH)<-NA
@@ -149,26 +148,43 @@ NetworkC<-function(datf,naming){
   #get cophenetic distance between species, might need to the new phylogeny, which species don't match?
   m.HH$Relatedness<-sapply(1:nrow(m.HH),ER)
   colnames(m.HH)[1:2]<-c("To","From")
-    hist(m.HH$value)
+  hist(m.HH$value)
   #Phylogenetic Relatedness and plant overlap
   p<-ggplot(m.HH[,],aes(y=value,x=as.numeric(Relatedness),)) + geom_jitter() + geom_smooth() + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") 
-p+ geom_text(aes(label=paste(To,From)),size=2,vjust=1)
+  p+ geom_text(aes(label=paste(To,From)),size=2,vjust=1)
   ggsave("Relatedness_Overlap.svg",height=8,width=11)
   
+  ##########################################
+  #Phylogenetic niche breadth of pollinators
+  ##########################################
+  #replace the colnames with english names?
+  scinames<-sapply(colnames(F_H),function(x) gsub(" ","_",clades[clades$English %in% x,"double"]))
+  colnames(F_H)<-scinames
+  colnames(F_H)[!colnames(F_H) %in% colnames(ctrx)]<-"Phaethornis_longuemareus"
+  
+  phyloDiversity<-mpd(samp=F_H,dis=ctrx,abundance.weighted=TRUE)
+  phyloDiversity<-data.frame(Plants=rownames(F_H),Hummingbirds=phyloDiversity)
+  
+  write.csv(phyloDiversity,"PollinatorPhyloDiversity.csv")
+  
+  ggplot(phyloDiversity,aes(y=Hummingbirds,x=Plants)) + geom_bar(stat="identity") + theme(axis.text.x=element_text(angle = -90, hjust = 0)) + ylab("Pollinator Phylodiversity")
+  ggsave("PollinatorPhyloDiversity.svg",dpi=300)
+  
+  ##############Trait Relatedness####################
   
   #get cophenetic distance between species
   m.HH$RelatednessT<-NA
   
   #can't figure out why this throwing a weird flag
   for (x in 1:nrow(m.HH)){
-      y<-m.HH[x,]
-      if(sum(clades$English %in% y[[1]])==0) {next}
-      if(sum(clades$English %in% y[[2]])==0) {next}
-      sp1<-gsub(" ",".",clades[clades$English %in% y[[1]],"double"])
-      sp2<-gsub(" ",".",clades[clades$English %in% y[[2]],"double"])
+    y<-m.HH[x,]
+    if(sum(clades$English %in% y[[1]])==0) {next}
+    if(sum(clades$English %in% y[[2]])==0) {next}
+    sp1<-gsub(" ",".",clades[clades$English %in% y[[1]],"double"])
+    sp2<-gsub(" ",".",clades[clades$English %in% y[[2]],"double"])
     if(is.null(sp.dist[sp1,sp2])){next}
-      m.HH[x,"RelatednessT"]<-as.numeric(sp.dist[sp1,sp2])
-    }
+    m.HH[x,"RelatednessT"]<-as.numeric(sp.dist[sp1,sp2])
+  }
   
   #Trait Relatedness and plant overlap
   ggplot(m.HH[,],aes(y=value,x=RelatednessT)) + geom_point() + geom_smooth() + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") #+ geom_text(aes(label=paste(To,From)),size=3)
@@ -196,6 +212,17 @@ p+ geom_text(aes(label=paste(To,From)),size=2,vjust=1)
   jpeg(filename="MatrixPlot.jpeg",height=8,width=8,units="in",res=300)
   visweb(F_H)
   dev.off()
+  
+  
+  
+  ########################################
+  #Phylogenetic niche breadth of plants
+  ########################################
+  
+  #####################################################3
+  #Phylogenetic Diversity of Each network compartment
+  ######################################################3
+  #get the phylogenetic diversity of pollinators for each plant.
   
   setwd(droppath)
 }

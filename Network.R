@@ -13,6 +13,7 @@ require(stringr)
 require(rPlant)
 require(maptools)
 require(taxize)
+require(picante)
 
 #Set Dropbox Location
 #Read in flower videos
@@ -20,7 +21,7 @@ require(taxize)
 setwd(droppath)
 
 #Set Gitpath
-#gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
+#gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 #Where are the outputs?
 netPath<-paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
@@ -122,28 +123,19 @@ missp<-h[!h %in% clades$English]
 paste("misspelled levels",missp)
 h[h %in% missp]
 
-spellC<-c("Booted Racket-tail","Green-crowned Woodnymph","Fawn-breasted Brilliant","Gorgeted Sunangel","Tyrian Metaltail","UKWN","Violet-tailed Sylph","Violet-tailed Sylph")
+spellC<-c("Booted Racket-tail","Green-crowned Woodnymph","Fawn-breasted Brilliant","Gorgeted Sunangel","Tyrian Metaltail","UKWN","UKWN","Violet-tailed Sylph")
 
 paste("Spelling Correction",spellC)
 
 h[h %in% missp]<-spellC
 
-#I also think that one western emerland 
-
 head(clades)
 #can taxize do english names? 
-
-#Fix common mistakes
-h[h %in% "Fawn Breasted Brilliant"] <- "Fawn-breasted Brilliant"
-h[h %in% "Gorgetted Sunangel"]<-"Gorgetted Sunangel"
-h[h %in% "Violet-tailed Slyph"]<-"Violet-tailed Sylph"
-h[h %in% "Booted Racketail"]<-"Booted Racket-tail"
-h[h %in% "Green-crowned Woodnymph"]<-"Crowned Woodnymph" 
 
 levels(dat$Hummingbird) <- h
 
 #Take our any bad data
-dat_e<-droplevels(dat[!dat$Hummingbird %in% c("","NANA","UKWN","Ukwn"),])
+dat_e<-droplevels(dat[!dat$Hummingbird %in% c("","NANA","UKWN","Ukwn","Western Emerald"),])
 
 #Remove out piercing events for now?
 table(dat$Piercing)
