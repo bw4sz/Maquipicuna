@@ -6,7 +6,7 @@ require(scales)
 #If not run globally.
 
 #setwd("C:/Users/Jorge/Dropbox/")
-setwd(droppat)
+setwd(droppath)
 ##Read in:
 dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 

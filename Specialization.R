@@ -52,13 +52,6 @@ load("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 source(paste(gitpath,"HummingbirdTransect.R",sep=""))
 load("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
 
-########################
-#Match GPS Records - Also merges flower video file. 
-########################
-
-source(paste(gitpath,"GPSMatching.R",sep=""))
-
-#Next set of scripts take in the descriptive stats and perform analysis
 
 #################
 #Network Analysis
@@ -98,4 +91,4 @@ source(paste(gitpath,"Topology.R",sep=""))
 #Network Dissimilarity
 #######################
 
-source(paste(gitpath,"NetowrkDiss.R",sep=""))
+source(paste(gitpath,"NetworkDiss.R",sep=""))
