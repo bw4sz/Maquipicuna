@@ -4,6 +4,7 @@ require(ggplot2)
 require(chron)
 require(stringr)
 require(scales)
+require(taxize)
 
 #Setwd if not run globally
 droppath<-"C:/Users/Ben/Dropbox/"
@@ -119,24 +120,31 @@ ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/FlowerSpace.svg",height=
 #Another way to look at this? getting closer.
 ggplot(m.datH,aes(x=Fl.PC1,y=Fl.PC2,col=Hummingbird)) + stat_density() + facet_wrap(~Clade)
 
-
 #polygons on flower use by hummingbirds traits
 #create a flower genus column?
 m.datH$FLGenus<-sapply(m.datH$Iplant_Double,function(x) strsplit(as.character(x),split="_")[[1]][[1]])
-p<-ggplot(m.datH,aes(x=H.PC1,y=H.PC2,fill=FLGenus,alpha=.02)) + geom_polygon() + facet_wrap(~FLGenus,drop=TRUE)
 
-toFL<-table(m.datH$Hummingbird, m.datH$FLGenus)
+##get the family for each flower
+fam_r<-data.frame(Genus=levels(as.factor(m.datH$FLGenus)),Family=tax_name(query = levels(as.factor(m.datH$FLGenus)) , get = "family",db="ncbi",ask=FALSE))
+fam_r[fam_r$Genus=="Werklea","family"]<-"Malvaceae"
+fam_r[fam_r$Genus=="Centropogon","family"]<-"Campanulaceae"
+
+m.datH<-merge(m.datH,fam_r,by.x="FLGenus",by.y="Genus")
+
+p<-ggplot(m.datH,aes(x=H.PC1,y=H.PC2,fill=family,alpha=.02)) + geom_polygon() + facet_wrap(~family,drop=TRUE)
+
+toFL<-table(m.datH$Hummingbird, m.datH$family)
 toFL<-melt(toFL)
 toFL<-toFL[!toFL$value==0,]
 
 tolabS<-merge(toFL,hum_load,by.x="Var.1",by.y="row.names")
-colnames(tolabS)<-c("Hummingbird","FLGenus","value","H.PC1","H.PC2")
+colnames(tolabS)<-c("Hummingbird","family","value","H.PC1","H.PC2")
 p  + geom_point(size=.5,col="red") + geom_text(data=tolabS,aes(label=Hummingbird),size=2.5)
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/HummingbirdSpace.svg",height=10,width=10,dpi=300)
 
 #Build a label dataframe
 toLab<-data.frame(Species=rownames(hum_load),hum_load)
-p + geom_point(size=2,col="red") + annotate("text",label=toLab$Species,x=toLab$PC1,y=toLab$PC2,size=2)
+p + geom_point(size=2,col="red") + annotate("text",label=toLab$Species,x=toLab$PC1,y=toLab$PC2,size=2) + labs(col="Flower Genus")
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/HummingbirdSpace_AllLabels.svg",height=20,width=20,dpi=300)
 
 ################
@@ -148,8 +156,9 @@ ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/HummingbirdSpace_AllLabe
 nrow(m.datH[is.na(m.datH$Month),])
 
 #Start by plotting monthly breaks of corolla matching
-p<-ggplot(m.datH,aes(x=Bill,TotalCorolla,col=Hummingbird)) + geom_boxplot(aes(x=factor(Hummingbird))) + geom_smooth(method="lm",aes(group=1))
-p + geom_point() + facet_wrap(~Month,nrow=4) + theme_bw()
+
+p<-ggplot(m.datH,aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_point() + geom_boxplot(aes(group=factor(Bill)))
+p + geom_smooth(aes(group=1),method="lm") + facet_wrap(~Month,nrow=4) + theme_bw()
 
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/Matching_Time.svg",)
 

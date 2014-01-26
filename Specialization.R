@@ -42,8 +42,8 @@ load("Thesis/Maquipucuna_SantaLucia/Results/Nectar.Rdata")
 #Flower Phylogeny using Phylomatic
 ########################
 
-source(paste(gitpath,"Phylogeny.R",sep=""))
-load("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
+#source(paste(gitpath,"Phylogeny.R",sep=""))
+#load("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 
 ########################
 #Hummingbirds
