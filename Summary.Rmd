@@ -1,0 +1,58 @@
+Specialization and Plant - Hummingbird Interactions: Synopsis of Current Results
+========================================================
+
+Data Collection
+-------
+DATA COLLECTION AND SOURCES
+- Flower Transects (1300-2500m,  6 transects, 2x/Month) – Estimate the total available hummingbird resources
+
+Q1: How do available resources change along the elevation gradient over time?
+```{r, echo=FALSE,warning=FALSE,message=FALSE,fig.width=10,dpi=100,fig.height=8}
+droppath<-"C:/Users/Ben/Dropbox/"
+setwd(droppath)
+#Set github path
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+require(ggplot2)
+load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+
+p<-ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=Month.a)) + geom_point(size=3)  + stat_smooth(aes(group=Month.a),method="loess",se=FALSE) + facet_wrap(~Month.a,nrow=2) + theme_bw() + labs(col="Month")
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylab("# of Hummingbird Visited Flowers") + xlab("Elevation Range (m)")
+```
+
+Table of 10 most abundant hummingbird visited plants with total number of flowers records
+
+```{r,message=FALSE,results='asis'}
+require(xtable)
+
+planttable<-aggregate(full.fl$Total_Flowers,by=list(toupper(full.fl$Family),full.fl$Iplant_Double),sum)
+
+plantT<-na.omit(planttable[order(planttable$x),])
+colnames(plantT)<-c("Family","Latin","Flowers")
+print(xtable(plantT[1:10,]),type="html")
+```
+
+- Hummingbird Transects (1300-2500m,  6 transects, 2x/Month) – Collect geospatial data on hummingbird elevation ranges and interactions
+
+
+- Hummingbird Flower Cameras (6am-6pm,2days,~30X/Month, placed at the most abundant flower resources)
+
+- Flower Morphology (Corolla width, corolla length for majority of species, nectar concentration for a subset)
+
+- Hummingbird Morphology (for all but 1 species, 17 morphological traits, from Gary Stiles)
+
+- Flower Phylogeny (Genus Level phylogeny with branch lengths informed by the Angiosperm supertree)
+
+-	Hummingbird Phylogeny (Both a molecular divergence and time tree are available for all species, from Jimmy McGuire)
+
+-	Fine-scale temperature data (35 ibuttons were placed along the elevation transect to record temperature every hr for 1 year)
+
+```{r}
+summary(cars)
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+plot(cars)
+```
+

@@ -247,13 +247,19 @@ colnames(fl.totals)<-c("Elev","Month","Date","TotalFlowers")
 #Write data to file
 write.csv(full.fl,"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/CleanedHolgerTransect.csv")
 
+#Make month abbreviation column, with the right order
+fl.totals$Month.a<-factor(month.abb[fl.totals$Month],month.abb[c(6:12,1:5)])
+
+#level the orders of the months
+levels(fl.totals$Month.a)
+
 ##Flowers per month and elevation
-p<-ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=as.factor(Month))) + geom_point(size=3)  + stat_smooth(aes(group=Month),method="loess",se=FALSE) + facet_wrap(~Month,nrow=2) + theme_bw() + labs(col="Month")
-p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+p<-ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=Month.a)) + geom_point(size=3)  + stat_smooth(aes(group=Month.a),method="loess",se=FALSE) + facet_wrap(~Month.a,nrow=2) + theme_bw() + labs(col="Month")
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylab("# of Hummingbird Visited Flowers") + xlab("Elevation Range (m)")
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerMonths.jpeg",height=8,width=10)
 
 #Flowers at each elevation over time
-ggplot(fl.totals,aes(x=Month,TotalFlowers,col=Elev)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free_x") + scale_y_continuous(limits=c(0,5500),breaks=seq(0,5000,1000))
+ggplot(fl.totals,aes(x=as.factor(Month),TotalFlowers,col=Elev)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free_x") + scale_y_continuous(limits=c(0,5500),breaks=seq(0,5000,1000))
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10)
 
 #Brief look at time series and taxonomy
