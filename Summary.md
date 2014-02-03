@@ -20,14 +20,14 @@ planttable <- aggregate(full.fl$Total_Flowers, by = list(toupper(full.fl$Family)
     full.fl$Iplant_Double), sum)
 
 plantT <- na.omit(planttable[order(planttable$x), ])
-
+colnames(plantT) <- c("Family", "Latin", "Flowers")
 print(xtable(plantT[1:10, ]), type = "html")
 ```
 
 <!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Mon Jan 27 21:52:19 2014 -->
+<!-- Mon Feb 03 08:55:36 2014 -->
 <TABLE border=1>
-<TR> <TH>  </TH> <TH> Group.1 </TH> <TH> Group.2 </TH> <TH> x </TH>  </TR>
+<TR> <TH>  </TH> <TH> Family </TH> <TH> Latin </TH> <TH> Flowers </TH>  </TR>
   <TR> <TD align="right"> 12 </TD> <TD> RUBIACEAE </TD> <TD>  </TD> <TD align="right"> 1.00 </TD> </TR>
   <TR> <TD align="right"> 59 </TD> <TD> GESNERIACEAE </TD> <TD> Gasteranthus_leopardus </TD> <TD align="right"> 1.00 </TD> </TR>
   <TR> <TD align="right"> 71 </TD> <TD> GESNERIACEAE </TD> <TD> Heppiella </TD> <TD align="right"> 1.00 </TD> </TR>
