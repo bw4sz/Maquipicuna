@@ -14,10 +14,10 @@ library(ggbiplot)
 #
 
 # #setwd to dropbox
-# droppath<-"C:/Users/Jorge/Dropbox/"
-# setwd(droppath)
+ droppath<-"C:/Users/Jorge/Dropbox/"
+ setwd(droppath)
 # #Set github path
-# gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
+ gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
 #if not being sourced from Specialization.R, run the next line to get the env
 #load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
@@ -159,7 +159,7 @@ roles<-read.csv(paste(gitpath,"InputData//HummingbirdSpecies.csv",sep=""))
 ord<-data.frame(Species=rownames(zscore))
 m.ord<-merge(ord,roles,by="Species",sort=FALSE,all.x=TRUE)
 
-trait_pc<-prcomp(zscore[!m.ord$Role %in% "UKWN",])
+trait_pc<-prcomp(zscore[,])
 
 #normal plot, kinda ugly, need to zoom in
 biplot(trait_pc,cex=.5)
@@ -168,9 +168,11 @@ biplot(trait_pc,cex=.5)
 p<-ggbiplot(trait_pc,labels=rownames(trait_pc$x))
 p + theme_bw() + geom_point()
 
-#optionally add in circles
-ggbiplot(trait_pc,groups=m.ord$Role[!m.ord$Role %in% "UKWN"],labels=rownames(trait_pc$x),ellipse=TRUE) + geom_point()
-ggsave("Thesis/Maquipucuna_SantaLucia/Results/Morphology.svg",dpi=300)
+p<-ggbiplot(trait_pc,labels=rownames(trait_pc$x),groups=m.ord$Role,ellipse=TRUE)
+p<-p + theme_bw() + geom_point()
+p <- p+ theme(legend.text = element_text(size = 13, face = "bold")) + labs(col="Roles")
+print(p)
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/RoleMorphology.svg",dpi=300,height=7,width=7)
 
 #optionally add in circles
 ggbiplot(trait_pc,groups=m.ord$Role[!m.ord$Role %in% "UKWN"],labels=rownames(trait_pc$x),ellipse=TRUE) + geom_point()
