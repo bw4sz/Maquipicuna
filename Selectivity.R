@@ -1,5 +1,5 @@
 #Ben Weinstein - Code and Project Design
-#Lisa Dittmar reviewed the videos
+#Lisa Dittmar and Ben Weinstein reviewed the videos
 
 #Graham Lab, Stony Brook University 10/27/2013
 
@@ -13,7 +13,7 @@ require(chron)
 require(reshape)
 
 #Set working directory
-droppath<-"C:/Users/Jorge/Dropbox/"
+droppath<-"C:/Users/Ben/Dropbox/"
 setwd(droppath)
 
 #Define selectivity function
@@ -35,6 +35,11 @@ selective<-function(y){
 
 ##Read in data
 dat<-read.csv(paste(droppath,"Thesis//Maquipucuna_SantaLucia/Data2013/csv/CompetitionFeeders.csv",sep=""))
+
+###############
+#Data Cleaning
+###############
+levels(dat$Species)[levels(dat$Species) %in% "Purple bibbed whitetip"]<-"Purple-bibbed Whitetip"
 
 #How many videos do we have for each elevation and treatment?
 vid_totals<-aggregate(dat$Video,list(dat$Elevation,dat$Treatment),function(x) nlevels(droplevels(x)))
@@ -78,10 +83,13 @@ dat$Time_Feeder_Obs<-dat$Time.End - dat$Time.Begin
 dat[which(dat$Time_Feeder_Obs < 0),]
 
 #Total Time per species
-Total_Time_Species<-aggregate(dat$Time_Feeder_Obs,by=list(dat$Species),sum) 
+Total_Time_Species<-aggregate(dat$Time_Feeder_Obs,by=list(dat$Species),sum,na.rm=TRUE) 
 colnames(Total_Time_Species)<-c("Species","TotalTime")
-ggplot(Total_Time_Species,aes(Species,minutes(TotalTime))) + geom_bar() + theme_bw()
+ggplot(Total_Time_Species,aes(Species,minutes(TotalTime))) + geom_bar() + theme_bw() + ylab("Minutes on Feeders") + theme(axis.text.x=element_text(angle=-90,vjust=-.1))
 #ggsave
+
+#Average time feeding for all species, and each species
+ggplot(dat,aes(x=seconds(Time_Feeder_Obs))) + geom_histogram()
 
 ####Match each trial together, trials are done on the same day at the same elevation
 #Split data into a list, with each compenent being one trial pair
@@ -124,19 +132,19 @@ selective.matrix$MonthA<-format(as.POSIXct(selective.matrix$Date,format="%m/%d/%
 ###############
 
 #unweighted
-p<-ggplot(selective.matrix,aes(x=Elevation,Selectivity,col=Species)) + geom_point(size=3) + facet_wrap(~Species) + geom_smooth(aes(group=1))
+p<-ggplot(selective.matrix,aes(x=factor(Elevation),Selectivity,col=Species)) + geom_point(size=3) + facet_wrap(~Species) + geom_smooth(aes(group=1))
 p + ylim(0,1)
 ggsave(paste(droppath,"Thesis//Maquipucuna_SantaLucia/Results/Selectivity/Selectivity_Elevation_Unweighted.svg",sep=""),height=8,width=15)
 
 #weighted
 p<-ggplot(selective.matrix,aes(x=as.numeric(Elevation),Selectivity,col=Species,size=Minutes_Total)) + geom_point() + facet_wrap(~Species)
 p
-p  + geom_smooth(method="glm",family="binomial",aes(weight=Minutes_Total)) + theme_bw() + xlab("Elevation")
+p  + geom_smooth(method="glm",family="binomial",aes(weight=Minutes_Total)) + theme_bw() + xlab("Elevation") + scale_x_continuous(breaks=as.numeric(levels(factor(dat$Elevation))))
 
 #weighted and time
 p<-ggplot(selective.matrix,aes(x=as.numeric(Elevation),Selectivity,col=MonthA,size=Minutes_Total)) + geom_point() + facet_wrap(~Species)
 p
-p  + geom_smooth(method="glm",family="binomial",aes(weight=Minutes_Total)) + theme_bw() + xlab("Elevation")
+p  + geom_smooth(method="glm",family="binomial",aes(weight=Minutes_Total)) + theme_bw() + xlab("Elevation") + stat_smooth()
 
 
 ## Write selectivity tables to file
@@ -145,6 +153,64 @@ write.csv(selective.matrix,paste(droppath,"Thesis//Maquipucuna_SantaLucia/Result
 
 ##Split out by date?
 head(selective.matrix)
+
+#######################################
+#Selectivity, Phylogeny and Morphology
+#######################################
+
+#Selectivity Descriptors for each species
+ggplot(selective.matrix,aes(x=Species,Selectivity)) + geom_boxplot() + theme(axis.text.x=element_text(angle=-90,vjust=-.1))
+
+#merge with morphology
+
+#Bring in Hummingbird Morphology Dataset, comes from
+hum.morph<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdMorphology.csv",row.names=1)
+
+#PCA of trait space
+
+# Hum Standardized variables, what to do about NA's?
+#Standard the matrix to correct for different units by subtracting the means and dividing by sd
+zscore <- apply(hum.morph[,c("Bill","Mass","WingChord","Tarsus_Length","Nail_Length","Wing_Loading")], 2, function(x){
+  y<-(x - mean(x,na.rm=TRUE))/sd(x,na.rm=TRUE)
+  return(y)
+})
+rownames(zscore)<-hum.morph$English
+
+#Need to figure out what to do about Na's, we could use closely related species?
+trait_pc<-prcomp(na.omit(zscore))
+
+#View Biplot of PC Space
+biplot(trait_pc)
+
+#bind loadings 1 and 2 to dataframe
+hum_load<-trait_pc$x[,c("PC1","PC2")]
+rownames(hum_load)<-rownames(zscore)
+
+hum.morph<-merge(hum.morph,hum_load,by.x="English",by.y="row.names")
+
+#merge with selectivity
+selective.matrix<-merge(selective.matrix,hum.morph[,!colnames(hum.morph) %in% "Species"],by.x="Species",by.y="English")
+
+#Weighted average of selectivity
+
+ws<-sapply(split(selective.matrix,selective.matrix$Species),function(x){
+  weighted.mean(x$Selectivity,x$Total_Time)
+})
+
+selective.matrix<-merge(selective.matrix,data.frame(weighted.selectivity=ws),by.x="Species",by.y="row.names")
+
+#aggregate
+wss<-aggregate(selective.matrix$weighted.selectivity,by=list(selective.matrix$Species,selective.matrix$PC1,selective.matrix$PC2),mean)
+colnames(wss)<-c("Species","PC1","PC2","weighted.selectivity")
+
+ggplot(wss,aes(x=PC2,y=weighted.selectivity)) + geom_point() + geom_smooth(method="lm") + geom_text(aes(label=Species),size=2)
+
+p<-ggplot(selective.matrix,aes(x=PC1,y=Selectivity,size=Minutes_Total,label=Species)) + geom_point() + stat_smooth(method="glm",link="binomial",aes(weight=Minutes_Total))
+p<-ggplot(selective.matrix,aes(x=PC2,y=Selectivity,size=Minutes_Total,label=Species,col=Species)) + geom_point() + stat_smooth(method="glm",link="binomial",aes(weight=Minutes_Total,group=1))
+
+######
+
+
 ##########################################
 #Compare Selectivity to Available Resource, incomplete, needs to be adjusted to per day
 ##########################################
