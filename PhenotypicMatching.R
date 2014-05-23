@@ -7,7 +7,7 @@ require(scales)
 require(taxize)
 
 #Setwd if not run globally
-droppath<-"C:/Users/Ben/Dropbox/"
+droppath<-"C:/Users/Jorge/Dropbox/"
 setwd(droppath)
 
 #read in flower morphology data, comes from Nectar.R
@@ -131,14 +131,14 @@ fam_r[fam_r$Genus=="Centropogon","family"]<-"Campanulaceae"
 
 m.datH<-merge(m.datH,fam_r,by.x="FLGenus",by.y="Genus")
 
-p<-ggplot(m.datH,aes(x=H.PC1,y=H.PC2,fill=family,alpha=.02)) + geom_polygon() + facet_wrap(~family,drop=TRUE)
+p<-ggplot(m.datH,aes(x=H.PC1,y=H.PC2,fill=family.y,alpha=.02)) + geom_polygon() + facet_wrap(~family.y,drop=TRUE)
 
-toFL<-table(m.datH$Hummingbird, m.datH$family)
+toFL<-table(m.datH$Hummingbird, m.datH$family.y)
 toFL<-melt(toFL)
 toFL<-toFL[!toFL$value==0,]
 
 tolabS<-merge(toFL,hum_load,by.x="Var.1",by.y="row.names")
-colnames(tolabS)<-c("Hummingbird","family","value","H.PC1","H.PC2")
+colnames(tolabS)<-c("Hummingbird","family.y","value","H.PC1","H.PC2")
 p  + geom_point(size=.5,col="red") + geom_text(data=tolabS,aes(label=Hummingbird),size=2.5)
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/HummingbirdSpace.svg",height=10,width=10,dpi=300)
 
@@ -166,12 +166,9 @@ ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/Matching_Time.svg",)
 p<-ggplot(m.datH,aes(x=factor(Bill),EffectiveCorolla,col=Hummingbird)) + geom_boxplot() + geom_smooth(method="lm",aes(group=1))
 p + geom_point() + facet_wrap(~Month)
 
-
-
 #####################################################################
 #Difference Between Corolla and Bill Length of interactions measured
 #####################################################################
-
 
 m.datH$BD<-m.datH$Bill-m.datH$TotalCorolla
 p<-ggplot(m.datH,aes(x=BD,fill=Hummingbird)) + geom_density(position="dodge") + facet_wrap(~Clade,scale="free")

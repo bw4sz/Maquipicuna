@@ -15,7 +15,7 @@ library(ggbiplot)
 #############
 
 #Nectar Script, setwd if not running globally from specialization.R
-#droppath<-"C:/Users/Jorge/Dropbox/"
+droppath<-"C:/Users/Jorge/Dropbox/"
 
 #Bring in nectar data
 Nectar <- read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/Nectar.csv",sep=""))
@@ -113,15 +113,22 @@ ggsave("Thesis/Maquipucuna_SantaLucia/Results/FloralPCA.svg",height=10,width=10,
 
 # #Some basic visualizations to check data clarity
 # #number of records per species
-# m.Nectar<-melt(table(Nectar[!is.na(Nectar$Brix),]$Iplant_Double))
-# ggplot(m.Nectar,aes(Var.1,value)) + geom_point(size=5)+ theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+ m.Nectar<-melt(table(Nectar[!is.na(Nectar$Brix),]$Iplant_Double))
+ggplot(m.Nectar,aes(Var.1,value)) + geom_point(size=5)+ theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
 # 
 # #Sugar Concentration's of 0 to NA
-# #No records should be 0
-# Nectar[Nectar$Brix==0 & is.finite(Nectar$Brix),]
-# 
+#No records should be 0
+Nectar[Nectar$Brix==0 & is.finite(Nectar$Brix),]
+
+
+#start with nectar quality
+nectar.mean<-aggregate(Nectar$Brix,list(Nectar$Iplant_Double),mean,na.rm=TRUE)
+
+colnames(nectar.mean)<-c("Iplant_Double","Brix")
+write.csv(nectar.mean,paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/nectarmean.csv",sep=""))
 # #Is the tube given in diameter?
 # #tube column needs to have correct math.
+
 # as.numeric(Nectar$Tube.Type)/2 * 2*pi * Nectar$TubeLength
 # ggplot(m.Nectar,aes(x=Var.1,value)) + geom_bar() + coord_flip() + geom_text(aes(label=value),col="red",hjust=1) + theme_bw()
 # p<-ggplot(Nectar[!is.na(Nectar$Brix),],aes(x=Species,y=Brix)) + geom_point() + facet_wrap(~Family,scales="free_x")

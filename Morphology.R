@@ -64,8 +64,6 @@ zscore <- apply(mon, 2, function(x){
 errors<-levels(int$Hummingbird)[!levels(int$Hummingbird) %in% clades$English]
 
 print(paste(errors,"not matched"))
-#Fix the levels
-levels(int$Hummingbird)[!levels(int$Hummingbird) %in% clades$English]<-c("Green-Crowned Woodnymph")
 
 #Add a species never seen, but known from the site
 sp.list<-c(levels(int$Hummingbird))
@@ -173,10 +171,6 @@ p<-p + theme_bw() + geom_point()
 p <- p+ theme(legend.text = element_text(size = 13, face = "bold")) + labs(col="Roles")
 print(p)
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/RoleMorphology.svg",dpi=300,height=7,width=7)
-
-#optionally add in circles
-ggbiplot(trait_pc,groups=m.ord$Role[!m.ord$Role %in% "UKWN"],labels=rownames(trait_pc$x),ellipse=TRUE) + geom_point()
-ggsave("Thesis/Maquipucuna_SantaLucia/Results/RoleMorphology.svg",dpi=300)
 
 #Create a distance matrix of morphological similarity among all species
 sp.dist<-as.matrix(dist(zscore))

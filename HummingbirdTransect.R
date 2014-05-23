@@ -272,7 +272,7 @@ hum.id$Month<-as.numeric(format(as.Date(hum.id$Date_F),"%m"))
 hum.id$Transect_R<-paste(hum.id$Elevation.Begin,hum.id$Elevation.End,sep="_")
 
 #Take out empty rows?
-hum.id<-hum.id[!is.na(hum.id$Plant.Species),]
+#hum.id<-hum.id[!is.na(hum.id$Plant.Species),]
 
 ###Taxonomoy of plant names
 #Repeat for genus
@@ -289,6 +289,7 @@ print(paste(Genus_Errors,"not found in taxonomy database"))
 #Set the plant column
 for (x in 1:nrow(hum.id)){
   y<-hum.id[x,]
+  if(is.na(y$Plant.Species)){next}
   hum.id[x,"Iplant_Double"]<-levels(droplevels(Genus_Result[Genus_Result$plants %in% y$Plant.Species,"iplant_names"] )) 
 }
 
@@ -319,7 +320,6 @@ dim(hum.id)
 nrow(BMatch[is.na(BMatch$altitude),])
 
 missingGPS<-BMatch[is.na(BMatch$altitude),]$GPS.ID
-
 
 #For missing data, take the mean of the transect?
 #For any data still missing gps, take the mean of the transect

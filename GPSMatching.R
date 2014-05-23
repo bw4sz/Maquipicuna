@@ -1,3 +1,7 @@
+#####################################
+#GPS MATCHING AND FLOWER TAXONOMY
+#####################################
+
 #Load GPS
 #Read and convert gpx points to a single dataframe and save it as a shapefile
 require(plotKML)
@@ -6,8 +10,8 @@ require(maptools)
 require(reshape)
 
 #Set working directory
-#droppath<-"C:/Users/Jorge/Dropbox/"
-#setwd(droppath)
+droppath<-"C:/Users/Jorge/Dropbox/"
+setwd(droppath)
 
 ###############################################
 #Read in GPS Data from Summer 2013 Field Season

@@ -5,10 +5,10 @@
 #Under Git repository - Maquipucuna
 
 #setwd to dropbox
-droppath<-"C:/Users/Ben/Dropbox/"
+droppath<-"C:/Users/Jorge/Dropbox/"
 setwd(droppath)
 #Set github path
-gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 
 ##########################
 #The latest version of the input files need to be set at 
@@ -52,7 +52,6 @@ load("Thesis/Maquipucuna_SantaLucia/Results/Nectar.Rdata")
 source(paste(gitpath,"HummingbirdTransect.R",sep=""))
 load("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
 
-
 #################
 #Network Analysis
 #################
@@ -85,11 +84,11 @@ load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
 #Network Topology
 #######################
 
-source(paste(gitpath,"Topology.R",sep=""))
+#source(paste(gitpath,"Topology.R",sep=""))
 
 ########################
 #Network Dissimilarity
 #######################
 
-source(paste(gitpath,"NetworkDiss.R",sep=""))
+#source(paste(gitpath,"NetworkDiss.R",sep=""))
 

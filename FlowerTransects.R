@@ -15,10 +15,10 @@ require(taxize)
 require(rPlant)
 
 #Set DropBox Working Directory
-setwd("C:/Users/Ben/Dropbox/")
+setwd("C:/Users/Jorge/Dropbox/")
 
 #Read in workspace if desired for quick access
-load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
 #Read in Flower Transect Data from summer field season
 fl<-read.csv(file="Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerTransects.csv")
@@ -151,11 +151,8 @@ Species_Result<-data.frame(Species,iplant_names)
 for (x in 1:nrow(full.fl)){
   y<-full.fl[x,]
   toMatch<-paste(y$Iplant_Genus,y$Species,sep="_")
-  full.fl[x,"Iplant_Double"]<-levels(droplevels(
-    Species_Result[Species_Result$Species %in% toMatch,"iplant_names"] ))   
+  full.fl[x,"Iplant_Double"]<-levels(droplevels(Species_Result[Species_Result$Species %in% toMatch,"iplant_names"]))   
 }
-
-#Lots of cleaning left to do, but that's a start. 
 
 #Fix any known ID mistakes
 full.fl[full.fl$Iplant_Double %in% "Heppiella_ulmifolia","Iplant_Double"]<-"Glossoloma_oblongicalyx"
@@ -216,7 +213,7 @@ full.fl$mean_inflorescences<-sapply(full.fl$Inflorescences.Plants,function(x) {
 full.fl$Total_Flowers<-full.fl$mean_flowerStalk*full.fl$mean_Stalk*full.fl$mean_inflorescences
 
 #Visualize total flowers by species
-#ggplot(data=full.fl,aes(Full,Total_Flowers)) + geom_boxplot() + coord_flip()
+ggplot(data=full.fl,aes(Iplant_Double,Total_Flowers)) + geom_boxplot() + coord_flip()
 
 #visualize height by species
 #ggplot(data=full.fl,aes(Full,as.numeric(Height))) + geom_boxplot() + coord_flip()

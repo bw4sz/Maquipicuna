@@ -60,7 +60,7 @@ sp.dist<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdDist.csv",ro
 pco<-read.csv(paste(gitpath,"InputData/PlantRelatedness.csv",sep=""))
 
 ###Read in Flower Camera Dataset####
-dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoClean.csv")
+dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoClean.csv",row.names=1)
 
 #Get desired columns
 dat<-dat[,colnames(dat) %in% c("ID","Video","Date","Iplant_Double","Time","Hummingbird","Sex","Temp","Piercing","lon","lat","ele")]
