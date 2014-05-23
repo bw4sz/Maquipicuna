@@ -256,8 +256,9 @@ p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylab("# of Hummin
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerMonths.jpeg",height=8,width=10)
 
 #Flowers at each elevation over time
-ggplot(fl.totals,aes(x=as.factor(Month),TotalFlowers,col=Elev)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free_x") + scale_y_continuous(limits=c(0,5500),breaks=seq(0,5000,1000))
-ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10)
+ggplot(fl.totals,aes(x=as.factor(Month),TotalFlowers,col=Elev)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free_x") + scale_y_continuous(limits=c(0,6000),breaks=seq(0,6000,1000)) + ylab("Hummingbird Visited Flowers") + xlab("Month") + labs(col="Transect Elevation Range")
+
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10,dpi=300)
 
 #Brief look at time series and taxonomy
 tax<-aggregate(full.fl[,c("Iplant_Double","Iplant_Genus","Family")],list(full.fl$month,full.fl$Transect_R,full.fl$Date),function(x){
