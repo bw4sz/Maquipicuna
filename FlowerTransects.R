@@ -12,13 +12,12 @@ require(plotKML)
 require(reshape)
 require(chron)
 require(taxize)
-require(rPlant)
 
 #Set DropBox Working Directory
 setwd("C:/Users/Ben/Dropbox/")
 
 #Read in workspace if desired for quick access
-load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
 #Read in Flower Transect Data from summer field season
 fl<-read.csv(file="Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerTransects.csv")
@@ -97,6 +96,8 @@ dim(fl.id)
 
 head(fl.id)
 
+#make characters
+holger.full$GPS_ID<-as.character(holger.full$GPS_ID)
 full.fl<-rbind.fill(holger.full,fl.id)
 
 #Set holger as observer
@@ -113,8 +114,23 @@ full.fl$Transect_R<-factor(paste(full.fl$Elevation.Begin,full.fl$Elevation.End,s
 #Flower Taxonomy
 ################
 
+
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
+#Repeat for species
+
 Families<-levels(factor(full.fl$Family))
+
+
+tax<-tnrs(query = Families, source = "iPlant_TNRS")
+
+#Set the Species column
+for (x in 1:nrow(full.fl)){
+  print(x)
+  y<-full.fl[x,]
+  toMatch<-y$Family
+  full.fl[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])
+}
+
 iplant_names<-ResolveNames(names=Families)
 CompareNames(Families,iplant_names)
 
