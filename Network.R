@@ -63,7 +63,7 @@ pco<-read.csv(paste(gitpath,"InputData/PlantRelatedness.csv",sep=""))
 dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoClean.csv")
 
 #Get desired columns
-dat<-dat[,colnames(dat) %in% c("ID","Video","Date","Iplant_Double","Time","Hummingbird","Sex","Temp","Piercing","lon","lat","ele")]
+dat<-dat[,colnames(dat) %in% c("ID","Video","Date","Iplant_Double","Time","Hummingbird","Sex","Temp","Pierce","lon","lat","ele")]
 
 #Fix date format
 dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))
@@ -106,6 +106,7 @@ dat$DateP<-sapply(dat$Date,function(x){
 dat$DateP<-as.POSIXlt(dat$DateP)
 
 head(dat)
+
 ###########################
 #Hummingbird Data Cleaning 
 ###########################
@@ -141,9 +142,9 @@ levels(dat$Hummingbird) <- h
 dat_e<-droplevels(dat[!dat$Hummingbird %in% c("","NANA","UKWN","Ukwn","Western Emerald"),])
 
 #Remove out piercing events for now?
-table(dat$Piercing)
-datPierce<-dat_e[dat_e$Piercing %in% c("Yes","YES"),]
-dat_e<-dat_e[!dat_e$Piercing %in% c("Yes","YES"),]
+table(dat$Pierce)
+datPierce<-dat_e[dat_e$Piercing %in% c("Yes","YES","y","Y"),]
+dat_e<-dat_e[!dat_e$Pierce %in% c("Yes","YES","y","Y"),]
 
 #################Data Cleaning Complete################
 

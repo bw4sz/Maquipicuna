@@ -43,10 +43,22 @@ NetworkC<-function(datf,naming){
   plotweb(F_H,sequence=sequ)
   dev.off()
   
-  #jpeg(filename="MatrixPlotCompartments.jpeg",height=10,width=10,units="in",res=300)
-  #visweb(F_H,"compartment")
-  #dev.off()
-  rm(birds.prop)
+  #Interaction matrix
+  
+  orderflowers<-names(sort(apply(F_H,1,sum),decreasing=FALSE))
+  
+  orderbirds<-names(sort(apply(F_H,2,sum),decreasing=TRUE))
+  
+  a<-melt(as.matrix(F_H))
+  
+  colnames(a)<-c("Flowers","Birds","value")
+  
+  a$Flowers<-factor(a$Flowers,levels=orderflowers)
+  a$Birds<-factor(a$Birds,levels=orderbirds)
+  
+  ggplot(a[a$value>0,],aes(x=Birds,y=Flowers,fill=value)) + geom_tile()+ theme_bw() + scale_fill_continuous(low="blue",high="red") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(fill="# of Visits")
+  ggsave("MatrixPlot.jpeg",dpi=600,height=6.5,width=7)
+  ggsave("MatrixPlot.eps",dpi=600,height=6.5,width=7)
   
   #Metrics across entire
   tryCatch(birds.prop<-data.frame(HummingbirdNetwork=networklevel(F_H,level="higher")),error=function(e)
