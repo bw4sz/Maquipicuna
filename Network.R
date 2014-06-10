@@ -235,10 +235,12 @@ metricskeep<-c("connectance","links per species","nestedness","Shannon diversity
 month.Prop<-droplevels(month.Prop[month.Prop$Metric %in% metricskeep,])
 
 #Quick and dirty look at all metrics
-month.Prop$Time<-factor(month.Prop$Time,c("6","7","8","9","10","11","12","1","2","3","4","5"))
 
-p<-ggplot(na.omit(month.Prop),aes(x=factor(Time),y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level)) + facet_wrap(~Metric,scales="free_y") + scale_x_discrete(breaks=c(6:12,1))
+p<-ggplot(na.omit(month.Prop),aes(x=factor(Time),y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level)) + facet_wrap(~Metric,scales="free_y") 
 p + theme_bw() 
+
+##Add a trend line across all months?
+#be interested to add a "mean line" and then the value of the total network...
 
 ggsave("MetricsFacet.svg",height=8,width=11)
 
@@ -286,7 +288,6 @@ metricskeep<-c("nestedrank","resource.range","betweenness","d","degree","species
 H.c<-cast(Hum.Time,...~Metric)
 Hum.Time<-melt(H.c)
 
-Hum.Time$Time<-factor(Hum.Time$Time,c("6","7","8","9","10","11","12","1","2","3","4","5"))
 
 #Quick and dirty look across species 
 ggplot(Hum.Time,aes(Time,value,col=Species)) + facet_wrap(~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
@@ -336,8 +337,8 @@ gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 head(fl.totals)
 
 #aggregate by month for now, not elev split
-month.totals<-aggregate(fl.totals$TotalFlowers,list(fl.totals$Month),sum)
-colnames(month.totals)<-c("Month","Flowers")
+month.totals<-aggregate(fl.totals$TotalFlowers,list(fl.totals$Month,fl.totals$Year),sum)
+colnames(month.totals)<-c("Month","Year","Flowers")
 
 #Start with just hummingbird levels
 month.Hum<-month.Prop[month.Prop$Level == "Hummingbirds",]
@@ -345,8 +346,8 @@ month.Hum<-month.Prop[month.Prop$Level == "Hummingbirds",]
 #combine the flower totals and network metrics
 network.fl<-merge(month.totals,month.Hum,by.x="Month",by.y="Time")
 
-#Quick visualization
-p<-ggplot(network.fl,aes(Flowers,value,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point(size=3) + geom_smooth(method="lm",aes(group=1))
+#Quick visualization, get rid of some months for now
+p<-ggplot(network.fl[!network.fl$Month %in% c(3,4,5),],aes(Flowers,value,shape=Year,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point(size=3) + geom_smooth(method="lm",aes(group=Year)) + theme_bw()
 ggsave(paste(netPath,"NetworkPropFlowers.svg",sep=""),height=8,width=11,dpi=300)
 
 ###############################################
