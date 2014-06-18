@@ -231,8 +231,8 @@ setwd(paste(netPath,"TimeFigures",sep=""))
 #Which metrics are desired?
 droplevels(month.Prop)
 
-metricskeep<-c("connectance","links per species","nestedness","Shannon diversity","H2","niche overlap","robustness.HL","number of compartments","robustness.LL","number.of.species.HL")
-month.Prop<-droplevels(month.Prop[month.Prop$Metric %in% metricskeep,])
+#metricskeep<-c("connectance","links per species","nestedness","Shannon diversity","H2","niche overlap","robustness.HL","number of compartments","robustness.LL","number.of.species.HL")
+#month.Prop<-droplevels(month.Prop[month.Prop$Metric %in% metricskeep,])
 
 #Quick and dirty look at all metrics
 
@@ -350,6 +350,9 @@ network.fl<-merge(month.totals,month.Hum,by.x="Month",by.y="Time")
 p<-ggplot(network.fl[!network.fl$Month %in% c(3,4,5),],aes(Flowers,value,shape=Year,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point(size=3) + geom_smooth(method="lm",aes(group=Year)) + theme_bw()
 ggsave(paste(netPath,"NetworkPropFlowers.svg",sep=""),height=8,width=11,dpi=300)
 
+p<-ggplot(network.fl[!network.fl$Month %in% c(3,4,5) & network.fl$Metric %in% c("connectance","cluster coefficient"),],aes(Flowers,value,shape=Year,col=as.factor(Month))) + facet_wrap(~Metric,scale="free",nrow=2) + geom_point(size=3) + geom_smooth(method="lm",aes(group=Year)) + theme_bw() + labs(col="Month")
+ggsave(paste(netPath,"NetworkConnectance.jpeg",sep=""),height=11,width=8,dpi=300) 
+
 ###############################################
 #Hummingbird Properties and Available Resources
 ###############################################
@@ -368,7 +371,7 @@ species_keep<-month_Pres[which(month_Pres$x > 1),]$Group.1
 
 #remove an unknwon species
 species_keep<-species_keep[!species_keep %in% "UKWN"]
-ggplot(hum.fl[hum.fl$Species %in% species_keep,],aes(as.numeric(Flowers),value,col=as.factor(Month))) + facet_grid(Metric~Species,scale="free") + geom_point() + geom_smooth(method="lm",aes(group=1))
+ggplot(hum.fl[hum.fl$Species %in% species_keep,],aes(as.numeric(Flowers),value,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point() + geom_smooth(method="lm",aes(group=1))
 ggsave(paste(netPath,"SpeciesPropFlowers.svg",sep=""),height=8,width=11,dpi=300)
 
 #Save image to file

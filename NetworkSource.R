@@ -57,8 +57,8 @@ NetworkC<-function(datf,naming){
   a$Birds<-factor(a$Birds,levels=orderbirds)
   
   ggplot(a[a$value>0,],aes(x=Birds,y=Flowers,fill=value)) + geom_tile()+ theme_bw() + scale_fill_continuous(low="blue",high="red") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(fill="# of Visits")
-  ggsave("MatrixPlot.jpeg",dpi=600,height=6.5,width=7)
-  ggsave("MatrixPlot.eps",dpi=600,height=6.5,width=7)
+  ggsave("MatrixPlot.jpeg",dpi=300,height=8,width=8)
+  ggsave("MatrixPlot.eps",dpi=300,height=8,width=8)
   
   #Metrics across entire
   tryCatch(birds.prop<-data.frame(HummingbirdNetwork=networklevel(F_H,level="higher")),error=function(e)

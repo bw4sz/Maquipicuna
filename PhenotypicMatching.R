@@ -23,7 +23,7 @@ hum.morph<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdMorphology
 int<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv",row.names=1)
 
 #Melt the interaction frame and match it with the traits
-m.dat<-melt(int,id.vars=c("ID","Video","Time","Hummingbird","Sex","TransectID","Transect_R","Iplant_Double","Piercing","Date","Month"))
+m.dat<-melt(int,id.vars=c("ID","Video","Time","Hummingbird","Sex","TransectID","Transect_R","Iplant_Double","Pierce","Date","Month"))
 
 #Fix spacing to match clades
 
@@ -158,7 +158,7 @@ nrow(m.datH[is.na(m.datH$Month),])
 #Start by plotting monthly breaks of corolla matching
 
 p<-ggplot(m.datH,aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_point() + geom_boxplot(aes(group=factor(Bill)))
-p + geom_smooth(aes(group=1),method="lm") + facet_wrap(~Month,nrow=4) + theme_bw()
+p + geom_smooth(aes(group=1),method="lm") + facet_wrap(~Month,nrow=2) + theme_bw()
 
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/Matching_Time.svg",)
 
@@ -180,8 +180,40 @@ p<-ggplot(m.datH,aes(x=BD,fill=Hummingbird)) + geom_density(position="dodge") + 
 #Compared usage to available resources??
 ####################################################################
 
-#Bring in flower transect data
-full.fl<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/CleanedHolgerTransect.csv",row.names=1)
+setwd(droppath)
+load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+
+#THIS NEEDS TO BE FIXED
+#setwd to dropbox
+droppath<-"C:/Users/Ben/Dropbox/"
+setwd(droppath)
+#Set github path
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+
+#The aggregate totals of the flower assemblage
+head(fl.totals)
+
+#aggregate by month for now, not elev split
+month.totals<-aggregate(fl.totals$TotalFlowers,list(fl.totals$Month,fl.totals$Year),sum)
+colnames(month.totals)<-c("Month","Year","Flowers")
+
+#create a linear model for each month
+coeff<-rbind.fill(lapply(c(7:12,1:3)), function(x){
+mod<-lm(data=m.datH,TotalCorolla~Bill,subset=Month ==x)
+mod.s<-summary(mod)
+data.frame(Month=x,Slope=mod$coefficients[["Bill"]],R=mod.s$r.squared)
+    }))
+
+
+#combine the flower totals and regression output
+nStats<-merge(month.totals,coeff,by.x="Month")
+
+
+
+#Quick visualization, get rid of some months for now
+p<-ggplot(data=nStats[nStats$Year %in% c(2013,2014),],aes(x=Flowers,y=Slope,shape=Year,col=R)) + geom_point(size=3) + geom_smooth(method="lm",aes(group=1))
+p+ theme_bw() + scale_color_continuous(low="blue",high="red") + labs(y="Slope (Bill~Corolla)",x="Available Resources")
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/MatchingSlope.jpeg",height=8,width=11,dpi=300)
 
 #Merge with flower morphology
 transectM<-merge(full.fl,fl.morph, by.x="Iplant_Double",by.y="X")

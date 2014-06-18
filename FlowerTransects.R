@@ -136,8 +136,6 @@ for (x in 1:nrow(full.fl)){
   full.fl[x,"Iplant_Family"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])
 }}
 
-#Post to output which plant families need to be address
-print(paste(Fam_Errors,"not found in taxonomy database"))
 
 #Repeat for genus species
 Species<-levels(factor(paste(full.fl$Genus,full.fl$Species,sep=" ")))

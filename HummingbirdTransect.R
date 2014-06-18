@@ -317,6 +317,11 @@ qplot(BMatch$altitude,"point")
 ################################################
 #Interaction table for summer data
 ################################################
+.simpleCap <- function(x) {
+  s <- strsplit(x, " ")[[1]]
+  paste(toupper(substring(s, 1, 1)), substring(s, 2),
+        sep = "", collapse = " ")
+}
 
 #Cap all species names
 levels(BMatch$Hummingbird.Species)<-sapply(levels(BMatch$Hummingbird.Species),function(x){.simpleCap(tolower(x))})
