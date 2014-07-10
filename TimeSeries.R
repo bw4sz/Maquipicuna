@@ -19,11 +19,19 @@ dat[which(dat$Date =="6/4/2012"),"DateP"]<-"2013-06-04"
 dat[dat$Hummingbird %in% "Western Emerald","Hummingbird"]<-"Andean Emerald"
 
 #Overall Month_Day and Elevation
-p<-ggplot(dat,aes(y=ele,x=DateP,col=Hummingbird)) + geom_point(size=3) + facet_wrap(~Hummingbird)
-p + scale_x_datetime(breaks = date_breaks("1 months"),labels = date_format("%b")) + geom_smooth(method="lm") + scale_y_continuous(breaks=seq(1300,2500,200),labels=seq(1300,2500,200)) + xlab("Month") + ylab("Elevation(m)")
-print(p)
+p<-ggplot(dat,aes(y=ele,x=DateP)) + geom_point(size=3) + facet_wrap(~Hummingbird,nrow=5)
+p<-p + scale_x_datetime(breaks = date_breaks("1 months"),labels = date_format("%b")) + geom_smooth(method="lm") + scale_y_continuous(breaks=seq(1300,2500,200),labels=seq(1300,2500,200)) + xlab("Month") + ylab("Elevation(m)")
+p + geom_boxplot()
+
+
 ggsave("Thesis//Maquipucuna_SantaLucia/Results/DateElevation.jpeg",height=10,width=17,dpi=350)
 ggsave("Thesis//Maquipucuna_SantaLucia/Results/DateElevation.svg",height=8,width=13,dpi=300)
+
+
+p<-ggplot(dat,aes(y=ele,x=Hummingbird,fill=Hummingbird))
+p + geom_boxplot() + coord_flip() + labs(y="Elevation(m)") + scale_fill_discrete(guide='none')
+ggsave("Thesis//Maquipucuna_SantaLucia/Results/ElevationRanges.jpeg",height=8,width=13,dpi=300,units="in")
+
 
 #Just the Summer
 p<-ggplot(dat[dat$Month %in% c(6,7,8),],aes(y=ele,x=DateP,col=Hummingbird)) + geom_point(size=3) + facet_wrap(~Hummingbird)
