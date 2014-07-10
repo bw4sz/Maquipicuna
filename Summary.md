@@ -24,20 +24,20 @@ colnames(plantT) <- c("Family", "Latin", "Flowers")
 print(xtable(plantT[1:10, ]), type = "html")
 ```
 
-<!-- html table generated in R 3.0.2 by xtable 1.7-1 package -->
-<!-- Mon Feb 03 08:55:36 2014 -->
+<!-- html table generated in R 3.1.0 by xtable 1.7-3 package -->
+<!-- Thu Jul 10 12:12:23 2014 -->
 <TABLE border=1>
 <TR> <TH>  </TH> <TH> Family </TH> <TH> Latin </TH> <TH> Flowers </TH>  </TR>
-  <TR> <TD align="right"> 12 </TD> <TD> RUBIACEAE </TD> <TD>  </TD> <TD align="right"> 1.00 </TD> </TR>
-  <TR> <TD align="right"> 59 </TD> <TD> GESNERIACEAE </TD> <TD> Gasteranthus_leopardus </TD> <TD align="right"> 1.00 </TD> </TR>
-  <TR> <TD align="right"> 71 </TD> <TD> GESNERIACEAE </TD> <TD> Heppiella </TD> <TD align="right"> 1.00 </TD> </TR>
-  <TR> <TD align="right"> 91 </TD> <TD> ERICACEAE </TD> <TD> Palicourea_lineata </TD> <TD align="right"> 1.00 </TD> </TR>
-  <TR> <TD align="right"> 19 </TD> <TD> GESNERIACEAE </TD> <TD> Alloplectus_tenuis </TD> <TD align="right"> 2.00 </TD> </TR>
-  <TR> <TD align="right"> 22 </TD> <TD> BEGONIACEAE </TD> <TD> Begonia </TD> <TD align="right"> 2.00 </TD> </TR>
-  <TR> <TD align="right"> 47 </TD> <TD> GESNERIACEAE </TD> <TD> Columnea_stricta </TD> <TD align="right"> 2.00 </TD> </TR>
-  <TR> <TD align="right"> 52 </TD> <TD> GESNERIACEAE </TD> <TD> Drymonia_brochidodroma </TD> <TD align="right"> 2.00 </TD> </TR>
-  <TR> <TD align="right"> 63 </TD> <TD> GUNNERACEAE </TD> <TD> Gunnera </TD> <TD align="right"> 2.00 </TD> </TR>
-  <TR> <TD align="right"> 74 </TD> <TD> ACANTHACEAE </TD> <TD> Justicia </TD> <TD align="right"> 2.00 </TD> </TR>
+  <TR> <TD align="right"> 17 </TD> <TD> SOLANACEAE </TD> <TD> Brugmansia candida </TD> <TD align="right"> 1.00 </TD> </TR>
+  <TR> <TD align="right"> 34 </TD> <TD> ACANTHACEAE </TD> <TD> Columnea picta </TD> <TD align="right"> 1.00 </TD> </TR>
+  <TR> <TD align="right"> 51 </TD> <TD> GESNERIACEAE </TD> <TD> Gasteranthus leopardus </TD> <TD align="right"> 1.00 </TD> </TR>
+  <TR> <TD align="right"> 55 </TD> <TD> GESNERIACEAE </TD> <TD> Goeppertia affinis </TD> <TD align="right"> 1.00 </TD> </TR>
+  <TR> <TD align="right"> 86 </TD> <TD> FABACEAE </TD> <TD> Mimosa albida </TD> <TD align="right"> 1.00 </TD> </TR>
+  <TR> <TD align="right"> 92 </TD> <TD> ERICACEAE </TD> <TD> Palicourea lineata </TD> <TD align="right"> 1.00 </TD> </TR>
+  <TR> <TD align="right"> 116 </TD> <TD> ERICACEAE </TD> <TD> Sphyrospermum sodiroi </TD> <TD align="right"> 1.00 </TD> </TR>
+  <TR> <TD align="right"> 6 </TD> <TD> BEGONIACEAE </TD> <TD> Begonia </TD> <TD align="right"> 2.00 </TD> </TR>
+  <TR> <TD align="right"> 24 </TD> <TD> CAPPARIDACEAE </TD> <TD> Centropogon nigricans </TD> <TD align="right"> 2.00 </TD> </TR>
+  <TR> <TD align="right"> 30 </TD> <TD> GESNERIACEAE </TD> <TD> Columnea lanata </TD> <TD align="right"> 2.00 </TD> </TR>
    </TABLE>
 
 

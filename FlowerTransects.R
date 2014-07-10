@@ -124,6 +124,13 @@ Fam_Errors<-Fam_Result[Fam_Result$iplant_names %in% "","Families"]
 #Post to output which plant families need to be address
 print(paste(Fam_Errors,"not found in taxonomy database"))
 
+#Set the Family column
+for (x in 1:nrow(full.fl)){
+  y<-full.fl[x,]
+  full.fl[x,"Family"]<-levels(droplevels(Fam_Result[Fam_Result$Families %in% y$Family,"iplant_names"] ))   
+}
+
+
 #Repeat for genus
 Genus<-levels(factor(full.fl$Genus))
 iplant_names<-ResolveNames(names=Genus)
@@ -222,15 +229,19 @@ ggplot(data=full.fl,aes(Iplant_Double,Total_Flowers)) + geom_boxplot() + coord_f
 #Number of Flowers at Each Elevation over Time
 ################################################
 
-#Create month column
+#Create month and year column
 full.fl$month<-NA
+full.fl$year<-NA
 for (j in 1:nrow(full.fl)){
   x<-full.fl[j,]
   if(x[["Observer"]] %in% c("Karen","Ben")){
     full.fl[j,"month"]<-months(chron(as.character(x$Date)))
+    full.fl[j,"year"]<-as.numeric(as.character(years(chron(as.character(x$Date)))))
+    
   }
   if(x[["Observer"]] %in% "Holger"){
     full.fl[j,"month"]<-months(chron(as.character(x[x$Observer %in% "Holger","Date"]),format="d/m/y"))
+    full.fl[j,"year"]<-as.numeric(as.character(years(chron(as.character(x[x$Observer %in% "Holger","Date"]),format="d/m/y"))))
   }
 }
 
@@ -238,27 +249,54 @@ for (j in 1:nrow(full.fl)){
 head(full.fl[is.na(full.fl$month),])
 
 #plot total flowers over time?
-fl.totals<-aggregate(full.fl$Total_Flowers,list(full.fl$Transect_R,full.fl$month,full.fl$Date),sum)
-colnames(fl.totals)<-c("Elev","Month","Date","TotalFlowers")
+fl.totals<-aggregate(full.fl$Total_Flowers,list(full.fl$Transect_R,full.fl$month,full.fl$Date,full.fl$year),sum)
+colnames(fl.totals)<-c("Elev","Month","Date","Year","TotalFlowers")
 
+#One date error
 #Write data to file
 write.csv(full.fl,"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/CleanedHolgerTransect.csv")
 
 #Make month abbreviation column, with the right order
-fl.totals$Month.a<-factor(month.abb[fl.totals$Month],month.abb[c(6:12,1:5)])
+fl.totals$Month.a<-factor(month.abb[fl.totals$Month],month.abb[c(1:12)])
 
-#level the orders of the months
-levels(fl.totals$Month.a)
+#Make year factor column
+fl.totals$Year<-as.factor(fl.totals$Year)
 
 ##Flowers per month and elevation
-p<-ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=Month.a)) + geom_point(size=3)  + stat_smooth(aes(group=Month.a),method="loess",se=FALSE) + facet_wrap(~Month.a,nrow=2) + theme_bw() + labs(col="Month")
-p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylab("# of Hummingbird Visited Flowers") + xlab("Elevation Range (m)")
+p<-ggplot(fl.totals,aes(x=Elev,TotalFlowers,col=Year)) + geom_point(size=3)  + stat_smooth(aes(group=interaction(Month,Year)),method="loess",se=FALSE) + facet_wrap(~Month,nrow=2) + theme_bw() + labs(col="Month")
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylab("Flowers") + xlab("Elevation Range (m)") + scale_color_brewer(palette="Set2")
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerMonths.jpeg",height=8,width=10,dpi=300)
+
+#Month without elevation
+p<-ggplot(fl.totals,aes(col=Elev,y=TotalFlowers,x=Month.a,shape=Year)) + geom_point(size=3) + theme_bw() + labs(col="Elevation") + facet_wrap(~Year,nrow=2) + stat_smooth(aes(group=1))
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylab("# of Hummingbird Visited Flowers") + xlab("Elevation Range (m)") #+ scale_color_brewer(palette="Paired") 
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerMonths.jpeg",height=8,width=10)
 
-#Flowers at each elevation over time
-ggplot(fl.totals,aes(x=as.factor(Month),TotalFlowers,col=Elev)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free_x") + scale_y_continuous(limits=c(0,6000),breaks=seq(0,6000,1000)) + ylab("Hummingbird Visited Flowers") + xlab("Month") + labs(col="Transect Elevation Range")
 
+#Flowers at each elevation over time
+ggplot(fl.totals,aes(x=Month.a,TotalFlowers,col=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Year)) + facet_wrap(~Elev,scales="free_x") + ylab("Hummingbird Visited Flowers") + xlab("Month") + labs(col="Transect Elevation Range")
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10,dpi=300)
+
+########################
+#Taxonomic analysis
+#########################
+
+#Split by flower families
+#plot total flowers over time?
+fl.totalsT<-aggregate(full.fl$Total_Flowers,list(full.fl$month,full.fl$Date,full.fl$year,full.fl$Family),sum)
+colnames(fl.totalsT)<-c("Month","Date","Year","Family","TotalFlowers")
+
+fl.totalsT$Month.a<-factor(month.abb[fl.totalsT$Month],month.abb[c(1:12)])
+
+#which are the top families
+familyS<-aggregate(fl.totalsT$TotalFlowers,by=list(fl.totalsT$Family),sum,na.rm=TRUE)
+
+topF<-as.character(familyS[order(familyS$x,decreasing=TRUE),][1:6,]$Group.1)
+
+p<-ggplot(fl.totalsT[fl.totalsT$Family %in% topF,],aes(x=Month.a,TotalFlowers,col=as.factor(Year))) + geom_point(size=3)  + facet_grid(Year~Family,scales="free_y")
+p<-p + stat_smooth(aes(group=Year), method="loess",se=FALSE)  + theme_bw() + labs(col="Month")
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylab("Flowers") + xlab("Elevation Range (m)") 
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TaxonomyTimeSeries.jpeg",height=8,width=10,dpi=300)
 
 #Brief look at time series and taxonomy
 tax<-aggregate(full.fl[,c("Iplant_Double","Iplant_Genus","Family")],list(full.fl$month,full.fl$Transect_R,full.fl$Date),function(x){

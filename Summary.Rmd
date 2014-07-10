@@ -3,15 +3,14 @@ Specialization and Plant - Hummingbird Interactions: Synopsis of Current Results
 
 Data Collection
 -------
-DATA COLLECTION AND SOURCES
 - Flower Transects (1300-2500m,  6 transects, 2x/Month) – Estimate the total available hummingbird resources
 
 Q1: How do available resources change along the elevation gradient over time?
 ```{r, echo=FALSE,warning=FALSE,message=FALSE,fig.width=10,dpi=100,fig.height=8}
-droppath<-"C:/Users/Ben/Dropbox/"
+droppath<-"C:/Users/Jorge/Dropbox/"
 setwd(droppath)
 #Set github path
-gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/Users/Jorge/Documents/Maquipicuna/"
 require(ggplot2)
 load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
