@@ -63,7 +63,7 @@ pco<-read.csv(paste(gitpath,"InputData/PlantRelatedness.csv",sep=""))
 dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoClean.csv",row.names=1)
 
 #Get desired columns
-dat<-dat[,colnames(dat) %in% c("ID","Video","Date","Iplant_Double","Time","Hummingbird","Sex","Temp","Piercing","lon","lat","ele")]
+dat<-dat[,colnames(dat) %in% c("ID","Video","Date","Iplant_Double","Time","Hummingbird","Sex","Temp","Pierce","lon","lat","ele")]
 
 #Fix date format
 dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))
@@ -106,6 +106,7 @@ dat$DateP<-sapply(dat$Date,function(x){
 dat$DateP<-as.POSIXlt(dat$DateP)
 
 head(dat)
+
 ###########################
 #Hummingbird Data Cleaning 
 ###########################
@@ -141,9 +142,9 @@ levels(dat$Hummingbird) <- h
 dat_e<-droplevels(dat[!dat$Hummingbird %in% c("","NANA","UKWN","Ukwn","Western Emerald"),])
 
 #Remove out piercing events for now?
-table(dat$Piercing)
-datPierce<-dat_e[dat_e$Piercing %in% c("Yes","YES"),]
-dat_e<-dat_e[!dat_e$Piercing %in% c("Yes","YES"),]
+table(dat$Pierce)
+datPierce<-dat_e[dat_e$Piercing %in% c("Yes","YES","y","Y"),]
+dat_e<-dat_e[!dat_e$Pierce %in% c("Yes","YES","y","Y"),]
 
 #################Data Cleaning Complete################
 
@@ -230,14 +231,16 @@ setwd(paste(netPath,"TimeFigures",sep=""))
 #Which metrics are desired?
 droplevels(month.Prop)
 
-metricskeep<-c("connectance","links per species","nestedness","Shannon diversity","H2","niche overlap","robustness.HL","number of compartments","robustness.LL","number.of.species.HL")
-month.Prop<-droplevels(month.Prop[month.Prop$Metric %in% metricskeep,])
+#metricskeep<-c("connectance","links per species","nestedness","Shannon diversity","H2","niche overlap","robustness.HL","number of compartments","robustness.LL","number.of.species.HL")
+#month.Prop<-droplevels(month.Prop[month.Prop$Metric %in% metricskeep,])
 
 #Quick and dirty look at all metrics
-month.Prop$Time<-factor(month.Prop$Time,c("6","7","8","9","10","11","12","1","2","3","4","5"))
 
-p<-ggplot(na.omit(month.Prop),aes(x=factor(Time),y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level)) + facet_wrap(~Metric,scales="free_y") + scale_x_discrete(breaks=c(6:12,1))
+p<-ggplot(na.omit(month.Prop),aes(x=factor(Time),y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level)) + facet_wrap(~Metric,scales="free_y") 
 p + theme_bw() 
+
+##Add a trend line across all months?
+#be interested to add a "mean line" and then the value of the total network...
 
 ggsave("MetricsFacet.svg",height=8,width=11)
 
@@ -285,7 +288,6 @@ metricskeep<-c("nestedrank","resource.range","betweenness","d","degree","species
 H.c<-cast(Hum.Time,...~Metric)
 Hum.Time<-melt(H.c)
 
-Hum.Time$Time<-factor(Hum.Time$Time,c("6","7","8","9","10","11","12","1","2","3","4","5"))
 
 #Quick and dirty look across species 
 ggplot(Hum.Time,aes(Time,value,col=Species)) + facet_wrap(~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
@@ -335,8 +337,8 @@ gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 head(fl.totals)
 
 #aggregate by month for now, not elev split
-month.totals<-aggregate(fl.totals$TotalFlowers,list(fl.totals$Month),sum)
-colnames(month.totals)<-c("Month","Flowers")
+month.totals<-aggregate(fl.totals$TotalFlowers,list(fl.totals$Month,fl.totals$Year),sum)
+colnames(month.totals)<-c("Month","Year","Flowers")
 
 #Start with just hummingbird levels
 month.Hum<-month.Prop[month.Prop$Level == "Hummingbirds",]
@@ -344,9 +346,12 @@ month.Hum<-month.Prop[month.Prop$Level == "Hummingbirds",]
 #combine the flower totals and network metrics
 network.fl<-merge(month.totals,month.Hum,by.x="Month",by.y="Time")
 
-#Quick visualization
-p<-ggplot(network.fl,aes(Flowers,value,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point(size=3) + geom_smooth(method="lm",aes(group=1))
+#Quick visualization, get rid of some months for now
+p<-ggplot(network.fl[!network.fl$Month %in% c(3,4,5),],aes(Flowers,value,shape=Year,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point(size=3) + geom_smooth(method="lm",aes(group=Year)) + theme_bw()
 ggsave(paste(netPath,"NetworkPropFlowers.svg",sep=""),height=8,width=11,dpi=300)
+
+p<-ggplot(network.fl[!network.fl$Month %in% c(3,4,5) & network.fl$Metric %in% c("connectance","cluster coefficient"),],aes(Flowers,value,shape=Year,col=as.factor(Month))) + facet_wrap(~Metric,scale="free",nrow=2) + geom_point(size=3) + geom_smooth(method="lm",aes(group=Year)) + theme_bw() + labs(col="Month")
+ggsave(paste(netPath,"NetworkConnectance.jpeg",sep=""),height=11,width=8,dpi=300) 
 
 ###############################################
 #Hummingbird Properties and Available Resources
@@ -366,7 +371,7 @@ species_keep<-month_Pres[which(month_Pres$x > 1),]$Group.1
 
 #remove an unknwon species
 species_keep<-species_keep[!species_keep %in% "UKWN"]
-ggplot(hum.fl[hum.fl$Species %in% species_keep,],aes(as.numeric(Flowers),value,col=as.factor(Month))) + facet_grid(Metric~Species,scale="free") + geom_point() + geom_smooth(method="lm",aes(group=1))
+ggplot(hum.fl[hum.fl$Species %in% species_keep,],aes(as.numeric(Flowers),value,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point() + geom_smooth(method="lm",aes(group=1))
 ggsave(paste(netPath,"SpeciesPropFlowers.svg",sep=""),height=8,width=11,dpi=300)
 
 #Save image to file

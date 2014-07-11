@@ -12,7 +12,6 @@ require(plotKML)
 require(reshape)
 require(chron)
 require(taxize)
-require(rPlant)
 
 #Set DropBox Working Directory
 setwd("C:/Users/Jorge/Dropbox/")
@@ -97,6 +96,8 @@ dim(fl.id)
 
 head(fl.id)
 
+#make characters
+holger.full$GPS_ID<-as.character(holger.full$GPS_ID)
 full.fl<-rbind.fill(holger.full,fl.id)
 
 #Set holger as observer
@@ -113,16 +114,12 @@ full.fl$Transect_R<-factor(paste(full.fl$Elevation.Begin,full.fl$Elevation.End,s
 #Flower Taxonomy
 ################
 
+
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
-Families<-levels(factor(full.fl$Family))
-iplant_names<-ResolveNames(names=Families)
-CompareNames(Families,iplant_names)
+#Repeat for species
 
-Fam_Result<-data.frame(Families,iplant_names)
-Fam_Errors<-Fam_Result[Fam_Result$iplant_names %in% "","Families"]
-
-#Post to output which plant families need to be address
-print(paste(Fam_Errors,"not found in taxonomy database"))
+#one really bad mispelling couldn't be fixed
+full.fl[full.fl$Family %in% "Hydranganceae","Family"]<-"Hydrangeacea"
 
 #Set the Family column
 for (x in 1:nrow(full.fl)){
@@ -130,36 +127,42 @@ for (x in 1:nrow(full.fl)){
   full.fl[x,"Family"]<-levels(droplevels(Fam_Result[Fam_Result$Families %in% y$Family,"iplant_names"] ))   
 }
 
-
 #Repeat for genus
 Genus<-levels(factor(full.fl$Genus))
 iplant_names<-ResolveNames(names=Genus)
 CompareNames(Genus,iplant_names)
 
-Genus_Result<-data.frame(Genus,iplant_names)
-Genus_Errors<-Genus_Result[Genus_Result$iplant_names %in% "","Genus"]
+full.fl[full.fl$Family %in% "???","Family"]<-""
 
-#Post to output which plant families need to be address
-print(paste(Genus_Errors,"not found in taxonomy database"))
+Families<-levels(factor(full.fl$Family))
 
-#Set the Genus column
+tax<-tnrs(query = Families, source = "iPlant_TNRS")
+
+#Set the Species column
 for (x in 1:nrow(full.fl)){
+  print(x)
   y<-full.fl[x,]
-  full.fl[x,"Iplant_Genus"]<-levels(droplevels(Genus_Result[Genus_Result$Genus %in% y$Genus,"iplant_names"] ))   
-}
+  toMatch<-y$Family
+  if(!toMatch %in% tax$submittedname){next} else{
+  full.fl[x,"Iplant_Family"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])
+}}
 
-#Repeat for species
-Species<-levels(factor(paste(full.fl$Iplant_Genus,full.fl$Species,sep="_")))
-iplant_names<-ResolveNames(Species)
-print(CompareNames(Species,iplant_names))
-Species_Result<-data.frame(Species,iplant_names)
+
+#Repeat for genus species
+Species<-levels(factor(paste(full.fl$Genus,full.fl$Species,sep=" ")))
+
+#look up online, skip the blank
+tax<-tnrs(query = Species[-1], source = "iPlant_TNRS")
 
 #Set the Species column
 for (x in 1:nrow(full.fl)){
   y<-full.fl[x,]
-  toMatch<-paste(y$Iplant_Genus,y$Species,sep="_")
-  full.fl[x,"Iplant_Double"]<-levels(droplevels(Species_Result[Species_Result$Species %in% toMatch,"iplant_names"]))   
-}
+  toMatch<-paste(y$Genus,y$Species,sep=" ")
+  if(toMatch %in% tax$submittedname){
+  full.fl[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"]   )
+} else {
+  next
+}}
 
 #Fix any known ID mistakes
 full.fl[full.fl$Iplant_Double %in% "Heppiella_ulmifolia","Iplant_Double"]<-"Glossoloma_oblongicalyx"
@@ -245,11 +248,25 @@ for (j in 1:nrow(full.fl)){
   }
 }
 
+#year column
+
+#Create month column
+full.fl$Year<-NA
+for (j in 1:nrow(full.fl)){
+  x<-full.fl[j,]
+  if(x[["Observer"]] %in% c("Karen","Ben")){
+    full.fl[j,"Year"]<-as.character(years(chron(as.character(x$Date))))
+  }
+  if(x[["Observer"]] %in% "Holger"){
+    full.fl[j,"Year"]<-as.character(years(chron(as.character(x[x$Observer %in% "Holger","Date"]),format="d/m/y")))
+  }
+}
+
 #There is the one unique transect where holger did the transect with us. 
 head(full.fl[is.na(full.fl$month),])
 
-#plot total flowers over time?
-fl.totals<-aggregate(full.fl$Total_Flowers,list(full.fl$Transect_R,full.fl$month,full.fl$Date,full.fl$year),sum)
+#plot total flowers over time
+fl.totals<-aggregate(full.fl$Total_Flowers,list(full.fl$Transect_R,full.fl$month,full.fl$Date,full.fl$Year),sum)
 colnames(fl.totals)<-c("Elev","Month","Date","Year","TotalFlowers")
 
 #One date error
@@ -270,6 +287,9 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerMon
 #Month without elevation
 p<-ggplot(fl.totals,aes(col=Elev,y=TotalFlowers,x=Month.a,shape=Year)) + geom_point(size=3) + theme_bw() + labs(col="Elevation") + facet_wrap(~Year,nrow=2) + stat_smooth(aes(group=1))
 p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylab("# of Hummingbird Visited Flowers") + xlab("Elevation Range (m)") #+ scale_color_brewer(palette="Paired") 
+p<-ggplot(fl.totals,aes(x=Elev,TotalFlowers,color=Year)) + geom_point(size=3)  + stat_smooth(aes(group=Year),method="loess",se=FALSE) + facet_wrap(~Month.a,nrow=2,scales="free_y") + theme_bw() + labs(col="Month")
+
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylab("# of Hummingbird Visited Flowers") + xlab("Elevation Range (m)")
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerMonths.jpeg",height=8,width=10)
 
 
@@ -298,20 +318,8 @@ p<-p + stat_smooth(aes(group=Year), method="loess",se=FALSE)  + theme_bw() + lab
 p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylab("Flowers") + xlab("Elevation Range (m)") 
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TaxonomyTimeSeries.jpeg",height=8,width=10,dpi=300)
 
-#Brief look at time series and taxonomy
-tax<-aggregate(full.fl[,c("Iplant_Double","Iplant_Genus","Family")],list(full.fl$month,full.fl$Transect_R,full.fl$Date),function(x){
-  nlevels(factor(x))})
+ggplot(fl.totals,aes(x=as.factor(Month),TotalFlowers,col=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free_x") + scale_y_continuous(limits=c(0,5500),breaks=seq(0,5000,1000))
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10)
 
-colnames(tax)[1:3]<-c("month","Elev","Date")
-tax.m<-melt(tax,id.var=c("month","Elev","Date"))
-
-#Taxonomy over time
-ggplot(tax.m,aes(month,value,col=variable)) + geom_point(size=2) + geom_smooth(aes(group=variable),se=FALSE) + facet_grid(.~Elev) + theme_bw() + labs(col="Tax. Level")
-ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TimeSeriesTaxonomy.jpeg",height=5,width=10)
-
-#Genus to Species Ratios
-ggplot(tax,aes(x=month,col=Elev,y=Iplant_Double/Iplant_Genus)) + geom_point() + geom_smooth(aes(group=1)) + xlab("Month") + facet_grid(~Elev,margins=TRUE) + theme_bw()
-ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TimeSeriesGSratio.jpeg",height=7,width=12)
-
-#Write cleaned flower transect data?
+#Write cleaned flower transect data
 save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")

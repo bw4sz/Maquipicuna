@@ -29,7 +29,7 @@ source(paste(gitpath,"GPSMatching.R",sep=""))
 
 source(paste(gitpath,"FlowerTransects.R",sep=""))
 #Load from source:
-load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
 #########################
 #Flower Morphological

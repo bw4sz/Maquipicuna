@@ -7,10 +7,13 @@
 require(plotKML)
 require(reshape2)
 require(maptools)
+require(plyr)
 require(reshape)
-
+require(stringr)
+require(taxize)
 #Set working directory
 droppath<-"C:/Users/Jorge/Dropbox/"
+
 setwd(droppath)
 
 ###############################################
@@ -47,10 +50,19 @@ for (x in 1:length(g)){
     gpx2[[x]]<-readGPX(g[x],waypoints=TRUE)$waypoints)
 }
 
-#Need to remind nelly to upload her gps. 
+###########Nelly gps
+g<-list.files("Nelly\\DataEntry\\Nelly Informacion Camaras\\WAYPOINTS",full.names=TRUE,pattern=".gpx",recursive=TRUE)
+
+#loop through input files and find the errors. 
+gpx3<-list()
+for (x in 1:length(g)){
+  print(x)
+  try(
+    gpx3[[x]]<-readGPX(g[x],waypoints=TRUE)$waypoints)
+}
 
 #Bind into one dataframe
-gpx.dat<-rbind.fill(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]))
+gpx.dat<-rbind.fill(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]),rbind.fill(gpx3[sapply(gpx3,class)=="data.frame"]))
 gpx.dat$name<-as.character(gpx.dat$name)
 
 #Combine gps types
@@ -98,6 +110,26 @@ gps$GPS.ID<-sapply(gps$name,function(x){
   }
 })
 
+#nelly didn't put in 0 before name in gps, but did for cameras
+
+#first letter of the name is N
+nelldata<-gps[substring(gps$name,1,1) %in% "N",]
+
+#get the digits
+## split string at non-digits
+s <- strsplit(nelldata$GPS.ID, "[^[:digit:]]")
+
+## convert strings to numeric ("" become NA)
+solution <- as.numeric(unlist(s))
+
+## remove NA and duplicates
+solution <- solution[!is.na(solution)]
+
+newname<-paste("NF0",solution,sep="")
+
+#replace name
+gps[which(substring(gps$name,1,1) %in% "N"),"GPS.ID"]<-newname
+
 #create shapefile
 writePointsShape(gps,"Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSshape.shp")
 
@@ -105,18 +137,30 @@ writePointsShape(gps,"Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSs
 ##############Merge GPS Info with Data######
 ############################################
 
+#There are two video files, that need to be merge
 dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideo.csv")
+
+colnames(dat)[11]<-"Pierce"
+
+datAuto<-read.csv("Thesis/Automated_Monitering/FlowerVideoAuto.csv")
+
+#Which flID are in the original, but not the automated
+
+datADD<-dat[!dat$ID %in% datAuto$ID,]
+
+#Combine with automated monitering
+datT<-rbind.fill(datAuto,datADD)
 
 #error rows
 #merge
-datg<-merge(dat,gps,by.x="ID",by.y="GPS.ID",all.x=TRUE)
+datg<-merge(datT,gps,by.x="ID",by.y="GPS.ID",all.x=TRUE)
 
-dim(dat)
+dim(datT)
 dim(datg)
 
 
 #find duplicates
-d<-data.frame(table(dat$ID),table(datg$ID))
+d<-data.frame(table(datT$ID),table(datg$ID))
 
 dups<-d[which(!d$Freq == d$Freq.1),]$Var1
 
@@ -124,12 +168,18 @@ dups<-d[which(!d$Freq == d$Freq.1),]$Var1
 dup.g<-gps[gps$GPS.ID %in% dups,]
 dup.g[order(dup.g$GPS.ID),]
 
+#additional hardcoded duplicates or hand errors
 gps<-gps[-c(5198,663),]
 
-#merge
-datg<-merge(dat,gps,by.x="ID",by.y="GPS.ID",all.x=TRUE)
+gps[gps$ID %in% "NF009","GPS.ID"]<-"NF09"
+gps[gps$ID %in% "NF2","GPS.ID"]<-"NF02"
+gps[gps$ID %in% "NF003","GPS.ID"]<-"NF03"
 
-dim(dat)
+
+#remerge
+datg<-merge(datT,gps,by.x="ID",by.y="GPS.ID",all.x=TRUE)
+
+dim(datT)
 dim(datg)
 
 paste("Missing Cameras GPS:",levels(factor(datg[is.na(datg$ele),]$ID)))
@@ -143,6 +193,8 @@ datg[datg$ID %in% "FL050","ele"]<-1600
 datg[datg$ID %in% "FL053","ele"]<-1550
 datg[datg$ID %in% "FL054","ele"]<-1500
 
+#Still missing elevation information
+paste("Missing Cameras GPS:",levels(factor(datg[is.na(datg$ele),]$ID)))
 
 ################
 #Flower Taxonomy
@@ -150,18 +202,32 @@ datg[datg$ID %in% "FL054","ele"]<-1500
 
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
 
+datg[datg$Flower %in% "Columnea ","Flower"]<-"Columnea"
+
+#remove family names they just confuse the issue
+# if trinomial remove first word
+
+levels(datg$Flower)<-sapply(levels(datg$Flower),function(x){
+  nw<-length(strsplit(x, " ")[[1]])
+  if(nw ==3){
+    return(word(x,2,3))
+  } else {
+    return(x)
+  }
+})
+
+
 #Repeat for species
-Species<-levels(factor(datg$Flower))
-iplant_names<-ResolveNames(Species)
-print(CompareNames(Species,iplant_names))
-Species_Result<-data.frame(Species,iplant_names)
+SpeciesG<-levels(factor(datg$Flower))
+
+tax<-tnrs(query = unique(SpeciesG), source = "iPlant_TNRS")
 
 #Set the Species column
 for (x in 1:nrow(datg)){
+  print(x)
   y<-datg[x,]
   toMatch<-y$Flower
-  datg[x,"Iplant_Double"]<-levels(droplevels(
-  Species_Result[Species_Result$Species %in% toMatch,"iplant_names"] ))   
+  datg[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])
 }
 
 #Write camera data to file
