@@ -23,7 +23,7 @@ hum.morph<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdMorphology
 int<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv",row.names=1)
 
 #Melt the interaction frame and match it with the traits
-m.dat<-melt(int,id.vars=c("ID","Video","Time","Hummingbird","Sex","TransectID","Transect_R","Iplant_Double","Pierce","Date","Month"))
+m.dat<-int[colnames(int) %in% c("ID","Video","Time","Hummingbird","Sex","TransectID","Transect_R","Iplant_Double","Pierce","DateP","Month")]
 
 #Fix spacing to match clades
 
@@ -33,7 +33,7 @@ levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English]
 
 #This needs to be checked
 print(paste(levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English],"not matched"))
-levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English]<-c("Green-crowned Woodnymph")
+#levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English]<-c("Green-crowned Woodnymph")
 m.datH<-merge(m.dat,hum.morph, by.x="Hummingbird",by.y="English")
 
 #Merge to flowers
@@ -53,6 +53,7 @@ m.datH<-merge(m.datH,fl.morph, by.x="Iplant_Double",by.y="X")
 p<-ggplot(m.datH,aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_point() + geom_boxplot(aes(group=factor(Bill)))
 p + geom_smooth(aes(group=1),method="lm")
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/TotalCorollaMatching.svg",height=8,width=11,dpi=300)
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/TotalCorollaMatching.jpeg",height=8,width=11,dpi=300,units="in")
 
 #Effective Corolla Matching
 p<-ggplot(m.datH,aes(x=factor(Bill),EffectiveCorolla,col=Hummingbird)) + geom_point() + geom_boxplot(aes(group=factor(Bill)))
@@ -81,6 +82,11 @@ fl_load<-trait_pc$x[,c("PC1","PC2")]
 rownames(fl_load)<-rownames(zscore)
 
 m.datH<-merge(m.datH,fl_load,by.x="Iplant_Double",by.y="row.names")
+
+#Add year columns
+m.datH$Year<-years(as.character(m.datH$DateP))
+
+m.datH[m.datH$Year %in% 2012,"Year"]<-2013
 
 #rename columns 
 colnames(m.datH)[colnames(m.datH) %in% c("PC1","PC2")] <- c("Fl.PC1","Fl.PC2")
@@ -118,7 +124,7 @@ p + geom_point()
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/FlowerSpace.svg",height=8,width=11,dpi=300)
 
 #Another way to look at this? getting closer.
-ggplot(m.datH,aes(x=Fl.PC1,y=Fl.PC2,col=Hummingbird)) + stat_density() + facet_wrap(~Clade)
+#ggplot(m.datH,aes(x=Fl.PC1,y=Fl.PC2,col=Hummingbird)) + stat_density() + facet_wrap(~Clade)
 
 #polygons on flower use by hummingbirds traits
 #create a flower genus column?
@@ -134,6 +140,8 @@ m.datH<-merge(m.datH,fam_r,by.x="FLGenus",by.y="Genus")
 p<-ggplot(m.datH,aes(x=H.PC1,y=H.PC2,fill=family.y,alpha=.02)) + geom_polygon() + facet_wrap(~family.y,drop=TRUE)
 
 toFL<-table(m.datH$Hummingbird, m.datH$family.y)
+
+
 toFL<-melt(toFL)
 toFL<-toFL[!toFL$value==0,]
 
@@ -155,23 +163,38 @@ ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/HummingbirdSpace_AllLabe
 #Any data without months?
 nrow(m.datH[is.na(m.datH$Month),])
 
-#Start by plotting monthly breaks of corolla matching
 
-p<-ggplot(m.datH,aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_point() + geom_boxplot(aes(group=factor(Bill)))
-p + geom_smooth(aes(group=1),method="lm") + facet_wrap(~Month,nrow=2) + theme_bw()
-
-ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/Matching_Time.svg",)
+#Create a cut of every two months?
+m.datH$MonthG<-cut(m.datH$Month,breaks=c(0,5,9,12))
 
 #Start by plotting monthly breaks of corolla matching
-p<-ggplot(m.datH,aes(x=factor(Bill),EffectiveCorolla,col=Hummingbird)) + geom_boxplot() + geom_smooth(method="lm",aes(group=1))
-p + geom_point() + facet_wrap(~Month)
+
+p<-ggplot(m.datH[!is.na(m.datH$MonthG),],aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_point() + geom_boxplot(aes(group=factor(Bill)))
+p + geom_smooth(aes(group=1),method="lm") + facet_wrap(~MonthG) + theme_bw()
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/Matching_TimeGroup.svg")
+
+p<-ggplot(m.datH[!is.na(m.datH$MonthG),],aes(x=Bill,TotalCorolla,col=MonthG)) + geom_point() + stat_smooth(aes(group=MonthG),method="lm")
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/Matching_TimeGroup.jpeg",units="in",dpi=300)
+
+#Start by plotting monthly breaks of corolla matching
+#p<-ggplot(m.datH,aes(x=factor(Bill),EffectiveCorolla,col=Hummingbird)) + geom_boxplot() + geom_smooth(method="lm",aes(group=1))
+#p + geom_point() + facet_wrap(~Month)
 
 #####################################################################
 #Difference Between Corolla and Bill Length of interactions measured
 #####################################################################
 
 m.datH$BD<-m.datH$Bill-m.datH$TotalCorolla
-p<-ggplot(m.datH,aes(x=BD,fill=Hummingbird)) + geom_density(position="dodge") + facet_wrap(~Clade,scale="free")
+p<-ggplot(m.datH,aes(y=BD,x=Hummingbird)) + geom_boxplot(position="dodge")
+p + coord_flip()
+
+p<-ggplot(m.datH[!is.na(m.datH$MonthG),],aes(x=TotalCorolla,fill=MonthG)) + geom_density(alpha=.4)
+p + facet_wrap(~Hummingbird,scales="free") + theme_bw()
+
+
+p<-ggplot(m.datH[!is.na(m.datH$MonthG),],aes(x=BD,fill=MonthG)) + geom_density(alpha=.4,adjust=2)
+p + theme_bw()
+
 
 ####################################################################
 #Compared usage to available resources??
@@ -195,21 +218,29 @@ month.totals<-aggregate(fl.totals$TotalFlowers,list(fl.totals$Month,fl.totals$Ye
 colnames(month.totals)<-c("Month","Year","Flowers")
 
 #create a linear model for each month
-coeff<-rbind.fill(lapply(c(7:12,1:3)), function(x){
-mod<-lm(data=m.datH,TotalCorolla~Bill,subset=Month ==x)
-mod.s<-summary(mod)
-data.frame(Month=x,Slope=mod$coefficients[["Bill"]],R=mod.s$r.squared)
+
+s.datH<-split(m.datH,list(m.datH$Month,m.datH$Year),drop=TRUE)
+
+coeff<-rbind.fill(lapply(s.datH,function(x){
+  mod<-lm(data=x,TotalCorolla~Bill)
+  mod.s<-summary(mod)
+  data.frame(Month=unique(x$Month),Year=as.numeric(as.character(unique(x$Year))),Slope=mod$coefficients[["Bill"]],R=mod.s$r.squared)
     }))
 
+#How many observations each month
+#nobs<-melt(as.data.frame.array(table(m.datH$Month,m.datH$Year),drop=TRUE))
 
 #combine the flower totals and regression output
-nStats<-merge(month.totals,coeff,by.x="Month")
+nStats<-merge(month.totals,coeff,by=c("Month","Year"))
 
-
+#Quick function to turn numeric month to abbreviation
+monthtr<-function(x){
+  month.abb[x]
+}
 
 #Quick visualization, get rid of some months for now
-p<-ggplot(data=nStats[nStats$Year %in% c(2013,2014),],aes(x=Flowers,y=Slope,shape=Year,col=R)) + geom_point(size=3) + geom_smooth(method="lm",aes(group=1))
-p+ theme_bw() + scale_color_continuous(low="blue",high="red") + labs(y="Slope (Bill~Corolla)",x="Available Resources")
+p<-ggplot(data=nStats,aes(x=Flowers,y=Slope,shape=Year,col=R)) + geom_point(size=3) + stat_smooth(method="lm",aes(group=1)) + geom_text(aes(label=monthtr(Month)),size=3.5,vjust=-.5)
+p+ theme_bw() + scale_color_continuous(low="blue",high="red") + labs(y="Slope (Bill~Corolla)",x="Available Resources",col="R^2")
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/MatchingSlope.jpeg",height=8,width=11,dpi=300)
 
 #Merge with flower morphology
@@ -222,10 +253,50 @@ ggplot(data=m.datH,aes(x=TotalCorolla)) + facet_wrap(~Hummingbird,scales="free")
 #Density plot of resource selection and month
 ggplot(data=m.datH,aes(x=TotalCorolla)) + geom_density(binwidth=1,data=transectM,aes(x=TotalCorolla),fill="black") + geom_density(binwidth=1,alpha=.5,aes(fill=Hummingbird)) + facet_grid(Hummingbird~Month,scales="free")
 
+
+#####################
+#By month grouping
+######################
+
+#The aggregate totals of the flower assemblage
+head(fl.totals)
+
+fl.totals$MonthG<-cut(fl.totals$Month,breaks=c(0,5,9,12))
+
+#aggregate by month for now, not elev split
+month.totals<-aggregate(fl.totals$TotalFlowers,list(fl.totals$MonthG,fl.totals$Year),sum,na.rm=TRUE)
+colnames(month.totals)<-c("MonthG","Year","Flowers")
+
+
+#create a linear model for each month
+coeff<-rbind.fill(lapply(levels(m.datH$MonthG), function(x){
+  mod<-lm(data=m.datH,TotalCorolla~Bill,subset=MonthG ==x)
+  mod.s<-summary(mod)
+  data.frame(MonthG=x,Slope=mod$coefficients[["Bill"]],R=mod.s$r.squared)
+}))
+
+#split flower month totals into the groupings
+
+#Create a cut of every two month
+
+#combine the flower totals and regression output
+nStats<-merge(month.totals,coeff,by.x="MonthG")
+
+#Quick function to turn numeric month to abbreviation
+monthtr<-function(x){
+  month.abb[x]
+}
+
+#Quick visualization, get rid of some months for now
+p<-ggplot(data=nStats[nStats$Year %in% c(2013,2014),],aes(x=Flowers,y=Slope,shape=Year,col=R)) + geom_point(size=3) + geom_smooth(method="lm",aes(group=1)) #+ geom_text(size=3.5,vjust=-.5)
+p+ theme_bw() + scale_color_continuous(low="blue",high="red") + labs(y="Slope (Bill~Corolla)",x="Available Resources",col="R^2")
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/MatchingSlope.jpeg",height=8,width=11,dpi=300)
+
 ######################################
 #Compared to each other?
 ######################################
 #without month percentages
+require(scales)
 p<-ggplot(data=m.datH,aes(x=TotalCorolla)) + facet_wrap(~Hummingbird,scale="free") + geom_bar(binwidth=1,data=transform(m.datH,Hummingbird=NULL),aes(y = (..count..)/sum(..count..)),fill="black") 
 p + geom_bar(binwidth=1,aes(y = (..count..)/sum(..count..)),fill="red",alpha=.4) + scale_y_continuous("Resource Use",labels = percent_format()) + xlab("Corolla Length")
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/FLUsePercent.svg",height=8,width=9)
