@@ -127,7 +127,7 @@ missp<-h[!h %in% clades$English]
 paste("misspelled levels",missp)
 h[h %in% missp]
 
-spellC<-c("Booted Racket-tail","Green-crowned Woodnymph","Fawn-breasted Brilliant","Gorgeted Sunangel","Tyrian Metaltail","UKWN","UKWN","Violet-tailed Sylph")
+spellC<-c("Booted Racket-tail","Green-crowned Woodnymph","Rufous-tailed Hummingbird","UKWN","UKWN","Violet-tailed Sylph")
 
 paste("Spelling Correction",spellC)
 

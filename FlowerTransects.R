@@ -14,10 +14,12 @@ require(chron)
 require(taxize)
 
 #Set DropBox Working Directory
-setwd("C:/Users/Jorge/Dropbox/")
+#setwd("C:/Users/Jorge/Dropbox/")
+
+setwd("C:/Documents and Settings/Administrator/My Documents/Dropbox")
 
 #Read in workspace if desired for quick access
-#load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
 #Read in Flower Transect Data from summer field season
 fl<-read.csv(file="Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerTransects.csv")
@@ -118,22 +120,6 @@ full.fl$Transect_R<-factor(paste(full.fl$Elevation.Begin,full.fl$Elevation.End,s
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
 #Repeat for species
 
-#one really bad mispelling couldn't be fixed
-full.fl[full.fl$Family %in% "Hydranganceae","Family"]<-"Hydrangeacea"
-
-#Set the Family column
-for (x in 1:nrow(full.fl)){
-  y<-full.fl[x,]
-  full.fl[x,"Family"]<-levels(droplevels(Fam_Result[Fam_Result$Families %in% y$Family,"iplant_names"] ))   
-}
-
-#Repeat for genus
-Genus<-levels(factor(full.fl$Genus))
-iplant_names<-ResolveNames(names=Genus)
-CompareNames(Genus,iplant_names)
-
-full.fl[full.fl$Family %in% "???","Family"]<-""
-
 Families<-levels(factor(full.fl$Family))
 
 tax<-tnrs(query = Families, source = "iPlant_TNRS")
@@ -167,8 +153,15 @@ for (x in 1:nrow(full.fl)){
 #Fix any known ID mistakes
 full.fl[full.fl$Iplant_Double %in% "Heppiella_ulmifolia","Iplant_Double"]<-"Glossoloma_oblongicalyx"
 
+#Remove levels that don'y have species names (see if they can be recovered)
+
+numQ<-sapply(full.fl$Iplant_Double,function(x){
+length(word(x))
+})
+
 #Final levels
 print(paste("Final Flower Species:", levels(factor(full.fl$Iplant_Double))))
+
 
 #Write 
 write.csv(levels(factor(full.fl$Iplant_Double)),"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/Iplant_Names.txt")
@@ -297,6 +290,12 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerMon
 ggplot(fl.totals,aes(x=Month.a,TotalFlowers,col=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Year)) + facet_wrap(~Elev,scales="free_x") + ylab("Hummingbird Visited Flowers") + xlab("Month") + labs(col="Transect Elevation Range")
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10,dpi=300)
 
+#Flowers at each elevation over time
+ggplot(fl.totals[!(fl.totals$Month %in% c(6,7,8) & fl.totals$Year %in% "2013"),],aes(x=Month.a,TotalFlowers,col=Elev,shape=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + ylab("Flowers") + xlab("Month") + facet_wrap(~Elev,scales="free_y")
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevationsHolger.jpeg",height=8,width=10,dpi=300)
+
+#Write flower totals
+write.csv(fl.totals[!(fl.totals$Month %in% c(6,7,8) & fl.totals$Year %in% "2013"),],"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerAvailability.csv")
 ########################
 #Taxonomic analysis
 #########################
@@ -320,6 +319,21 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TaxonomyT
 
 ggplot(fl.totals,aes(x=as.factor(Month),TotalFlowers,col=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free_x") + scale_y_continuous(limits=c(0,5500),breaks=seq(0,5000,1000))
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10)
+
+ggplot(fl.totals[!fl.totals$Month %in% c(6,7,8),],aes(x=as.factor(Month),TotalFlowers,col=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free") + scale_y_continuous(limits=c(0,5500),breaks=seq(0,5000,1000))
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations_Holger.jpeg",height=8,width=10)
+
+
+
+#######Flower Elevation Range 
+
+#What are the 10 most common flowers.
+flower_count<-aggregate(full.fl$Total_Flowers,list(full.fl$Iplant_Double),sum,na.rm=TRUE)
+top_flower<-flower_count[order(flower_count$x,decreasing=TRUE),][1:12,]
+
+colnames(top_flower)<-c("Species","Count")
+
+top_flower[!top_flower$Species %in% c("Palicourea",""),]
 
 #Write cleaned flower transect data
 save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
