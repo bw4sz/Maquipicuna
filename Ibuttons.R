@@ -44,6 +44,14 @@ for ( x in 1:length(tdat)){
   colnames(tdat[[x]])[3]<-"Temp"
 }
 
+
+
+##remove first couple rows
+tdat<-lapply(tdat,function(x){
+  x[-c(1:10),]
+})
+
+
 tdata<-melt(tdat)
 
 tdata<-tdata[,!colnames(tdata) %in% "variable"]
@@ -85,7 +93,7 @@ ggplot(tdata,aes(factor(elevation),Temp,col=replicate)) + geom_boxplot() + labs(
 ####Temperature per month and elevation
 
 ggplot(tdata,aes(x=TimeStamp,y=Temp,col=factor(elevation))) + stat_smooth() + labs(x="Month",y="Temp (C)",col="Elev.") + theme_bw() + scale_x_datetime(breaks=date_breaks("1 month"),labels = date_format("%b,%y"))
-ggsave("Thesis//Maquipucuna_SantaLucia/Results/Ibuttons/Temperature_Month.jpeg",unit="in",height=10,width=6,dpi=300)
+ggsave("Thesis//Maquipucuna_SantaLucia/Results/Ibuttons/Temperature_Month.jpeg",unit="in",height=8,width=8,dpi=300)
 ggsave("Thesis//Maquipucuna_SantaLucia/Results/Ibuttons/Temperature_Month.pdf",height=8,width=10,dpi=300)
 
 ###Temperature per day and elevation
@@ -120,6 +128,29 @@ colnames(range_day)<-c("Elevation","Day","Month","Year","Range")
 ggplot(range_day,aes(x=Month,y=Range,col=factor(Elevation))) + stat_smooth(aes(group=Elevation)) + theme_bw() + labs(col="Elevation")
 ggsave("Thesis//Maquipucuna_SantaLucia/Results/Ibuttons/Temperature_Range.jpeg",unit="in",height=10,width=6,dpi=300)
 ggsave("Thesis//Maquipucuna_SantaLucia/Results/Ibuttons/Temperature_Range.pdf",height=8,width=10,dpi=300)
+
+#################Create a dataframe for montly bioclim variables.
+
+#Mean diurnal temperature
+daytemp<-tdata[tdata$Hour %in% 6:18,]
+
+bio1_a<-aggregate(daytemp$Temp,list(daytemp$elevation,daytemp$Day,daytemp$Month,daytemp$Year),mean,na.rm=TRUE)
+bio1<-aggregate(bio1_a$x,list(bio1_a$Group.1,bio1_a$Group.3,bio1_a$Group.4),mean)
+
+colnames(bio1)<-c("elevation","Month","Year","Temp")
+
+
+
+range_day<-aggregate(tdata$Temp,list(tdata$elevation,tdata$Day,tdata$Month,tdata$Year),function(x){
+  max(x)-min(x)
+})
+
+colnames(range_day)<-c("Elevation","Day","Month","Year","Range")
+
+
+#Mean daily range
+aggregate(range_day)
+
 
 ###############Interpolation function
 
@@ -167,11 +198,17 @@ getTemp<-function(Elev,D,H){
   meanT<-aggregate(ddat$Temp,list(ddat$elevation,ddat$Hour),mean,na.rm=TRUE)
   
   colnames(meanT)<-c("x","y","z")
-  m<-dcast(meanT,x~y)
-  rownames(m)<-m[,1]
-  m<-m[,-1]
+
+  
+  coordinates(meuse) = ~x+y
   coordinates(meanT) = ~x+y
-  raster(meanT)
+  
+  temp.grid<-expand.grid(x=c(1300,1400,1500,1600,1700),y=0:23)
+  gridded(temp.grid) = ~x+y
+    
+    rownames(m)<-m[,1]
+  m<-m[,-1]
+  r<-as.raster(m)
   
   #format for interpolation
   data2D<-data.frame(x=ddat$elevation,y=ddat$Hour,z=ddat$Temp)
@@ -190,5 +227,5 @@ getTemp<-function(Elev,D,H){
   res3D <- krige(formula = z ~ 1, data2D, grid2D, model = vgm(1500, "Exp", 1300))
   
   #Fit daily temperature surface
-  
+  ws
   return(pred.s)}

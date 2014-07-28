@@ -32,10 +32,11 @@ ggsave("Thesis//Maquipucuna_SantaLucia/Results/DateElevation.svg",height=8,width
 
 p<-ggplot(dat,aes(y=ele,x=Hummingbird,fill=Hummingbird))
 p + geom_boxplot() + coord_flip() + labs(y="Elevation(m)") + scale_fill_discrete(guide='none') + theme_bw()
-ggsave("Thesis//Maquipucuna_SantaLucia/Results/ElevationRanges.jpeg",height=8,width=13,dpi=300,units="in")
+#ggsave("Thesis//Maquipucuna_SantaLucia/Results/ElevationRanges.jpeg",height=8,width=13,dpi=300,units="in")
 
 ############Bring in temperature
 tdata<-read.csv("Thesis//Maquipucuna_SantaLucia/Results/Ibuttons/TempData.csv")
+
 
 
 #########Doesn't quite work yet.

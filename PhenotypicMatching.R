@@ -1,3 +1,4 @@
+
 #Phenotypic Matching Among Plants and Birds
 require(reshape)
 require(ggplot2)
@@ -6,8 +7,10 @@ require(stringr)
 require(scales)
 require(taxize)
 
+
 #Setwd if not run globally
-droppath<-"C:/Users/Jorge/Dropbox/"
+droppath<-"C:/Documents and Settings/Administrator/My Documents/Dropbox/"
+
 setwd(droppath)
 
 #read in flower morphology data, comes from Nectar.R
@@ -51,7 +54,7 @@ m.datH<-merge(m.datH,fl.morph, by.x="Iplant_Double",by.y="X")
 #Some of these observations are suspect, the booted racket-tail on the 50cm plant?
 #I think we need to do the regression seperately?
 p<-ggplot(m.datH,aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_point() + geom_boxplot(aes(group=factor(Bill)))
-p + geom_smooth(aes(group=1),method="lm")
+p + geom_smooth(aes(group=1),method="lm") 
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/TotalCorollaMatching.svg",height=8,width=11,dpi=300)
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/TotalCorollaMatching.jpeg",height=8,width=11,dpi=300,units="in")
 
@@ -76,6 +79,8 @@ rownames(zscore)<-fl.morph$X
 
 #Principal Components
 trait_pc<-prcomp(zscore)
+
+biplot(trait_pc)
 
 #bind loadings 1 and 2 to dataframe
 fl_load<-trait_pc$x[,c("PC1","PC2")]
@@ -118,13 +123,31 @@ colnames(m.datH)[colnames(m.datH) %in% c("PC1","PC2")] <- c("H.PC1","H.PC2")
 #Visualization of multivariate space
 #####################################
 
-#polygons on trait use by hummingbirds
-p<-ggplot(m.datH,aes(x=Fl.PC1,y=Fl.PC2,fill=Hummingbird)) + geom_polygon(alpha=.8) + facet_wrap(~Clade,drop=TRUE) + scale_fill_discrete()
-p + geom_point()
-ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/FlowerSpace.svg",height=8,width=11,dpi=300)
+#compute convex hull for each species
+sp.list<-split(m.datH,m.datH$Hummingbird)
 
-#Another way to look at this? getting closer.
-#ggplot(m.datH,aes(x=Fl.PC1,y=Fl.PC2,col=Hummingbird)) + stat_density() + facet_wrap(~Clade)
+sp.hull<-lapply(sp.list,function(x){
+x[chull(x$Fl.PC1,y=x$Fl.PC2),c("Fl.PC1","Fl.PC2")]
+})
+
+sp.hulld<-melt(sp.hull[!lapply(sp.hull,nrow)==0],id.var=c("Fl.PC1","Fl.PC2"))
+
+colnames(sp.hulld)<-c("x","y","Hummingbird")
+
+##Convex hull for flower assemblage
+assem_hull<-m.datH[chull(m.datH$Fl.PC1,m.datH$Fl.PC2),c("Fl.PC1","Fl.PC2")]
+
+#remove species with less than 10 points
+
+keep<-names(which(table(m.datH$Hummingbird) > 10))
+
+p<-ggplot(sp.hulld[sp.hulld$Hummingbird %in% keep,],aes(x,y)) 
+p<- p + facet_wrap(~Hummingbird)
+p<- p + geom_polygon(data=assem_hull,aes(x=Fl.PC1,y=Fl.PC2),alpha=.1)
+p <- p + geom_polygon(alpha=.4,) 
+p
+
+ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/FlowerSpace.svg",height=8,width=11,dpi=300)
 
 #polygons on flower use by hummingbirds traits
 #create a flower genus column?
@@ -163,7 +186,6 @@ ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/HummingbirdSpace_AllLabe
 #Any data without months?
 nrow(m.datH[is.na(m.datH$Month),])
 
-
 #Create a cut of every two months?
 m.datH$MonthG<-cut(m.datH$Month,breaks=c(0,5,9,12))
 
@@ -171,14 +193,11 @@ m.datH$MonthG<-cut(m.datH$Month,breaks=c(0,5,9,12))
 
 p<-ggplot(m.datH[!is.na(m.datH$MonthG),],aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_point() + geom_boxplot(aes(group=factor(Bill)))
 p + geom_smooth(aes(group=1),method="lm") + facet_wrap(~MonthG) + theme_bw()
-ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/Matching_TimeGroup.svg")
+#ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/Matching_TimeGroup.svg")
 
 p<-ggplot(m.datH[!is.na(m.datH$MonthG),],aes(x=Bill,TotalCorolla,col=MonthG)) + geom_point() + stat_smooth(aes(group=MonthG),method="lm")
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/Matching_TimeGroup.jpeg",units="in",dpi=300)
 
-#Start by plotting monthly breaks of corolla matching
-#p<-ggplot(m.datH,aes(x=factor(Bill),EffectiveCorolla,col=Hummingbird)) + geom_boxplot() + geom_smooth(method="lm",aes(group=1))
-#p + geom_point() + facet_wrap(~Month)
 
 #####################################################################
 #Difference Between Corolla and Bill Length of interactions measured
@@ -188,8 +207,8 @@ m.datH$BD<-m.datH$Bill-m.datH$TotalCorolla
 p<-ggplot(m.datH,aes(y=BD,x=Hummingbird)) + geom_boxplot(position="dodge")
 p + coord_flip()
 
-p<-ggplot(m.datH[!is.na(m.datH$MonthG),],aes(x=TotalCorolla,fill=MonthG)) + geom_density(alpha=.4)
-p + facet_wrap(~Hummingbird,scales="free") + theme_bw()
+#p<-ggplot(m.datH[!is.na(m.datH$MonthG) & m.datH$Hummingbird %in% keep,],aes(x=TotalCorolla,fill=MonthG)) + geom_density(alpha=.4)
+#p + facet_wrap(~Hummingbird,scales="free") + theme_bw()
 
 
 p<-ggplot(m.datH[!is.na(m.datH$MonthG),],aes(x=BD,fill=MonthG)) + geom_density(alpha=.4,adjust=2)
@@ -205,10 +224,12 @@ load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
 #THIS NEEDS TO BE FIXED
 #setwd to dropbox
-droppath<-"C:/Users/Ben/Dropbox/"
+
+droppath<-"C:/Documents and Settings/Administrator/My Documents/Dropbox/"
+
 setwd(droppath)
 #Set github path
-gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/GitHub/Maquipicuna"
 
 #The aggregate totals of the flower assemblage
 head(fl.totals)
@@ -228,7 +249,6 @@ coeff<-rbind.fill(lapply(s.datH,function(x){
     }))
 
 #How many observations each month
-#nobs<-melt(as.data.frame.array(table(m.datH$Month,m.datH$Year),drop=TRUE))
 
 #combine the flower totals and regression output
 nStats<-merge(month.totals,coeff,by=c("Month","Year"))
@@ -243,6 +263,7 @@ p<-ggplot(data=nStats,aes(x=Flowers,y=Slope,shape=Year,col=R)) + geom_point(size
 p+ theme_bw() + scale_color_continuous(low="blue",high="red") + labs(y="Slope (Bill~Corolla)",x="Available Resources",col="R^2")
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/MatchingSlope.jpeg",height=8,width=11,dpi=300)
 
+
 #Merge with flower morphology
 transectM<-merge(full.fl,fl.morph, by.x="Iplant_Double",by.y="X")
 qplot(transectM$TotalCorolla,binwidth=1,geom="histogram") + theme_bw()
@@ -252,6 +273,18 @@ ggplot(data=m.datH,aes(x=TotalCorolla)) + facet_wrap(~Hummingbird,scales="free")
 
 #Density plot of resource selection and month
 ggplot(data=m.datH,aes(x=TotalCorolla)) + geom_density(binwidth=1,data=transectM,aes(x=TotalCorolla),fill="black") + geom_density(binwidth=1,alpha=.5,aes(fill=Hummingbird)) + facet_grid(Hummingbird~Month,scales="free")
+
+######Correlation coefficient, which method to use?
+
+coeff<-rbind.fill(lapply(s.datH[lapply(s.datH,nrow)  > 10],function(x){
+  mod.c<-cor.test(x$Bill,x$TotalCorolla)
+  data.frame(Month=unique(x$Month),Year=as.numeric(as.character(unique(x$Year))),cor=mod.c$estimate,p=mod.c$p.value)
+}))
+
+nStats<-merge(month.totals,coeff,by=c("Month","Year"))
+
+p<-ggplot(data=nStats,aes(x=Flowers,y=cor,shape=Year,col=p < 0.05)) + geom_point(size=3) + geom_smooth(method="lm",aes(group=1)) #+ geom_text(size=3.5,vjust=-.5)
+p+ theme_bw()  + labs(y="Cor (Bill~Corolla)",x="Available Resources",col="P < 0.05") + geom_text(aes(label=monthtr(Month)),size=3.5,vjust=-.5)
 
 
 #####################
