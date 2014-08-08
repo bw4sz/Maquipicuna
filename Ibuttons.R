@@ -48,7 +48,7 @@ for ( x in 1:length(tdat)){
 
 ##remove first couple rows
 tdat<-lapply(tdat,function(x){
-  x[-c(1:10),]
+  x[-c(1:48),]
 })
 
 
@@ -88,7 +88,7 @@ tdata$Day<-days(tdata$TimeStamp)
 write.csv(tdata,"Thesis//Maquipucuna_SantaLucia/Results/Ibuttons/TempData.csv")
 
 #first plot
-ggplot(tdata,aes(factor(elevation),Temp,col=replicate)) + geom_boxplot() + labs(x="Elevation")
+#ggplot(tdata,aes(factor(elevation),Temp,col=replicate)) + geom_boxplot() + labs(x="Elevation")
 
 ####Temperature per month and elevation
 
@@ -147,37 +147,16 @@ range_day<-aggregate(tdata$Temp,list(tdata$elevation,tdata$Day,tdata$Month,tdata
 
 colnames(range_day)<-c("Elevation","Day","Month","Year","Range")
 
+##Daytime temp versus nighttime
+tdata$Day_Night<-cut(tdata$Hour,c(0,6,19,25),include.lowest=TRUE,c("Nig","Day","Night"))
 
-#Mean daily range
-aggregate(range_day)
+#fix the night labels
+tdata$Day_Night[tdata$Day_Night %in% "Nig"]<-as.factor("Night")
 
 
-###############Interpolation function
+ggplot(tdata,aes(x=TimeStamp,y=Temp,col=factor(elevation))) + stat_smooth() + labs(x="Month",y="Temp (C)",col="Elev.") + theme_bw() + scale_x_datetime(breaks=date_breaks("1 month"),labels = date_format("%b,%y")) + facet_wrap(~Day_Night)
+ggsave("Thesis//Maquipucuna_SantaLucia/Results/Ibuttons/Day_Night.jpeg",unit="in",height=9,width=12,dpi=300)
 
-getTemp<-function(Elev,D,H){
-  
-  ##Subset to correct date
-  
-  #format input date
-  dm<-months(chron(D),abbreviate=FALSE)
-  dd<-days(chron(D))
-  dy<-years(chron(D))
-  
-  ddat<-tdata[tdata$Month %in% dm & tdata$Year %in% dy & tdata$Day %in% dd ,]
-  
-  #plot day data
-  p<-ggplot(ddat,aes(y=elevation,fill=Temp,x=Hour)) + geom_tile()
-  p<-p+ geom_point(x=H,y=Elev,col="Red",size=5,shape=20) + scale_fill_continuous(low="blue",high="red")
-  print(p)
-  
-  #Fit daily temperature surface
-  mod.s<-surf.ls(2,x=tdata$elevation,y=tdata$Hour,z=tdata$Temp)
-  trsurf<-trmat(mod.s,xl=1300,xu=1700,yl=0,yu=24,n=50)
-  
-  pred.s<-predict(mod.s,x=Elev,y=H,interval="prediction")
-  return(pred.s)}
-
-#Direct prediction function
 
 
 getTemp<-function(Elev,D,H){
@@ -188,44 +167,39 @@ getTemp<-function(Elev,D,H){
   dd<-days(chron(D))
   dy<-years(chron(D))
   
-  #timeH<-chron(times=as.character(H))
-  #time_bracket<-c(hours(timeH),hours(timeH)+1)
-  #elev_bracket<-c(round(Elev,-2),round(Elev,-2) + 100)
+  #Get the closest data points. 
+  timeH<-chron(times=as.character(H))
+  time_bracket<-c(hours(timeH),hours(timeH)+1)
+  elev_bracket<-c(floor(Elev/100)*100,floor(Elev/100)*100 + 100)
   
-  ddat<-tdata[tdata$Month %in% dm & tdata$Year %in% dy & tdata$Day %in% dd ,]
+  #subset the dataset
+  ddat<-tdata[tdata$Month %in% dm & tdata$Year %in% dy & tdata$Day %in% dd & tdata$Hour %in% time_bracket & tdata$elevation %in% elev_bracket,]
   
   #take mean of replicate
   meanT<-aggregate(ddat$Temp,list(ddat$elevation,ddat$Hour),mean,na.rm=TRUE)
+  colnames(meanT)<-c("Elev","H","Temp")
   
-  colnames(meanT)<-c("x","y","z")
+  #Get the time weight and mean temp
+  tweights=c(minutes(timeH)/60,1-minutes(timeH)/60)
+  meanH<-aggregate(meanT$Temp,list(meanT$H),mean)
+  temp_mean<-weighted.mean(meanH$x,tweights)
+  
+  
+  #get the elev weight and temp
+  as.numeric(substring(Elev,3))/100
+  eweight=c(as.numeric(substring(Elev,3))/100,1-as.numeric(substring(Elev,3))/100)
+  meanE<-aggregate(meanT$Temp,list(meanT$Elev),mean)
+  Elevmean<-weighted.mean(meanE$x,eweight)
+  
+  #take mean of both, this is the current temp estimate
+  interpolated_temp<-mean(c(Elevmean,temp_mean))
+  return(interpolated_temp)
+}
 
-  
-  coordinates(meuse) = ~x+y
-  coordinates(meanT) = ~x+y
-  
-  temp.grid<-expand.grid(x=c(1300,1400,1500,1600,1700),y=0:23)
-  gridded(temp.grid) = ~x+y
-    
-    rownames(m)<-m[,1]
-  m<-m[,-1]
-  r<-as.raster(m)
-  
-  #format for interpolation
-  data2D<-data.frame(x=ddat$elevation,y=ddat$Hour,z=ddat$Temp)
-  r<-raster(SpatialPoints(data2D))
-  
-  coordinates(data2D)=~x+y
-  r<-raster(data2D)
-  setValues(r,values=ddat$Temp)
-  
-  rangeX <- seq(from = min(ddat$elevation), to = max(ddat$elevation), length = 50)
-  rangeY <- seq(from = min(ddat$Hour), to = max(ddat$Hour), length = 49)
-  
-  grid2D <- expand.grid(x = rangeX, y = rangeY)
-  gridded(grid2D) = ~x+y
-  
-  res3D <- krige(formula = z ~ 1, data2D, grid2D, model = vgm(1500, "Exp", 1300))
-  
-  #Fit daily temperature surface
-  ws
-  return(pred.s)}
+#test one
+getTemp(Elev=1410,D="3/2/2014",H="8:15:00")
+
+#test series
+plot(sapply(seq(1400,1800,10),function(x){
+  getTemp(Elev=x,D="3/2/2014",H="10:30:00")
+}))

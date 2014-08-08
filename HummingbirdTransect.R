@@ -379,7 +379,11 @@ colnames(Hrows)
 colnames(Brows)[colnames(Brows) %in% c("altitude","long")]<-c("lon","ele")
 colnames(Hrows)[colnames(Hrows) %in% c("Way.Point","Date_F.y")]<-c("GPS.ID","Date_F")
 
+class(Hrows$Date_F)
+Hrows$Date_F<-as.Date(Hrows$Date_F)
 transectRows<-rbind.fill(Brows,Hrows)
+
+#en
 
 write.csv(transectRows,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv")
 

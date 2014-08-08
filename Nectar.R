@@ -15,13 +15,20 @@ library(ggbiplot)
 #############
 
 #Nectar Script, setwd if not running globally from specialization.R
-droppath<-"C:/Users/Jorge/Dropbox/"
+#droppath<-"C:/Users/Jorge/Dropbox/"
+droppath<-"C:/Documents and Settings/Administrator/My Documents/Dropbox/"
+setwd(droppath)
+#Bring in nectar data, there is the original and the cleaned
+#Nectar <- read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/Nectar.csv",sep=""))
 
-#Bring in nectar data
-Nectar <- read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/Nectar.csv",sep=""))
+Nectar <- read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Nectar_cleaned2014.csv",sep=""))
+
 
 #Fix colnames that are ugly
 colnames(Nectar)[c(8,10,11,12,13)]<-c("Height","TubeLength","Brix","EffectiveCorolla","TotalCorolla")
+
+#####Data from image J photos of flowers#######
+imageJ <- read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013//csv/ImageJ_AdditionalMorph.csv",sep=""))
 
 ################
 #Flower Taxonomy

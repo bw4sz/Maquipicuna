@@ -40,6 +40,7 @@ for (x in 1:6){
 holgerID$Date_F<-sapply(holgerID$Date,function(x){
   #grab the year
   d<-strsplit(as.character(x),split="/")[[1]]
+  print(d)
   yr<-d[[3]]
   #get the last two characters
   yrsplit<-substr(yr, nchar(yr)-2+1, nchar(yr))
@@ -259,7 +260,7 @@ for (j in 1:nrow(full.fl)){
 head(full.fl[is.na(full.fl$month),])
 
 #plot total flowers over time
-fl.totals<-aggregate(full.fl$Total_Flowers,list(full.fl$Transect_R,full.fl$month,full.fl$Date,full.fl$Year),sum)
+fl.totals<-aggregate(full.fl$Total_Flowers,list(full.fl$Transect_R,full.fl$month,full.fl$Date,full.fl$Year),sum,na.rm=TRUE)
 colnames(fl.totals)<-c("Elev","Month","Date","Year","TotalFlowers")
 
 #One date error

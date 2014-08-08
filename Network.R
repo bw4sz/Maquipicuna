@@ -14,14 +14,16 @@ require(rPlant)
 require(maptools)
 require(taxize)
 require(picante)
+require(plyr)
 
 #Set Dropbox Location
 #Read in flower videos
-#droppath<-"C:/Users/Jorge/Dropbox/"
+droppath<-"C:/Documents and Settings/Administrator/My Documents/Dropbox"
+
 setwd(droppath)
 
 #Set Gitpath
-#gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+gitpath<-"C:/GitHub/Maquipicuna/"
 
 #Where are the outputs?
 netPath<-paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
@@ -72,13 +74,15 @@ dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))
 transect.FL<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv",row.names=1)
 
 #make the columns as similiar as possible to videodata
-colnames(transect.FL)<-c("GPS.ID","TransectID","Hummingbird","Date","Month","Transect_R","Iplant_Double","lat","lon","ele")
+colnames(transect.FL)<-c("GPS.ID","TransectID","Hummingbird","Date","Month","Transect_R","lat","lon","ele","Iplant_Double")
 
+transect.FL$Iplant_Double<-gsub("_"," ",transect.FL$Iplant_Double)
 ##############Data Imported#####################
 
 #Bind in the transect rows to the bottom of dat?
 dat<-rbind.fill(dat,transect.FL)
 
+dat$Iplant_Double<-as.factor(dat$Iplant_Double)
 ############################################
 ##############Data Import Complete##########
 ############################################
@@ -127,7 +131,7 @@ missp<-h[!h %in% clades$English]
 paste("misspelled levels",missp)
 h[h %in% missp]
 
-spellC<-c("Booted Racket-tail","Green-crowned Woodnymph","Rufous-tailed Hummingbird","UKWN","UKWN","Violet-tailed Sylph")
+spellC<-c("Booted Racket-tail","Green-crowned Woodnymph","Rufous-tailed Hummingbird","UKWN","UKWN","UKWN","Violet-tailed Sylph")
 
 paste("Spelling Correction",spellC)
 
