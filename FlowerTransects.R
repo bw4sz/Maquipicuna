@@ -14,9 +14,7 @@ require(chron)
 require(taxize)
 
 #Set DropBox Working Directory
-#setwd("C:/Users/Jorge/Dropbox/")
-
-setwd("C:/Documents and Settings/Administrator/My Documents/Dropbox")
+setwd("C:/Users/Ben/Dropbox/")
 
 #Read in workspace if desired for quick access
 load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")

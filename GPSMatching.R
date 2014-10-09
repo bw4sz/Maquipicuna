@@ -8,11 +8,10 @@ require(plotKML)
 require(reshape2)
 require(maptools)
 require(plyr)
-require(reshape)
 require(stringr)
 require(taxize)
 #Set working directory
-droppath<-"C:/Users/Jorge/Dropbox/"
+droppath<-"C:/Users/Ben/Dropbox/"
 
 setwd(droppath)
 

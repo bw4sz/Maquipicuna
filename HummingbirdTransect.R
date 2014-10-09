@@ -94,45 +94,42 @@ holgerInter<-holger.full
 
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
 Families<-levels(factor(holgerInter$Family))
-iplant_names<-ResolveNames(names=Families)
-CompareNames(Families,iplant_names)
+tax<-tnrs(query = Families, source = "iPlant_TNRS")
 
-Fam_Result<-data.frame(Families,iplant_names)
-Fam_Errors<-Fam_Result[Fam_Result$iplant_names %in% "","Families"]
-
-#Post to output which plant families need to be address
-print(paste(Fam_Errors,"not found in taxonomy database"))
+#Set the Family column
+for (x in 1:nrow(holgerInter)){
+  print(x)
+  y<-holgerInter[x,]
+  toMatch<-y$Family
+  if(!toMatch %in% tax$submittedname){next} else{
+    holgerInter[x,"Iplant_Family"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])
+  }}
 
 #Repeat for genus
 Genus<-levels(factor(holgerInter$Genus))
-iplant_names<-ResolveNames(names=Genus)
-CompareNames(Genus,iplant_names)
+tax<-tnrs(query = Genus, source = "iPlant_TNRS")
 
-Genus_Result<-data.frame(Genus,iplant_names)
-Genus_Errors<-Genus_Result[Genus_Result$iplant_names %in% "","Genus"]
-
-#Post to output which plant families need to be address
-print(paste(Genus_Errors,"not found in taxonomy database"))
-
-#Set the Genus column
+#Set the genus column
 for (x in 1:nrow(holgerInter)){
+  print(x)
   y<-holgerInter[x,]
-  holgerInter[x,"Iplant_Genus"]<-levels(droplevels(Genus_Result[Genus_Result$Genus %in% y$Genus,"iplant_names"] ))   
-}
+  toMatch<-y$Genus
+  if(!toMatch %in% tax$submittedname){next} else{
+    holgerInter[x,"Iplant_Genus"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])
+  }}
 
-#Repeat for species
-Species<-levels(factor(paste(holgerInter$Iplant_Genus,holgerInter$Species,sep="_")))
-iplant_names<-ResolveNames(Species)
-print(CompareNames(Species,iplant_names))
-Species_Result<-data.frame(Species,iplant_names)
+#Repeat for species double
+Species<-levels(factor(paste(holgerInter$Iplant_Genus,holgerInter$Species,sep=" ")))
+tax<-tnrs(query = Species,source = "iPlant_TNRS")
 
 #Set the Species column
 for (x in 1:nrow(holgerInter)){
   y<-holgerInter[x,]
-  toMatch<-paste(y$Iplant_Genus,y$Species,sep="_")
-  holgerInter[x,"Iplant_Double"]<-levels(droplevels(
-    Species_Result[Species_Result$Species %in% toMatch,"iplant_names"] ))   
-}
+  toMatch<-factor(paste(y$Iplant_Genus,y$Species,sep=" "))
+  if(!toMatch %in% tax$submittedname){next} else{
+    holgerInter[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])
+  }}
+
 
 #Lots of cleaning left to do, but that's a start. 
 
@@ -274,24 +271,25 @@ hum.id$Transect_R<-paste(hum.id$Elevation.Begin,hum.id$Elevation.End,sep="_")
 #Take out empty rows?
 #hum.id<-hum.id[!is.na(hum.id$Plant.Species),]
 
+############################
 ###Taxonomoy of plant names
+############################
+
 #Repeat for genus
 plants<-levels(factor(hum.id$Plant.Species))
-iplant_names<-ResolveNames(names=plants)
-CompareNames(plants,iplant_names)
+#Go through a series of data cleaning steps, at the end remove all rows that are undesired
 
-Genus_Result<-data.frame(plants,iplant_names)
-Genus_Errors<-Genus_Result[Genus_Result$iplant_names %in% "","Genus"]
+Families<-levels(factor(plants))
+tax<-tnrs(query = Families, source = "iPlant_TNRS")
 
-#Post to output which plant families need to be address
-print(paste(Genus_Errors,"not found in taxonomy database"))
-
-#Set the plant column
+#Set the Family column
 for (x in 1:nrow(hum.id)){
+  print(x)
   y<-hum.id[x,]
-  if(is.na(y$Plant.Species)){next}
-  hum.id[x,"Iplant_Double"]<-levels(droplevels(Genus_Result[Genus_Result$plants %in% y$Plant.Species,"iplant_names"] )) 
-}
+  toMatch<-y$Plant.Species
+  if(!toMatch %in% tax$submittedname){next} else{
+    hum.id[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])
+  }}
 
 ###########################
 #Attach GPS information
