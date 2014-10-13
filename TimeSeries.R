@@ -6,10 +6,12 @@ require(scales)
 
 #If not run globally.
 
-#setwd("C:/Users/Jorge/Dropbox/")
-
-
-setwd("C:/Documents and Settings/Administrator/My Documents/Dropbox")
+#Set Dropbox Location
+#setwd to dropbox
+droppath<-"C:/Users/Ben/Dropbox/"
+setwd(droppath)
+#Set github path
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 ##Bird interaction matrix
 dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
@@ -34,7 +36,7 @@ ggsave("Thesis//Maquipucuna_SantaLucia/Results/DateElevation.svg",height=8,width
 obs<-as.data.frame.array(table(dat$Hummingbird))
 
 p<-ggplot(dat,aes(y=ele,x=Hummingbird,fill=Hummingbird))
-p<-p + geom_boxplot() + coord_flip() + labs(y="Elevation(m)",x="") + scale_fill_discrete(guide='none') + theme_bw()
+p<-p + geom_boxplot(varwidth=TRUE) + coord_flip() + labs(y="Elevation(m)",x="") + scale_fill_discrete(guide='none') + theme_bw()
 p
 ggsave("Thesis//Maquipucuna_SantaLucia/Results/ElevationRanges.pdf",dpi=600)
 

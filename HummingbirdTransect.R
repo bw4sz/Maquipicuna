@@ -351,7 +351,7 @@ print(p)
 ################################################
 #Combine Holger's transect data with summer data
 ################################################
-fullInter<-rbind(humInter,monthInter)
+fullInter<-rbind.fill(humInter,monthInter)
 
 p<-ggplot(fullInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month,nrow=2) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
 p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))

@@ -24,7 +24,7 @@ NetworkC<-function(datf,naming){
   
   #View Web
   svg(filename="WebPlot.svg",height=7,width=15)
-  plotweb(F_H)
+  plot(F_H)
   dev.off()
   
   #create a order for hummingbirds
@@ -40,7 +40,7 @@ NetworkC<-function(datf,naming){
   sequ<-list(seq.high=toOrd,seq.low=Plab)
   
   svg(filename="WebPlotOrder.svg",height=7,width=15)
-  plotweb(F_H,sequence=sequ)
+  plot(F_H,sequence=sequ)
   dev.off()
   
   #Interaction matrix

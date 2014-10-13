@@ -284,13 +284,12 @@ p<-ggplot(fl.totals,aes(x=Elev,TotalFlowers,color=Year)) + geom_point(size=3)  +
 p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylab("# of Hummingbird Visited Flowers") + xlab("Elevation Range (m)")
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerMonths.jpeg",height=8,width=10)
 
-
 #Flowers at each elevation over time
 ggplot(fl.totals,aes(x=Month.a,TotalFlowers,col=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Year)) + facet_wrap(~Elev,scales="free_x") + ylab("Hummingbird Visited Flowers") + xlab("Month") + labs(col="Transect Elevation Range")
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10,dpi=300)
 
-#Flowers at each elevation over time
-ggplot(fl.totals[!(fl.totals$Month %in% c(6,7,8) & fl.totals$Year %in% "2013"),],aes(x=Month.a,TotalFlowers,col=Elev,shape=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + ylab("Flowers") + xlab("Month") + facet_wrap(~Elev,scales="free_y")
+#Flowers at each elevation over time without Karen's data
+ggplot(fl.totals[!(fl.totals$Month %in% c(6,7,8) & fl.totals$Year %in% "2013"),],aes(x=Month.a,TotalFlowers,col=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Year)) + ylab("Flowers") + xlab("Month") + facet_wrap(~Elev,scales="free_y")
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevationsHolger.jpeg",height=8,width=10,dpi=300)
 
 #Write flower totals
@@ -319,8 +318,8 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/TaxonomyT
 ggplot(fl.totals,aes(x=as.factor(Month),TotalFlowers,col=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free_x") + scale_y_continuous(limits=c(0,5500),breaks=seq(0,5000,1000))
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10)
 
-ggplot(fl.totals[!fl.totals$Month %in% c(6,7,8),],aes(x=as.factor(Month),TotalFlowers,col=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free") + scale_y_continuous(limits=c(0,5500),breaks=seq(0,5000,1000))
-ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations_Holger.jpeg",height=8,width=10)
+ggplot(fl.totals[!fl.totals$Month %in% c(6,7,8),],aes(x=as.factor(Month),TotalFlowers,col=Year)) + geom_point(size=4) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free") + scale_y_continuous(limits=c(0,5500),breaks=seq(0,5000,1000))
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations_Holger.jpeg",dpi=1000,width=15)
 
 
 

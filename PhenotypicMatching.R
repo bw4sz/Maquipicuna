@@ -10,7 +10,13 @@ require(plyr)
 
 
 #Setwd if not run globally
-droppath<-"C:/Documents and Settings/Administrator/My Documents/Dropbox/"
+#Set Dropbox Location
+#setwd to dropbox
+droppath<-"C:/Users/Ben/Dropbox/"
+setwd(droppath)
+#Set github path
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+
 
 setwd(droppath)
 

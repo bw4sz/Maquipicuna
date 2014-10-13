@@ -17,13 +17,11 @@ require(picante)
 require(plyr)
 
 #Set Dropbox Location
-#Read in flower videos
-droppath<-"C:/Documents and Settings/Administrator/My Documents/Dropbox"
-
+#setwd to dropbox
+droppath<-"C:/Users/Ben/Dropbox/"
 setwd(droppath)
-
-#Set Gitpath
-gitpath<-"C:/GitHub/Maquipicuna/"
+#Set github path
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 #Where are the outputs?
 netPath<-paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Network/",sep="")
@@ -74,7 +72,7 @@ dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))
 transect.FL<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv",row.names=1)
 
 #make the columns as similiar as possible to videodata
-colnames(transect.FL)<-c("GPS.ID","TransectID","Hummingbird","Date","Month","Transect_R","lat","lon","ele","Iplant_Double")
+colnames(transect.FL)<-c("GPS.ID","TransectID","Hummingbird","Date","Month","Transect_R","Iplant_Double","lat","lon","ele")
 
 transect.FL$Iplant_Double<-gsub("_"," ",transect.FL$Iplant_Double)
 ##############Data Imported#####################
@@ -162,6 +160,7 @@ print(paste("Final Hummingbird Species:",levels(dat_e$Hummingbird)))
 write.csv(dat_e,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
 print("data cleaned")
+
 ############################################
 #Run Network Function for the entire dataset
 NetworkC(datf=dat_e,naming="Total")
@@ -292,7 +291,6 @@ metricskeep<-c("nestedrank","resource.range","betweenness","d","degree","species
 H.c<-cast(Hum.Time,...~Metric)
 Hum.Time<-melt(H.c)
 
-
 #Quick and dirty look across species 
 ggplot(Hum.Time,aes(Time,value,col=Species)) + facet_wrap(~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
 ggsave(paste(netPath,"TimeFigures/HumSpecies_Time.svg",sep=""),height=8,width=11)
@@ -304,6 +302,7 @@ for(x in levels(droplevels(Hum.Time$Species))){
   
   #drop the total column and added a dashed total line
   p<-ggplot(Hum.Time[Hum.Time$Species %in% x & !Hum.Time$Time %in% "Total",],aes(as.numeric(Time),value)) + facet_wrap(~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
+  p
   ggsave(paste(netPath,paste(x,".svg",sep=""),sep="TimeFigures/"),height=8,width=11) 
 
 }
@@ -330,7 +329,6 @@ head(month.Prop)
 setwd(droppath)
 load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
-#THIS NEEDS TO BE FIXED
 #setwd to dropbox
 droppath<-"C:/Users/Ben/Dropbox/"
 setwd(droppath)
@@ -351,10 +349,10 @@ month.Hum<-month.Prop[month.Prop$Level == "Hummingbirds",]
 network.fl<-merge(month.totals,month.Hum,by.x="Month",by.y="Time")
 
 #Quick visualization, get rid of some months for now
-p<-ggplot(network.fl[!network.fl$Month %in% c(3,4,5),],aes(Flowers,value,shape=Year,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point(size=3) + geom_smooth(method="lm",aes(group=Year)) + theme_bw()
+p<-ggplot(network.fl[,],aes(Flowers,value,shape=Year,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point(size=3) + geom_smooth(method="lm",aes(group=Year)) + theme_bw()
 ggsave(paste(netPath,"NetworkPropFlowers.svg",sep=""),height=8,width=11,dpi=300)
 
-p<-ggplot(network.fl[!network.fl$Month %in% c(3,4,5) & network.fl$Metric %in% c("connectance","cluster coefficient"),],aes(Flowers,value,shape=Year,col=as.factor(Month))) + facet_wrap(~Metric,scale="free",nrow=2) + geom_point(size=3) + geom_smooth(method="lm",aes(group=Year)) + theme_bw() + labs(col="Month")
+p<-ggplot(network.fl[ network.fl$Metric %in% c("connectance","cluster coefficient"),],aes(Flowers,value,shape=Year,col=as.factor(Month))) + facet_wrap(~Metric,scale="free",nrow=2) + geom_point(size=3) + geom_smooth(method="lm",aes(group=Year)) + theme_bw() + labs(col="Month")
 ggsave(paste(netPath,"NetworkConnectance.jpeg",sep=""),height=11,width=8,dpi=300) 
 
 ###############################################
