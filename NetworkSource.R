@@ -10,10 +10,9 @@ NetworkC<-function(datf,naming){
   dir.create(toset,recursive=TRUE)
   setwd(toset)
   
-  #Drop any unused factors?
-  datf<-droplevels(datf)
-  
-  #Drop any observations without plants
+
+  #remove species without
+  #Drop any observations without 2 names in Iplant_Double
   datf<-droplevels(datf[!datf$Iplant_Double %in% "",])
   
   #Interaction of flowers and birds
@@ -57,8 +56,8 @@ NetworkC<-function(datf,naming){
   a$Birds<-factor(a$Birds,levels=orderbirds)
   
   ggplot(a[a$value>0,],aes(x=Birds,y=Flowers,fill=value)) + geom_tile()+ theme_bw() + scale_fill_continuous(low="blue",high="red") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(fill="# of Visits")
-  ggsave("MatrixPlot.jpeg",dpi=300,height=8,width=8)
-  ggsave("MatrixPlot.eps",dpi=300,height=8,width=8)
+  ggsave("MatrixPlot.jpeg",dpi=300,height=10,width=8)
+  ggsave("MatrixPlot.eps",dpi=300,height=10,width=8)
   
   #Metrics across entire
   tryCatch(birds.prop<-data.frame(HummingbirdNetwork=networklevel(F_H,level="higher")),error=function(e)
@@ -218,13 +217,6 @@ NetworkC<-function(datf,naming){
   svg("Hummingbird3d.jpeg")
   gplot(H_H)
   dev.off()
-  
-  #Plot matrix of interactions
-  #There was an error on the svg
-  jpeg(filename="MatrixPlot.jpeg",height=8,width=8,units="in",res=300)
-  visweb(F_H)
-  dev.off()
-  
   
   
   ########################################

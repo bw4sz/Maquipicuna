@@ -81,6 +81,12 @@ source(paste(gitpath,"PhenotypicMatching.R",sep=""))
 load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
 
 ########################
+#Null Models
+########################
+
+source(paste(gitpath,"NullModels.R",sep=""))
+
+########################
 #Network Topology
 #######################
 

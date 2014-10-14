@@ -20,6 +20,8 @@ gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 setwd(droppath)
 
+load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
+
 #read in flower morphology data, comes from Nectar.R
 fl.morph<-read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/FlowerMorphology.csv",sep=""))
 
@@ -231,7 +233,7 @@ p + theme_bw()
 ####################################################################
 
 setwd(droppath)
-load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
 #setwd to dropbox
 
@@ -239,7 +241,6 @@ droppath<-"C:/Documents and Settings/Administrator/My Documents/Dropbox/"
 
 setwd(droppath)
 #Set github path
-gitpath<-"C:/GitHub/Maquipicuna"
 
 #The aggregate totals of the flower assemblage
 head(fl.totals)
@@ -264,7 +265,6 @@ ggplot(month.totals,aes(x=Month,y=Flowers,col=Year,shape=Elev)) + geom_point()
 m.datH$R<-cut(m.datH$ele,c(1300,1700,2500),include.lowest=TRUE,c("Low","High"))
 
 #create a linear model for each month
-
 
 s.datH<-split(m.datH,list(m.datH$R,m.datH$Month,m.datH$Year),drop=TRUE)
 lapply(s.datH,nrow)
@@ -315,6 +315,8 @@ nStats<-merge(month.totals,coeff,by=c("Month","Year","Elev"))
 p<-ggplot(data=nStats,aes(x=Flowers,y=cor,shape=Year,col=p < 0.05)) + geom_point(size=3) + geom_smooth(method="lm",aes(group=1)) #+ geom_text(size=3.5,vjust=-.5)
 p+ theme_bw()  + labs(y="Cor (Bill~Corolla)",x="Available Resources",col="P < 0.05") + geom_text(aes(label=monthtr(Month)),size=3.5,vjust=-.5) + facet_wrap(~Elev,scales="free")
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/MatchingCor.jpeg",height=8,width=11,dpi=300)
+
+write.csv(nStats,"Thesis/Maquipucuna_SantaLucia/Results/Phenotype/MatchingCor.csv")
 
 ###########Per species??
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/MatchingCor.jpeg",height=8,width=11,dpi=300)
