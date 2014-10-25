@@ -15,21 +15,25 @@ library(ggbiplot)
 #############
 
 #Nectar Script, setwd if not running globally from specialization.R
-#droppath<-"C:/Users/Jorge/Dropbox/"
-droppath<-"C:/Documents and Settings/Administrator/My Documents/Dropbox/"
+droppath<-"C:/Users/Ben/Dropbox/"
+
 setwd(droppath)
+
 #Bring in nectar data, there is the original and the cleaned
-#Nectar <- read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/Nectar.csv",sep=""))
-
 Nectar <- read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Nectar_cleaned2014.csv",sep=""))
-
 
 #Fix colnames that are ugly
 colnames(Nectar)[c(8,10,11,12,13)]<-c("Height","TubeLength","Brix","EffectiveCorolla","TotalCorolla")
 
 #####Data from image J photos of flowers#######
 imageJ <- read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013//csv/ImageJ_AdditionalMorph.csv",sep=""))
+colnames(imageJ)[c(8,10,11,12,13)]<-c("Height","TubeLength","Brix","EffectiveCorolla","TotalCorolla")
 
+##Data from Santa Lucia Flower Book##########
+FB <- read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013//csv/FlowerBookSantaLucia.csv",sep=""))
+colnames(FB)<-c("Family","Genus","Species","TotalCorolla","Corolla.Width")
+head(dat<-rbind.fill(Nectar,imageJ))
+head(dat<-rbind.fill(dat,FB))
 ################
 #Flower Taxonomy
 ################
@@ -96,7 +100,7 @@ ggsave("Thesis/Maquipucuna_SantaLucia/Results/FloralPCA.svg",height=10,width=10,
 
 # #Some basic visualizations to check data clarity
 # #number of records per species
- m.Nectar<-melt(table(Nectar[!is.na(Nectar$Brix),]$Iplant_Double))
+m.Nectar<-melt(table(Nectar[!is.na(Nectar$Brix),]$Iplant_Double))
 ggplot(m.Nectar,aes(Var.1,value)) + geom_point(size=5)+ theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
 # 
 # #Sugar Concentration's of 0 to NA
