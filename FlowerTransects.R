@@ -289,7 +289,7 @@ ggplot(fl.totals,aes(x=Month.a,TotalFlowers,col=Year)) + geom_point(size=3) + th
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10,dpi=300)
 
 #Flowers at each elevation over time without Karen's data
-ggplot(fl.totals[!(fl.totals$Month %in% c(6,7,8) & fl.totals$Year %in% "2013"),],aes(x=Month.a,TotalFlowers,col=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Year)) + ylab("Flowers") + xlab("Month") + facet_wrap(~Elev,scales="free_y")
+ggplot(fl.totals[!(fl.totals$Month %in% c(6,7,8) & fl.totals$Year %in% "2013"),],aes(x=Month.a,TotalFlowers,shape=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=1)) + ylab("Flowers") + xlab("Month") + facet_wrap(~Elev,scales="free_y")
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevationsHolger.jpeg",height=8,width=10,dpi=300)
 
 #Write flower totals

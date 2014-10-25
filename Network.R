@@ -148,6 +148,24 @@ table(dat$Pierce)
 datPierce<-dat_e[dat_e$Piercing %in% c("Yes","YES","y","Y"),]
 dat_e<-dat_e[!dat_e$Pierce %in% c("Yes","YES","y","Y"),]
 
+#remove species without double name
+
+#Drop any unused factors?
+dat_e<-droplevels(dat_e)
+
+#Drop any observations without plants
+dat_e<-droplevels(dat_e[!dat_e$Iplant_Double %in% "",])
+
+sp_l<-levels(dat_e$Iplant_Double)
+
+l<-sapply(sp_l,function(x){
+  str2 <- gsub(' {2,}',' ',x)
+  length(strsplit(str2,' ')[[1]])
+})
+
+sp_r<-names(which(l==1))
+
+dat_e<-droplevels(dat_e[!dat_e$Iplant_Double %in% sp_r,])
 #################Data Cleaning Complete################
 
 #Final levels
@@ -227,6 +245,9 @@ levels(m.Prop$Level)<-c("Hummingbirds","Plants")
 #If you want to remove overall metrics
 month.Prop<-m.Prop[!m.Prop$Time=="Total",]
 
+#write csv to file
+write.csv(month.Prop,"C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Results/Network/timeMetrics.csv")
+
 #For each metric plot them with time
 dir.create(paste(netPath,"TimeFigures",sep=""))
 setwd(paste(netPath,"TimeFigures",sep=""))
@@ -241,11 +262,14 @@ droplevels(month.Prop)
 
 p<-ggplot(na.omit(month.Prop),aes(x=factor(Time),y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level)) + facet_wrap(~Metric,scales="free_y") 
 p + theme_bw() 
+ggsave("MetricsFacet.svg",height=8,width=11)
 
 ##Add a trend line across all months?
+
+
+
 #be interested to add a "mean line" and then the value of the total network...
 
-ggsave("MetricsFacet.svg",height=8,width=11)
 
 dir.create("Metric_TimePlots")
 setwd("Metric_TimePlots")
@@ -348,6 +372,8 @@ month.Hum<-month.Prop[month.Prop$Level == "Hummingbirds",]
 #combine the flower totals and network metrics
 network.fl<-merge(month.totals,month.Hum,by.x="Month",by.y="Time")
 
+#write to file
+write.csv(network.fl,"C:\\Users\\Ben\\Dropbox\\Thesis\\Maquipucuna_SantaLucia\\Results\\Network//networkflowers.csv")
 #Quick visualization, get rid of some months for now
 p<-ggplot(network.fl[,],aes(Flowers,value,shape=Year,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point(size=3) + geom_smooth(method="lm",aes(group=Year)) + theme_bw()
 ggsave(paste(netPath,"NetworkPropFlowers.svg",sep=""),height=8,width=11,dpi=300)
