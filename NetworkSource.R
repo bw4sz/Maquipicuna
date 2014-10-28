@@ -130,12 +130,17 @@ NetworkC<-function(datf,naming){
   #Hummingbird
   H_H<-as.one.mode(F_H,project="higher")
   
+  require(igraph)
+  gr<-graph.adjacency(H_H)
+  betweenness(gr)
   #Bird Bray Distance
   m.HH<-as.matrix(vegdist(t(F_H),"bray"))
   diag(m.HH)<-NA
-  m.HH<-melt(as.matrix(m.HH))
+  m.HH[upper.tri(m.HH)]<-NA
+  m.HH<-melt(m.HH)
+  m.HH$value[m.HH$value==1]<-NA
   #Plot Resource overlap between hummingbird Species
-  ggplot(m.HH,aes(X1,X2,fill=value)) + geom_tile() + scale_fill_continuous(low="blue",high="red",na.value="white") + theme(axis.text.x = element_text(angle = 90, hjust = 1),panel.background=element_rect(color="white"))
+  ggplot(m.HH,aes(Var1,Var2,fill=1-value)) + geom_tile() + scale_fill_continuous(low="blue",high="red",na.value="white") + theme(axis.text.x = element_text(angle = 90, hjust = 1),panel.background=element_rect(color="white")) + labs(x="",y="",fill="Resource similarity")
   ggsave("ResourceOverlap.svg",height=8,width=11)
   
   #Relatedness and flower overlap, very rudimentary test so far

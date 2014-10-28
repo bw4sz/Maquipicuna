@@ -56,15 +56,16 @@ load("Thesis/Maquipucuna_SantaLucia/Results/Nectar.Rdata")
 ########################
 
 source(paste(gitpath,"HummingbirdTransect.R",sep=""))
-load("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
 
 #################
 #Network Analysis
 #################
 
 source(paste(gitpath,"Network.R",sep=""))
-#Load from source:
-load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
+
+#Or Load from source:
+#load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 
 #########################
 #Hummingbird Morphological Analysis
@@ -84,7 +85,7 @@ source(paste(gitpath,"TimeSeries.R",sep=""))
 #########################
 
 source(paste(gitpath,"PhenotypicMatching.R",sep=""))
-load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
 
 ########################
 #Null Models
