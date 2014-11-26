@@ -23,13 +23,10 @@ f<-list.files("Thesis\\Maquipucuna_SantaLucia\\Data2013\\GPS",full.names=TRUE,pa
 
 gpx<-list()
 for (x in 1:length(f)){
-  print(x)
   try(
   gpx[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
 }
 
-#Which one failed? Why?
-readGPX(f[135])
 
 #read in 
 formerGPS<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/GPS/Ben2013SummerGPS.txt",header=TRUE)
@@ -44,7 +41,6 @@ g<-list.files("Holger\\Transect_Protocol_Holger\\WayPoints",full.names=TRUE,patt
 #loop through input files and find the errors. 
 gpx2<-list()
 for (x in 1:length(g)){
-  print(x)
   try(
     gpx2[[x]]<-readGPX(g[x],waypoints=TRUE)$waypoints)
 }
@@ -55,7 +51,6 @@ g<-list.files("Nelly\\DataEntry\\Nelly Informacion Camaras\\WAYPOINTS",full.name
 #loop through input files and find the errors. 
 gpx3<-list()
 for (x in 1:length(g)){
-  print(x)
   try(
     gpx3[[x]]<-readGPX(g[x],waypoints=TRUE)$waypoints)
 }
@@ -223,7 +218,6 @@ tax<-tnrs(query = unique(SpeciesG), source = "iPlant_TNRS")
 
 #Set the Species column
 for (x in 1:nrow(datg)){
-  print(x)
   y<-datg[x,]
   toMatch<-y$Flower
   datg[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])
@@ -231,3 +225,5 @@ for (x in 1:nrow(datg)){
 
 #Write camera data to file
 write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoClean.csv")
+
+print("GPS data merge complete")
