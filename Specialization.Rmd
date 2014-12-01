@@ -1,0 +1,153 @@
+---
+title: "Hummingbird Resource Specialization"
+author: "Ben Weinstein"
+date: "Wednesday, November 26, 2014"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+---
+
+#Aim
+
+This is the master script that runs the data cleaning and baseline figures for the on going data collection at the Maquipucuna and Santa Lucia ecolodges.
+
+#Version Control
+This project can be cloned at github repo: 
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+library(knitr)
+opts_chunk$set(fig.width=11,echo=FALSE,cache=TRUE,cache.path = 'Specialization_cache/', fig.path='figure/',warning=FALSE,message=FALSE)
+```
+
+
+```{r}
+#setwd to dropbox
+droppath<-"C:/Users/Ben/Dropbox/"
+setwd(droppath)
+#Set github path
+gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
+```
+
+The first set of scripts are desciptive that clean, aggregate and quantify flowers, morphology, and hummingbird interactions.
+
+#Format Geospatial Data
+
+Each hummingbird and plant sighting comes with a GPS tag for spatial mapping. 
+
+* These records need to be matched to the biodiversity data
+* Remove duplicates
+* Each data point should have a time stamp and elevation.
+
+```{r}
+source(paste(gitpath,"GPSMatching.R",sep=""))
+```
+
+#Flowers Transects
+
+Twice a month we census the number of available hummingbird floral resources along the elevation gradient. 
+
+* Taxonomic cleaning
+* Mulitply number of stalks * inflorescences to estimate floral abundance
+* Aggregate statistics on flowers/elevation over time
+
+```{r}
+source(paste(gitpath,"FlowerTransects.R",sep=""))
+#Load from source:
+#load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+```
+
+##Match with GPS information
+```{r}
+source(paste(gitpath,"GPSFlowerTransects.R",sep=""))
+```
+
+#Flower Morphology
+We measure corolla characteristics for each flower species along the elevation gradient.
+
+* Clean taxonomy
+* PCA of floral traits
+
+```{r}
+source(paste(gitpath,"Nectar.R",sep=""))
+load("Thesis/Maquipucuna_SantaLucia/Results/Nectar.Rdata")
+```
+
+##Flower Phylogeny
+Using online tool Phylomatic (link), we can get the backbone of the phylogeny of the flowers
+
+```{r}
+source(paste(gitpath,"Phylogeny.R",sep=""))
+#load("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
+```
+
+#Hummingbird Transects
+
+We conduct six elevation transects twice a month to estimate hummingbird diversity and distribution.
+
+```{r}
+source(paste(gitpath,"HummingbirdTransect.R",sep=""))
+load("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
+```
+
+#Hummingbird - Flower Interactions
+
+Using both the hummingbird observation as well as time lapse cameras, we quantify the number of visits for each hummingbird to each flower species.
+
+##Network analysis
+
+Visualize the interactions a quantative bipartite network.
+
+```{r}
+source(paste(gitpath,"Network.R",sep=""))
+#Load from source:
+load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
+```
+
+##Hummingbird Morphology
+
+To measure the bill lengths of each hummingbird species, as well as other foot and wing traits to associate with flower visitation and behavior.
+
+```{r}
+source(paste(gitpath,"Morphology.R",sep=""))
+load("Thesis/Maquipucuna_SantaLucia/Results/Morphology.Rdata")
+```
+
+##Time Series
+
+Plot hummingbird and flower distribution over space and time
+```{r}
+source(paste(gitpath,"TimeSeries.R",sep=""))
+```
+
+##Phenotypic Matching 
+
+Does the correlation between corolla length and bill length explain hummingbird visitation?
+
+```{r}
+source(paste(gitpath,"PhenotypicMatching.R",sep=""))
+load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
+```
+
+##Null Models
+
+Network structure could be a function of the number of interactions, rather than an ecological characteristic. We can create random reorganizations of the network to measure the amount our observed data deviates from a randomization with respect to abundance of interactions.
+
+```{r}
+source(paste(gitpath,"NullModels.R",sep=""))
+```
+
+
+# Experimental Analysis
+
+##Topology:
+```{r}
+source(paste(gitpath,"Topology.R",sep=""))
+```
+
+##Network Dissimilarity
+
+```{r}
+#source(paste(gitpath,"NetworkDiss.R",sep=""))
+```
