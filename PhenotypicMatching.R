@@ -20,7 +20,7 @@ gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 setwd(droppath)
 
-load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
 
 #read in flower morphology data, comes from Nectar.R
 fl.morph<-read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/FlowerMorphology.csv",sep=""))
@@ -39,6 +39,7 @@ int<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteract
 #Melt the interaction frame and match it with the traits
 m.dat<-int[colnames(int) %in% c("ID","Video","Time","Hummingbird","Sex","TransectID","Transect_R","Iplant_Double","Pierce","DateP","Month","ele")]
 
+m.dat$Year<-years(as.Date(m.dat$DateP))
 #Fix spacing to match clades
 
 #Which are matching

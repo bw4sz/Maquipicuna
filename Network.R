@@ -184,19 +184,13 @@ print("data cleaned")
 NetworkC(datf=dat_e,naming="Total")
 ############################################
 
-############################################
-#Run Network Function for the entire dataset, with elev seperatiton?
-dat.split<-split(dat_e,cut(dat_e$ele,breaks=c(1300,1700,2500),dig.lab=4,labels=c("Total_Low","Total_High")),drop=TRUE)
-
-for (x in 1:length(dat.split)){
-  NetworkC(datf=dat.split[[x]],naming=paste("Total",names(dat.split)[[x]],sep="/"))
-}
-
 #############################################
 #Temporal Change in Network Structure
 #############################################
-
-dat.split<-split(dat_e,dat_e$Month,drop=TRUE)
+#make a year columns
+dat_e$Year<-years(dat_e$DateP)
+dat_e[dat_e$Year %in% "2012","Year"]<-2013
+dat.split<-split(dat_e,list(dat_e$Month,dat_e$Year),drop=TRUE)
 
 #############################################
 #Compute metrics for each month
@@ -206,15 +200,6 @@ for (x in 1:length(dat.split)){
   NetworkC(datf=dat.split[[x]],naming=paste("Temporal",names(dat.split)[[x]],sep="/"))
 }
 
-#############################################
-#Compute metrics for each month split by elev
-#############################################
-dat.split<-split(dat_e,list(dat_e$Month,cut(dat_e$ele,breaks=c(1300,1700,2500),dig.lab=4,labels=c("Low","High"))),drop=TRUE)
-
-names(dat.split)<-gsub("\\.","/",names(dat.split))
-for (x in 1:length(dat.split)){
-  NetworkC(datf=dat.split[[x]],naming=paste("Temporal_Split",names(dat.split)[[x]],sep="/"))
-}
 
 ############################################
 ##############Networks Created##############
@@ -258,10 +243,17 @@ droplevels(month.Prop)
 #metricskeep<-c("connectance","links per species","nestedness","Shannon diversity","H2","niche overlap","robustness.HL","number of compartments","robustness.LL","number.of.species.HL")
 #month.Prop<-droplevels(month.Prop[month.Prop$Metric %in% metricskeep,])
 
-#Quick and dirty look at all metrics
+#format time
+month.Prop$Month<-as.numeric(sapply(month.Prop$Time,function(x){  strsplit(x,"\\.")[[1]][1]}))
+month.Prop$Year<-as.numeric(sapply(month.Prop$Time,function(x){  strsplit(x,"\\.")[[1]][2]}))
+month.Prop$Date<-paste("1",month.Prop$Month,month.Prop$Year,sep="/")
 
-p<-ggplot(na.omit(month.Prop),aes(x=factor(Time),y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level)) + facet_wrap(~Metric,scales="free_y") 
-p + theme_bw() 
+
+month.Prop$Date<-as.Date(month.Prop$Date,format="%d/%m/%Y")
+
+
+p<-ggplot(na.omit(month.Prop),aes(x=Date,y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level)) + facet_wrap(~Metric,scales="free_y",ncol=4) 
+p + theme_bw() + scale_x_date(labels = date_format("%b-%y"),breaks= "4 months") + geom_smooth(col="black",linetype="dashed",size=.5)
 ggsave("MetricsFacet.svg",height=8,width=11)
 
 ##Add a trend line across all months?
@@ -308,6 +300,14 @@ colnames(Hum.Time)<-c("Species","Metric","value","Time")
 #Just get the Metrics which make sense for this analysis
 head(Hum.Time)
 
+#format time
+Hum.Time$Month<-as.numeric(sapply(Hum.Time$Time,function(x){  strsplit(x,"\\.")[[1]][1]}))
+Hum.Time$Year<-as.numeric(sapply(Hum.Time$Time,function(x){  strsplit(x,"\\.")[[1]][2]}))
+Hum.Time$Date<-paste("1",Hum.Time$Month,Hum.Time$Year,sep="/")
+
+
+Hum.Time$Date<-as.Date(Hum.Time$Date,format="%d/%m/%Y")
+
 metricskeep<-c("nestedrank","resource.range","betweenness","d","degree","species.strength")
   Hum.Time<-droplevels(Hum.Time[Hum.Time$Metric %in% metricskeep ,])
 
@@ -316,8 +316,10 @@ H.c<-cast(Hum.Time,...~Metric)
 Hum.Time<-melt(H.c)
 
 #Quick and dirty look across species 
-ggplot(Hum.Time,aes(Time,value,col=Species)) + facet_wrap(~Metric,scales="free") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw()
+ggplot(Hum.Time,aes(Date,value,col=Species)) + facet_grid(Species~Metric,scales="free_x") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw() + scale_x_date(breaks="4 months")
 ggsave(paste(netPath,"TimeFigures/HumSpecies_Time.svg",sep=""),height=8,width=11)
+
+ggplot(Hum.Time[Hum.Time$Metric %in% "d",],aes(Date,value,col=Species)) + facet_wrap(~Species,scales="free_x") + geom_line(linetype="dashed",aes(group=Species)) + geom_point() + theme_bw() + scale_x_date(breaks="4 months")
 
 #Plot for each species, or for each metric?
 for(x in levels(droplevels(Hum.Time$Species))){
@@ -363,19 +365,20 @@ gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 head(fl.totals)
 
 #aggregate by month for now, not elev split
-month.totals<-aggregate(fl.totals$TotalFlowers,list(fl.totals$Month,fl.totals$Year),sum)
+month.totals<-aggregate(fl.totals$TotalFlowers/1000,list(fl.totals$Month,fl.totals$Year),sum)
 colnames(month.totals)<-c("Month","Year","Flowers")
 
 #Start with just hummingbird levels
 month.Hum<-month.Prop[month.Prop$Level == "Hummingbirds",]
 
 #combine the flower totals and network metrics
-network.fl<-merge(month.totals,month.Hum,by.x="Month",by.y="Time")
+network.fl<-merge(month.totals,month.Hum,by=c("Month","Year"))
 
 #write to file
 write.csv(network.fl,"C:\\Users\\Ben\\Dropbox\\Thesis\\Maquipucuna_SantaLucia\\Results\\Network//networkflowers.csv")
-#Quick visualization, get rid of some months for now
+#Quick visualization, 
 p<-ggplot(network.fl[,],aes(Flowers,value,shape=Year,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point(size=3) + geom_smooth(method="lm",aes(group=Year)) + theme_bw()
+p
 ggsave(paste(netPath,"NetworkPropFlowers.svg",sep=""),height=8,width=11,dpi=300)
 
 p<-ggplot(network.fl[ network.fl$Metric %in% c("connectance","cluster coefficient"),],aes(Flowers,value,shape=Year,col=as.factor(Month))) + facet_wrap(~Metric,scale="free",nrow=2) + geom_point(size=3) + geom_smooth(method="lm",aes(group=Year)) + theme_bw() + labs(col="Month")
@@ -388,7 +391,7 @@ head(Hum.Time)
 
 #Take out the total time
 Hum.Time<-Hum.Time[!Hum.Time$Time %in% "Total",]
-hum.fl<-merge(month.totals,Hum.Time,by.x="Month",by.y="Time")
+hum.fl<-merge(month.totals,Hum.Time,by=c("Month","Year"))
 
 #Need to subset by number of interactions, get rid of the species just seen once?
 with(hum.fl,table(Species,Month))
