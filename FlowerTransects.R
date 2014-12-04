@@ -7,7 +7,7 @@
 require(ggplot2)
 require(reshape2)
 require(maptools)
-library(plyr)
+library(dplyr)
 require(plotKML)
 require(reshape)
 require(chron)
@@ -17,7 +17,7 @@ require(taxize)
 setwd("C:/Users/Ben/Dropbox/")
 
 #Read in workspace if desired for quick access
-load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
 #Read in Flower Transect Data from summer field season
 fl<-read.csv(file="Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerTransects.csv")
@@ -38,7 +38,6 @@ for (x in 1:6){
 holgerID$Date_F<-sapply(holgerID$Date,function(x){
   #grab the year
   d<-strsplit(as.character(x),split="/")[[1]]
-  print(d)
   yr<-d[[3]]
   #get the last two characters
   yrsplit<-substr(yr, nchar(yr)-2+1, nchar(yr))
@@ -91,12 +90,6 @@ which(!TID.f$TransectID %in% fl$Transect.ID)
 #Missing level?
 fl.id<-merge(fl,TID.f,by.x="Transect.ID",by.y="TransectID")
 
-#How many rows did we lose?
-dim(fl)
-dim(fl.id)
-
-head(fl.id)
-
 #make characters
 holger.full$GPS_ID<-as.character(holger.full$GPS_ID)
 full.fl<-rbind.fill(holger.full,fl.id)
@@ -106,15 +99,12 @@ full.fl$Observer<-as.character(full.fl$Observer)
 full.fl$Observer[is.na(full.fl$Observer)]<-"Holger"
 full.fl$Observer<-factor(full.fl$Observer)
 
-head(full.fl)
-
 #Create elevation ID
 full.fl$Transect_R<-factor(paste(full.fl$Elevation.Begin,full.fl$Elevation.End,sep="_"))
 
 ################
 #Flower Taxonomy
 ################
-
 
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
 #Repeat for species
@@ -125,7 +115,6 @@ tax<-tnrs(query = Families, source = "iPlant_TNRS")
 
 #Set the Species column
 for (x in 1:nrow(full.fl)){
-  print(x)
   y<-full.fl[x,]
   toMatch<-y$Family
   if(!toMatch %in% tax$submittedname){next} else{
@@ -159,18 +148,15 @@ length(word(x))
 })
 
 #Final levels
-print(paste("Final Flower Species:", levels(factor(full.fl$Iplant_Double))))
+#print(paste("Flower Species:", levels(factor(full.fl$Iplant_Double))))
 
 
 #Write 
 write.csv(levels(factor(full.fl$Iplant_Double)),"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/Iplant_Names.txt")
 
 #Error rows, though species that are not going to be 
-head(full.fl)
 
 error_rows<-full.fl[full.fl$Iplant_Double %in% "",]
-print("Error_Rows")
-print(rownames(error_rows))
 
 #Family Genus Species, in future, create abreviations
 fl.all<-melt(table(full.fl$Iplant_Double))
@@ -186,7 +172,6 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/SpeciesCo
 #Flower counts
 ###########################
 
-print("FlowerCounts")
 
 #Create total flower column by multiplying the Flowers per stalk, by stalks and total inflorescens
 #For now, remove any rows that have no flowers
@@ -289,8 +274,8 @@ ggplot(fl.totals,aes(x=Month.a,TotalFlowers,col=Year)) + geom_point(size=3) + th
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10,dpi=300)
 
 #Flowers at each elevation over time without Karen's data
-ggplot(fl.totals[!(fl.totals$Month %in% c(6,7,8) & fl.totals$Year %in% "2013"),],aes(x=Month.a,TotalFlowers,shape=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=1)) + ylab("Flowers") + xlab("Month") + facet_wrap(~Elev,scales="free_y")
-ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevationsHolger.jpeg",height=8,width=10,dpi=300)
+print(ggplot(fl.totals[!(fl.totals$Month %in% c(6,7,8) & fl.totals$Year %in% "2013"),],aes(x=Month.a,TotalFlowers,shape=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=1)) + ylab("Flowers") + xlab("Month") + facet_wrap(~Elev,scales="free_y"))
+ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevationsHolger.jpeg",height=8,width=14,dpi=300)
 
 #Write flower totals
 write.csv(fl.totals[!(fl.totals$Month %in% c(6,7,8) & fl.totals$Year %in% "2013"),],"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerAvailability.csv")
@@ -320,18 +305,6 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerEle
 
 ggplot(fl.totals[!fl.totals$Month %in% c(6,7,8),],aes(x=as.factor(Month),TotalFlowers,col=Year)) + geom_point(size=4) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free") + scale_y_continuous(limits=c(0,5500),breaks=seq(0,5000,1000))
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations_Holger.jpeg",dpi=1000,width=15)
-
-
-
-#######Flower Elevation Range 
-
-#What are the 10 most common flowers.
-flower_count<-aggregate(full.fl$Total_Flowers,list(full.fl$Iplant_Double),sum,na.rm=TRUE)
-top_flower<-flower_count[order(flower_count$x,decreasing=TRUE),][1:12,]
-
-colnames(top_flower)<-c("Species","Count")
-
-top_flower[!top_flower$Species %in% c("Palicourea",""),]
 
 #Write cleaned flower transect data
 save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")

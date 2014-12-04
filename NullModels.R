@@ -79,6 +79,6 @@ write.csv(dat,"Thesis/Maquipucuna_SantaLucia/Results/NullNetwork.csv")
 #plot distribution of  values
 p<-ggplot(dat,aes(x=Date,fill=X2)) + geom_line(aes(y=True)) 
 p<-p + geom_ribbon(aes(ymin=Lower,ymax=Upper),alpha=.4)+ facet_wrap(~X2,nrow=2,scales="free") + theme_bw()  + labs(col="Metric of Specialization") 
-p+scale_fill_discrete(guide="none") + scale_x_date(breaks="3 months",label=date_format("%m/%y"))
+plot(p+scale_fill_discrete(guide="none") + scale_x_date(breaks="3 months",label=date_format("%m/%y")))
 
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/NullNetwork.jpeg",dpi=300,height=8,width=8)

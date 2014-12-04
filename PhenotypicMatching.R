@@ -47,7 +47,7 @@ hum.morph$English
 levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English]
 
 #This needs to be checked
-print(paste(levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English],"not matched"))
+#print(paste(levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English],"not matched"))
 
 #levels(m.dat$Hummingbird)[!levels(m.dat$Hummingbird) %in% hum.morph$English]<-c("Green-crowned Woodnymph")
 m.datH<-merge(m.dat,hum.morph, by.x="Hummingbird",by.y="English")
@@ -67,7 +67,7 @@ m.datH<-merge(m.datH,fl.morph, by.x="Iplant_Double",by.y="X")
 #Some of these observations are suspect, the booted racket-tail on the 50cm plant?
 #I think we need to do the regression seperately?
 p<-ggplot(m.datH,aes(x=factor(Bill),TotalCorolla,col=Hummingbird)) + geom_point() + geom_boxplot(aes(group=factor(Bill)))
-p + geom_smooth(aes(group=1),method="lm") 
+print(p + geom_smooth(aes(group=1),method="lm") )
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/TotalCorollaMatching.svg",height=8,width=11,dpi=300)
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/TotalCorollaMatching.jpeg",height=8,width=11,dpi=300,units="in")
 
@@ -94,7 +94,7 @@ rownames(zscore)<-fl.morph$X
 #Principal Components
 trait_pc<-prcomp(zscore)
 
-biplot(trait_pc)
+#biplot(trait_pc)
 
 #bind loadings 1 and 2 to dataframe
 fl_load<-trait_pc$x[,c("PC1","PC2")]
@@ -122,7 +122,7 @@ rownames(zscore)<-hum.morph$English
 trait_pc<-prcomp(na.omit(zscore))
 
 #View Biplot of PC Space
-biplot(trait_pc)
+#biplot(trait_pc)
 
 #bind loadings 1 and 2 to dataframe
 hum_load<-trait_pc$x[,c("PC1","PC2")]
@@ -159,7 +159,7 @@ p<-ggplot(sp.hulld[sp.hulld$Hummingbird %in% keep,],aes(x,y))
 p<- p + facet_wrap(~Hummingbird)
 p<- p + geom_polygon(data=assem_hull,aes(x=Fl.PC1,y=Fl.PC2),alpha=.1)
 p <- p + geom_polygon(alpha=.4,) 
-p
+print(p)
 
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/FlowerSpace.svg",height=8,width=11,dpi=300)
 
@@ -174,16 +174,16 @@ fam_r[fam_r$Genus=="Centropogon","family"]<-"Campanulaceae"
 
 m.datH<-merge(m.datH,fam_r,by.x="FLGenus",by.y="Genus")
 
-p<-ggplot(m.datH,aes(x=H.PC1,y=H.PC2,fill=family.y,alpha=.02)) + geom_polygon() + facet_wrap(~family.y,drop=TRUE)
+p<-ggplot(m.datH,aes(x=H.PC1,y=H.PC2,fill=family,alpha=.02)) + geom_polygon() + facet_wrap(~family,drop=TRUE)
 
-toFL<-table(m.datH$Hummingbird, m.datH$family.y)
+toFL<-table(m.datH$Hummingbird, m.datH$family)
 
 
 toFL<-melt(toFL)
 toFL<-toFL[!toFL$value==0,]
 
 tolabS<-merge(toFL,hum_load,by.x="Var.1",by.y="row.names")
-colnames(tolabS)<-c("Hummingbird","family.y","value","H.PC1","H.PC2")
+colnames(tolabS)<-c("Hummingbird","family","value","H.PC1","H.PC2")
 p  + geom_point(size=.5,col="red") + geom_text(data=tolabS,aes(label=Hummingbird),size=2.5)
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/HummingbirdSpace.svg",height=10,width=10,dpi=300)
 
@@ -233,14 +233,6 @@ p + theme_bw()
 #Compared usage to available resources??
 ####################################################################
 
-setwd(droppath)
-#load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
-
-#setwd to dropbox
-
-droppath<-"C:/Documents and Settings/Administrator/My Documents/Dropbox/"
-
-setwd(droppath)
 #Set github path
 
 #The aggregate totals of the flower assemblage
@@ -257,7 +249,6 @@ fl.totals$R<-cut(fl.totals$L,c(1300,1500,2300),include.lowest=TRUE,c("Low","High
 #aggregate by month for now, not elev split
 month.totals<-aggregate(fl.totals$TotalFlowers,list(fl.totals$Month,fl.totals$Year,fl.totals$R),sum,na.rm=TRUE)
 colnames(month.totals)<-c("Month","Year","Elev","Flowers")
-
 
 #plot monthly flower totals
 ggplot(month.totals,aes(x=Month,y=Flowers,col=Year,shape=Elev)) + geom_point()
@@ -290,7 +281,7 @@ monthtr<-function(x){
 
 #Quick visualization, get rid of some months for now
 p<-ggplot(data=nStats,aes(x=Flowers,y=Slope,shape=Year,col=R)) + geom_point(size=3) + stat_smooth(method="lm",se=FALSE,aes(group=1)) + geom_text(aes(label=monthtr(Month)),size=3.5,vjust=-.5)
-p+ theme_bw() + facet_wrap(~Elev,scales="free") + scale_color_continuous(low="blue",high="red") + labs(y="Slope (Bill~Corolla)",x="Available Resources",col="R^2")
+p<-p+ theme_bw() + facet_wrap(~Elev,scales="free") + scale_color_continuous(low="blue",high="red") + labs(y="Slope (Bill~Corolla)",x="Available Resources",col="R^2")
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/MatchingSlope.jpeg",height=8,width=11,dpi=300)
 
 #what is the fit of that model?
@@ -314,7 +305,7 @@ coeff<-rbind.fill(lapply(s.datH,function(x){
 nStats<-merge(month.totals,coeff,by=c("Month","Year","Elev"))
 
 p<-ggplot(data=nStats,aes(x=Flowers,y=cor,shape=Year,col=p < 0.05)) + geom_point(size=3) + geom_smooth(method="lm",aes(group=1)) #+ geom_text(size=3.5,vjust=-.5)
-p+ theme_bw()  + labs(y="Cor (Bill~Corolla)",x="Available Resources",col="P < 0.05") + geom_text(aes(label=monthtr(Month)),size=3.5,vjust=-.5) + facet_wrap(~Elev,scales="free")
+print(p+ theme_bw()  + labs(y="Cor (Bill~Corolla)",x="Available Resources",col="P < 0.05") + geom_text(aes(label=monthtr(Month)),size=3.5,vjust=-.5) + facet_wrap(~Elev,scales="free"))
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/MatchingCor.jpeg",height=8,width=11,dpi=300)
 
 write.csv(nStats,"Thesis/Maquipucuna_SantaLucia/Results/Phenotype/MatchingCor.csv")
@@ -357,7 +348,8 @@ monthtr<-function(x){
 
 #Quick visualization, get rid of some months for now
 p<-ggplot(data=nStats[nStats$Year %in% c(2013,2014),],aes(x=Flowers,y=Slope,shape=Year,col=R)) + geom_point(size=3) + geom_smooth(method="lm",aes(group=1)) #+ geom_text(size=3.5,vjust=-.5)
-p+ theme_bw() + scale_color_continuous(low="blue",high="red") + labs(y="Slope (Bill~Corolla)",x="Available Resources",col="R^2")
+p<-p+ theme_bw() + scale_color_continuous(low="blue",high="red") + labs(y="Slope (Bill~Corolla)",x="Available Resources",col="R^2")
+p
 ggsave("Thesis/Maquipucuna_SantaLucia/Results/Phenotype/MatchingSlope.jpeg",height=8,width=11,dpi=300)
 
 ######################################

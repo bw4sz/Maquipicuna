@@ -10,7 +10,6 @@ require(ape)
 require(reshape)
 require(sna)
 require(stringr)
-require(rPlant)
 require(maptools)
 require(taxize)
 require(picante)
@@ -88,7 +87,6 @@ dat$Iplant_Double<-as.factor(dat$Iplant_Double)
 #Create Universal Date Stamp
 
 dat$DateP<-sapply(dat$Date,function(x){
-  #print(x)
   if(is.na(x)){
     return(NA)
   }
@@ -169,19 +167,19 @@ dat_e<-droplevels(dat_e[!dat_e$Iplant_Double %in% sp_r,])
 #################Data Cleaning Complete################
 
 #Final levels
-print(paste("Final Flower Species:", levels(factor(dat_e$Iplant_Double))))
+#print(paste("Final Flower Species:", levels(factor(dat_e$Iplant_Double))))
 
 #How many Birds Species
-print(paste("Number of Hummingbird Species:",nlevels(dat_e$Hummingbird)))
-print(paste("Final Hummingbird Species:",levels(dat_e$Hummingbird)))
+#print(paste("Number of Hummingbird Species:",nlevels(dat_e$Hummingbird)))
+#print(paste("Final Hummingbird Species:",levels(dat_e$Hummingbird)))
 
 write.csv(dat_e,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
-print("data cleaned")
+#print("data cleaned")
 
 ############################################
 #Run Network Function for the entire dataset
-NetworkC(datf=dat_e,naming="Total")
+NetworkC(datf=dat_e,naming="Total",plots=T)
 ############################################
 
 #############################################
@@ -192,13 +190,18 @@ dat_e$Year<-years(dat_e$DateP)
 dat_e[dat_e$Year %in% "2012","Year"]<-2013
 dat.split<-split(dat_e,list(dat_e$Month,dat_e$Year),drop=TRUE)
 
+#which months have been run?
+torun<-dat.split[!names(dat.split) %in% list.files(paste(netPath,"Temporal",sep="/"))]
+
+#not 1.2013
+torun<-torun[!names(torun) %in% "1.2013"]
 #############################################
 #Compute metrics for each month
 #############################################
-
-for (x in 1:length(dat.split)){
-  NetworkC(datf=dat.split[[x]],naming=paste("Temporal",names(dat.split)[[x]],sep="/"))
-}
+if(length(torun)>0){
+for (x in 1:length(torun)){
+  NetworkC(datf=torun[[x]],naming=paste("Temporal",names(torun)[[x]],sep="/"))
+}}
 
 
 ############################################
@@ -253,12 +256,11 @@ month.Prop$Date<-as.Date(month.Prop$Date,format="%d/%m/%Y")
 
 
 p<-ggplot(na.omit(month.Prop),aes(x=Date,y=value,col=Level)) + geom_point() + geom_line(linetype="dashed",aes(group=Level)) + facet_wrap(~Metric,scales="free_y",ncol=4) 
-p + theme_bw() + scale_x_date(labels = date_format("%b-%y"),breaks= "4 months") + geom_smooth(col="black",linetype="dashed",size=.5)
+p<-p + theme_bw() + scale_x_date(labels = date_format("%b-%y"),breaks= "4 months") + geom_smooth(col="black",linetype="dashed",size=.5)
 ggsave("MetricsFacet.svg",height=8,width=11)
 
+print(p)
 ##Add a trend line across all months?
-
-
 
 #be interested to add a "mean line" and then the value of the total network...
 
@@ -268,7 +270,6 @@ setwd("Metric_TimePlots")
 
 #Individual plots
 for(x in levels(month.Prop$Metric)) {
-  print(x)
   toplot<-na.omit(month.Prop[month.Prop$Metric %in% x,])
   
   #If there are no records, go to next metric
@@ -323,7 +324,6 @@ ggplot(Hum.Time[Hum.Time$Metric %in% "d",],aes(Date,value,col=Species)) + facet_
 
 #Plot for each species, or for each metric?
 for(x in levels(droplevels(Hum.Time$Species))){
-  print(x)
   if(nrow(Hum.Time[Hum.Time$Species %in% x & !Hum.Time$Time %in% "Total",])==0) next
   
   #drop the total column and added a dashed total line
@@ -378,7 +378,7 @@ network.fl<-merge(month.totals,month.Hum,by=c("Month","Year"))
 write.csv(network.fl,"C:\\Users\\Ben\\Dropbox\\Thesis\\Maquipucuna_SantaLucia\\Results\\Network//networkflowers.csv")
 #Quick visualization, 
 p<-ggplot(network.fl[,],aes(Flowers,value,shape=Year,col=as.factor(Month))) + facet_wrap(~Metric,scale="free") + geom_point(size=3) + geom_smooth(method="lm",aes(group=Year)) + theme_bw()
-p
+print(p)
 ggsave(paste(netPath,"NetworkPropFlowers.svg",sep=""),height=8,width=11,dpi=300)
 
 p<-ggplot(network.fl[ network.fl$Metric %in% c("connectance","cluster coefficient"),],aes(Flowers,value,shape=Year,col=as.factor(Month))) + facet_wrap(~Metric,scale="free",nrow=2) + geom_point(size=3) + geom_smooth(method="lm",aes(group=Year)) + theme_bw() + labs(col="Month")

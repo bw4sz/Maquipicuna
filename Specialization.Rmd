@@ -18,7 +18,8 @@ This project can be cloned at github repo:
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 library(knitr)
-opts_chunk$set(fig.width=11,echo=FALSE,cache=TRUE,cache.path = 'Specialization_cache/', fig.path='figure/',warning=FALSE,message=FALSE)
+library(scales)
+opts_chunk$set(fig.width=14,echo=FALSE,cache=TRUE,cache.path = 'Specialization_cache/', fig.path='figure/',warning=FALSE,message=FALSE, dpi=100)
 ```
 
 
@@ -40,8 +41,8 @@ Each hummingbird and plant sighting comes with a GPS tag for spatial mapping.
 * Remove duplicates
 * Each data point should have a time stamp and elevation.
 
-```{r}
-source(paste(gitpath,"GPSMatching.R",sep=""))
+```{r,results='hide'}
+source(paste(gitpath,"GPSMatching.R",sep=""))  
 ```
 
 #Flowers Transects
@@ -53,14 +54,18 @@ Twice a month we census the number of available hummingbird floral resources alo
 * Aggregate statistics on flowers/elevation over time
 
 ```{r}
-source(paste(gitpath,"FlowerTransects.R",sep=""))
+source(paste(gitpath,"FlowerTransects.R",sep=""))  
 #Load from source:
-#load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+#load("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 ```
 
-##Match with GPS information
-```{r}
-source(paste(gitpath,"GPSFlowerTransects.R",sep=""))
+##Plant Elevation ranges
+
+* Match each observation with an observation
+* plot elevation ranges
+
+```{r elevation range plant,fig.height=12}
+source(paste(gitpath,"GPSFlowerTransects.R",sep=""))   
 ```
 
 #Flower Morphology
@@ -70,25 +75,23 @@ We measure corolla characteristics for each flower species along the elevation g
 * PCA of floral traits
 
 ```{r}
-source(paste(gitpath,"Nectar.R",sep=""))
-load("Thesis/Maquipucuna_SantaLucia/Results/Nectar.Rdata")
+#source(paste(gitpath,"Nectar.R",sep=""))
+#load("Thesis/Maquipucuna_SantaLucia/Results/Nectar.Rdata")
 ```
 
+```{r phylogeny}
 ##Flower Phylogeny
-Using online tool Phylomatic (link), we can get the backbone of the phylogeny of the flowers
-
-```{r}
-source(paste(gitpath,"Phylogeny.R",sep=""))
+#Using online tool Phylomatic (link), we can get the backbone of the phylogeny of the flowers
+#source(paste(gitpath,"Phylogeny.R",sep=""))
 #load("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 ```
 
 #Hummingbird Transects
-
 We conduct six elevation transects twice a month to estimate hummingbird diversity and distribution.
 
-```{r}
-source(paste(gitpath,"HummingbirdTransect.R",sep=""))
-load("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
+```{r Hummingbird transects,results='hide'}
+source(paste(gitpath,"HummingbirdTransect.R",sep="")) 
+#load("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
 ```
 
 #Hummingbird - Flower Interactions
@@ -99,10 +102,11 @@ Using both the hummingbird observation as well as time lapse cameras, we quantif
 
 Visualize the interactions a quantative bipartite network.
 
-```{r}
-source(paste(gitpath,"Network.R",sep=""))
+```{r network,fig.height=15}
+source(paste(gitpath,"Network.R",sep="")) 
+
 #Load from source:
-load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 ```
 
 ##Hummingbird Morphology
@@ -110,24 +114,24 @@ load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
 To measure the bill lengths of each hummingbird species, as well as other foot and wing traits to associate with flower visitation and behavior.
 
 ```{r}
-source(paste(gitpath,"Morphology.R",sep=""))
-load("Thesis/Maquipucuna_SantaLucia/Results/Morphology.Rdata")
+#source(paste(gitpath,"Morphology.R",sep=""))
+#load("Thesis/Maquipucuna_SantaLucia/Results/Morphology.Rdata")
 ```
 
 ##Time Series
 
 Plot hummingbird and flower distribution over space and time
-```{r}
-source(paste(gitpath,"TimeSeries.R",sep=""))
+```{r time series,fig.height=11,fig.width=10}
+source(paste(gitpath,"TimeSeries.R",sep="")) 
 ```
 
 ##Phenotypic Matching 
 
 Does the correlation between corolla length and bill length explain hummingbird visitation?
 
-```{r}
+```{r,fig.height=10}
 source(paste(gitpath,"PhenotypicMatching.R",sep=""))
-load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
+#load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
 ```
 
 ##Null Models
@@ -138,12 +142,11 @@ Network structure could be a function of the number of interactions, rather than
 source(paste(gitpath,"NullModels.R",sep=""))
 ```
 
-
 # Experimental Analysis
 
 ##Topology:
 ```{r}
-source(paste(gitpath,"Topology.R",sep=""))
+#source(paste(gitpath,"Topology.R",sep=""))
 ```
 
 ##Network Dissimilarity

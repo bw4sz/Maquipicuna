@@ -136,7 +136,7 @@ dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideo.csv")
 
 colnames(dat)[11]<-"Pierce"
 
-datAuto<-read.csv("Thesis/Automated_Monitering/FlowerVideoAuto.csv")
+datAuto<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/FlowerVideoAuto.csv")
 
 #Which flID are in the original, but not the automated
 
@@ -216,8 +216,12 @@ SpeciesG<-levels(factor(datg$Flower))
 
 tax<-tnrs(query = unique(SpeciesG), source = "iPlant_TNRS")
 
+#remove one troublesome
+datg<-datg[!datg$Flower %in% 'sp. ("ginger")',]
+
 #Set the Species column
 for (x in 1:nrow(datg)){
+  print(x)
   y<-datg[x,]
   toMatch<-y$Flower
   datg[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])

@@ -4,8 +4,6 @@ require(maptools)
 require(ggplot2)
 require(scales)
 
-#If not run globally.
-
 #Set Dropbox Location
 #setwd to dropbox
 droppath<-"C:/Users/Ben/Dropbox/"
@@ -37,8 +35,12 @@ obs<-as.data.frame.array(table(dat$Hummingbird))
 
 p<-ggplot(dat,aes(y=ele,x=Hummingbird,fill=Hummingbird))
 p<-p + geom_boxplot(varwidth=TRUE) + coord_flip() + labs(y="Elevation(m)",x="") + scale_fill_discrete(guide='none') + theme_bw()
-p
+print(p)
 ggsave("Thesis//Maquipucuna_SantaLucia/Results/ElevationRanges.pdf",dpi=600)
+
+
+
+
 
 ############Bring in temperature
 tdata<-read.csv("Thesis//Maquipucuna_SantaLucia/Results/Ibuttons/TempData.csv")

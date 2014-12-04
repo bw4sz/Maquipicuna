@@ -1,7 +1,7 @@
 #Network Source Functions
 #Create function to compute network parameters
 #The general strategy is to write all metrics to file, and develop call statements at the end to retrieve them
-NetworkC<-function(datf,naming){
+NetworkC<-function(datf,naming,plots=F){
   print(naming)
   #Set a working directory, create a folder for each run
   setwd(droppath)
@@ -10,7 +10,6 @@ NetworkC<-function(datf,naming){
   dir.create(toset,recursive=TRUE)
   setwd(toset)
   
-
   #remove species without
   #Drop any observations without 2 names in Iplant_Double
   datf<-droplevels(datf[!datf$Iplant_Double %in% "",])
@@ -20,11 +19,6 @@ NetworkC<-function(datf,naming){
   
   #Save Input Matrix
   write.csv(F_H,"BirdXFlower.csv")
-  
-  #View Web
-  svg(filename="WebPlot.svg",height=7,width=15)
-  plot(F_H)
-  dev.off()
   
   #create a order for hummingbirds
   toOrd<-merge(clades,data.frame(English=colnames(F_H)),sort=FALSE,all.y=TRUE)$English
@@ -37,11 +31,7 @@ NetworkC<-function(datf,naming){
   Plab<-names(which(!apply(F_H,1,sum)==0))
   
   sequ<-list(seq.high=toOrd,seq.low=Plab)
-  
-  svg(filename="WebPlotOrder.svg",height=7,width=15)
-  plot(F_H,sequence=sequ)
-  dev.off()
-  
+
   #Interaction matrix
   
   orderflowers<-names(sort(apply(F_H,1,sum),decreasing=FALSE))
@@ -55,7 +45,7 @@ NetworkC<-function(datf,naming){
   a$Flowers<-factor(a$Flowers,levels=orderflowers)
   a$Birds<-factor(a$Birds,levels=orderbirds)
   
-  ggplot(a[a$value>0,],aes(x=Birds,y=Flowers,fill=value)) + geom_tile()+ theme_bw() + scale_fill_continuous(low="blue",high="red") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(fill="# of Visits")
+  print(ggplot(a[a$value>0,],aes(x=Birds,y=Flowers,fill=value)) + geom_tile()+ theme_bw() + scale_fill_continuous(low="blue",high="red") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(fill="# of Visits"))
   ggsave("MatrixPlot.jpeg",dpi=300,height=10,width=8)
   ggsave("MatrixPlot.eps",dpi=300,height=10,width=8)
   
@@ -139,8 +129,10 @@ NetworkC<-function(datf,naming){
   m.HH[upper.tri(m.HH)]<-NA
   m.HH<-melt(m.HH)
   m.HH$value[m.HH$value==1]<-NA
+  
+  colnames(m.HH)<-c("To","From","Overlap")
   #Plot Resource overlap between hummingbird Species
-  ggplot(m.HH,aes(Var1,Var2,fill=1-value)) + geom_tile() + scale_fill_continuous(low="blue",high="red",na.value="white") + theme(axis.text.x = element_text(angle = 90, hjust = 1),panel.background=element_rect(color="white")) + labs(x="",y="",fill="Resource similarity")
+  ggplot(m.HH,aes(To,From,fill=1-Overlap)) + geom_tile() + scale_fill_continuous(low="blue",high="red",na.value="white") + theme(axis.text.x = element_text(angle = 90, hjust = 1),panel.background=element_rect(color="white")) + labs(x="",y="",fill="Resource similarity")
   ggsave("ResourceOverlap.svg",height=8,width=11)
   
   #Relatedness and flower overlap, very rudimentary test so far
@@ -164,9 +156,9 @@ NetworkC<-function(datf,naming){
   #get cophenetic distance between species, might need to the new phylogeny, which species don't match?
   m.HH$Relatedness<-sapply(1:nrow(m.HH),ER)
   colnames(m.HH)[1:2]<-c("To","From")
-  hist(m.HH$value)
+
   #Phylogenetic Relatedness and plant overlap
-  p<-ggplot(m.HH[,],aes(y=value,x=as.numeric(Relatedness),)) + geom_jitter() + geom_smooth() + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") 
+  p<-ggplot(m.HH[,],aes(y=Overlap,x=as.numeric(Relatedness),)) + geom_jitter() + geom_smooth() + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") 
   p+ geom_text(aes(label=paste(To,From)),size=2,vjust=1)
   ggsave("Relatedness_Overlap.svg",height=8,width=11)
   
@@ -203,7 +195,7 @@ NetworkC<-function(datf,naming){
   }
   
   #Trait Relatedness and plant overlap
-  ggplot(m.HH[,],aes(y=value,x=RelatednessT)) + geom_point() + geom_smooth() + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") #+ geom_text(aes(label=paste(To,From)),size=3)
+  ggplot(m.HH[,],aes(y=Overlap,x=RelatednessT)) + geom_point() + geom_smooth() + theme_bw() + ylab("Resource Overlap") + xlab("Relatedness") #+ geom_text(aes(label=paste(To,From)),size=3)
   ggsave("TraitRelatedness_Overlap.svg",height=8,width=11)
   
   #Plants 
@@ -219,16 +211,16 @@ NetworkC<-function(datf,naming){
   
   #In the future this is where you consider relatedness among species among plants
   #Plot 3d visualization of the hummingbird network
-  svg("Hummingbird3d.jpeg")
-  gplot(H_H)
-  dev.off()
+  #svg("Hummingbird3d.jpeg")
+  #gplot(H_H)
+  #dev.off()
   
   
   ########################################
   #Phylogenetic niche breadth of plants
   ########################################
   
-  F_H[rownames(F_H) %in% rownames(pco),]
+  #F_H[rownames(F_H) %in% rownames(pco),]
   #####################################################3
   #Phylogenetic Diversity of Each network compartment
   ######################################################3
@@ -236,7 +228,6 @@ NetworkC<-function(datf,naming){
   
   setwd(droppath)
 }
-print("Function Defined")
 
 #For the sake of simplicity, make everything lowercase
 .simpleCap <- function(x) {

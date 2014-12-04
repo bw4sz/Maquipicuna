@@ -14,13 +14,19 @@ require(plyr)
 require(plotKML)
 require(reshape)
 require(chron)
-require(rPlant)
 
 #Set DropBox Working Directory
-#setwd("C:/Users/Ben/Dropbox/")
+setwd("C:/Users/Ben/Dropbox/")
 
 #Read in workspace if desired for quick access
 #load("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
+
+#For the sake of simplicity, make everything lowercase
+.simpleCap <- function(x) {
+  s <- strsplit(x, " ")[[1]]
+  paste(toupper(substring(s, 1,1)), substring(s, 2),
+        sep="", collapse=" ")
+}
 
 #Read in Ben's transect data
 Hum<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HummingbirdTransect.csv")
@@ -98,7 +104,6 @@ tax<-tnrs(query = Families, source = "iPlant_TNRS")
 
 #Set the Family column
 for (x in 1:nrow(holgerInter)){
-  print(x)
   y<-holgerInter[x,]
   toMatch<-y$Family
   if(!toMatch %in% tax$submittedname){next} else{
@@ -111,7 +116,6 @@ tax<-tnrs(query = Genus, source = "iPlant_TNRS")
 
 #Set the genus column
 for (x in 1:nrow(holgerInter)){
-  print(x)
   y<-holgerInter[x,]
   toMatch<-y$Genus
   if(!toMatch %in% tax$submittedname){next} else{
@@ -138,7 +142,7 @@ for (x in 1:nrow(holgerInter)){
 holgerInter[holgerInter$Iplant_Double %in% "Heppiella_ulmifolia","Iplant_Double"]<-"Glossoloma_oblongicalyx"
 
 #Final levels
-print(paste("Final Flower Species:", levels(factor(holgerInter$Iplant_Double))))
+#print(paste("Final Flower Species:", levels(factor(holgerInter$Iplant_Double))))
 
 #get the desired columns
 colnames(holgerInter)
@@ -152,7 +156,7 @@ colnames(monthInter)<-c("Hummingbird","Plant","Month","value")
 monthInter<-monthInter[!monthInter$value==0,]
 p<-ggplot(monthInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
 p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-print(p)
+#print(p)
 
 #########################
 ####Add GPS information
@@ -164,7 +168,6 @@ g<-list.files("Holger\\Transect_Protocol_Holger\\WayPoints",full.names=TRUE,patt
 #loop through input files and find the errors. 
 gpx2<-list()
 for (x in 1:length(g)){
-  print(x)
   try(
     gpx2[[x]]<-readGPX(g[x],waypoints=TRUE)$waypoints)
 }
@@ -230,7 +233,6 @@ missingGPS<-HMatch[is.na(HMatch$ele),]$Way.Point
 #For missing data, take the mean of the transect?
 #For any data still missing gps, take the mean of the transect
 for (x in missingGPS){
-  print(x)
   tr<-HMatch[HMatch$Way.Point %in% x,"Transect_R"]
   el<-mean(as.numeric(strsplit(as.character(tr),split="_")[[1]]))
   HMatch[HMatch$Way.Point %in% x,"ele"]<-el
@@ -284,7 +286,6 @@ tax<-tnrs(query = Families, source = "iPlant_TNRS")
 
 #Set the Family column
 for (x in 1:nrow(hum.id)){
-  print(x)
   y<-hum.id[x,]
   toMatch<-y$Plant.Species
   if(!toMatch %in% tax$submittedname){next} else{
@@ -322,7 +323,6 @@ missingGPS<-BMatch[is.na(BMatch$altitude),]$GPS.ID
 #For missing data, take the mean of the transect?
 #For any data still missing gps, take the mean of the transect
 for (x in missingGPS){
-  print(x)
   tr<-BMatch[BMatch$GPS.ID %in% x,"Transect_R"]
   el<-mean(as.numeric(strsplit(as.character(tr),split="_")[[1]]))
   BMatch[BMatch$GPS.ID %in% x,"altitude"]<-el
@@ -346,7 +346,6 @@ colnames(humInter)<-c("Hummingbird","Plant","Month","value")
 humInter<-humInter[!humInter$value==0,]
 p<-ggplot(humInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
 p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-print(p)
 
 ################################################
 #Combine Holger's transect data with summer data
@@ -355,7 +354,6 @@ fullInter<-rbind.fill(humInter,monthInter)
 
 p<-ggplot(fullInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month,nrow=2) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
 p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-print(p)
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HummingbirdTransectInteractions.jpeg",height=15,width=20)
 
 #write this matrix to file
