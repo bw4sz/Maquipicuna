@@ -12,6 +12,7 @@ require(plotKML)
 require(reshape)
 require(chron)
 require(taxize)
+library(splines)
 
 #Set DropBox Working Directory
 setwd("C:/Users/Ben/Dropbox/")
@@ -306,5 +307,26 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerEle
 ggplot(fl.totals[!fl.totals$Month %in% c(6,7,8),],aes(x=as.factor(Month),TotalFlowers,col=Year)) + geom_point(size=4) + theme_bw()  + geom_smooth(aes(group=Elev)) + facet_wrap(~Elev,scales="free") + scale_y_continuous(limits=c(0,5500),breaks=seq(0,5000,1000))
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations_Holger.jpeg",dpi=1000,width=15)
 
+
+topf<-group_by(full.fl,Iplant_Double) %>% 
+  summarize(t=sum(Total_Flowers)) %>% 
+  arrange(desc(t)) %>% filter(t>3000) %>% 
+  select(Iplant_Double) %>% filter(!Iplant_Double=="Palicourea")
+  
+topff<-full.fl[full.fl$Iplant_Double %in% topf$Iplant_Double,]
+
+topff<-group_by(topff,Iplant_Double,month,Year)  %>%
+  summarize(Count=sum(Total_Flowers)) %>% 
+  group_by(Iplant_Double,Year) %>%
+  mutate(Index=round(Count/max(Count),2)) %>% 
+  mutate(monthA=month.abb[month]) 
+
+topff$monthA<-factor(topff$monthA,levels=month.abb)
+
+p<-ggplot(topff[!is.na(topff$Iplant_Double),],aes(x=monthA,y=Index,col=Iplant_Double)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Iplant_Double),method="glm",formula=y~ns(x,3),family="binomial")  + labs(x="Month") + facet_wrap(~Iplant_Double,ncol=2)
+print(p+ggtitle("Phenology of Most Common Flowers"))
+
+ggplot(topff[!is.na(topff$Iplant_Double),],aes(x=monthA,y=Index,col=Iplant_Double))  + theme_bw()  + geom_smooth(aes(group=Iplant_Double),method="glm",formula=y~ns(x,2),family="binomial",se=F)  + labs(x="Month",col="Species") 
+
 #Write cleaned flower transect data
-save.image("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+save.image("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")

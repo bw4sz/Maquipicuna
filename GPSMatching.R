@@ -10,6 +10,8 @@ require(maptools)
 require(plyr)
 require(stringr)
 require(taxize)
+library(dplyr)
+library(ggplot2)
 #Set working directory
 droppath<-"C:/Users/Ben/Dropbox/"
 
@@ -226,6 +228,13 @@ for (x in 1:nrow(datg)){
   toMatch<-y$Flower
   datg[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])
 }
+
+
+#sampling across cameras
+ord<-dplyr::group_by(datg,Iplant_Double) %>% dplyr::summarize(count=nlevels(droplevels(ID))) %>% dplyr::arrange(count)
+ord$Iplant_Double<-factor(ord$Iplant_Double,levels=ord$Iplant_Double)
+p<-ggplot(ord,aes(x=Iplant_Double,y=count)) + geom_bar(stat="identity") + coord_flip() + theme_bw() + labs(x="Species",y="# of Cameras")
+print(p)
 
 #Write camera data to file
 write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoClean.csv")

@@ -19,6 +19,7 @@ This project can be cloned at github repo:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 library(knitr)
 library(scales)
+library(RSQLite)
 opts_chunk$set(fig.width=14,echo=FALSE,cache=TRUE,cache.path = 'Specialization_cache/', fig.path='figure/',warning=FALSE,message=FALSE, dpi=100)
 ```
 
@@ -33,7 +34,7 @@ gitpath<-"C:/Users/Ben/Documents/Maquipicuna/"
 
 The first set of scripts are desciptive that clean, aggregate and quantify flowers, morphology, and hummingbird interactions.
 
-#Format Geospatial Data
+#Data Cleaning
 
 Each hummingbird and plant sighting comes with a GPS tag for spatial mapping. 
 
@@ -41,35 +42,11 @@ Each hummingbird and plant sighting comes with a GPS tag for spatial mapping.
 * Remove duplicates
 * Each data point should have a time stamp and elevation.
 
-```{r,results='hide'}
-source(paste(gitpath,"GPSMatching.R",sep=""))  
+```{r,results='hide',fig.height=7}
+source(paste(gitpath,"GPSMatching.R",sep=""))      
 ```
 
-#Flowers Transects
-
-Twice a month we census the number of available hummingbird floral resources along the elevation gradient. 
-
-* Taxonomic cleaning
-* Mulitply number of stalks * inflorescences to estimate floral abundance
-* Aggregate statistics on flowers/elevation over time
-
-```{r}
-source(paste(gitpath,"FlowerTransects.R",sep=""))  
-#Load from source:
-#load("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
-```
-
-##Plant Elevation ranges
-
-* Match each observation with an observation
-* plot elevation ranges
-
-```{r elevation range plant,fig.height=12}
-source(paste(gitpath,"GPSFlowerTransects.R",sep=""))   
-```
-
-#Flower Morphology
-We measure corolla characteristics for each flower species along the elevation gradient.
+We measure corolla characteristics for each flower species along the elevation gradient. For this we need to:
 
 * Clean taxonomy
 * PCA of floral traits
@@ -86,6 +63,29 @@ We measure corolla characteristics for each flower species along the elevation g
 #load("Thesis/Maquipucuna_SantaLucia/Results/Phylogeny/PhylogenyTropicos.Rdata")
 ```
 
+#Flowers Transects
+
+Twice a month we census the number of available hummingbird floral resources along the elevation gradient. 
+
+* Taxonomic cleaning
+* Mulitply number of stalks * inflorescences to estimate floral abundance
+* Aggregate statistics on flowers/elevation over time
+
+```{r}
+source(paste(gitpath,"FlowerTransects.R",sep=""))   
+#Load from source:
+#load("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+```
+
+##Plant Elevation ranges
+
+* Match each observation with an observation
+* plot elevation ranges
+
+```{r elevation range plant,fig.height=12}
+source(paste(gitpath,"GPSFlowerTransects.R",sep=""))   
+```
+
 #Hummingbird Transects
 We conduct six elevation transects twice a month to estimate hummingbird diversity and distribution.
 
@@ -98,17 +98,6 @@ source(paste(gitpath,"HummingbirdTransect.R",sep=""))
 
 Using both the hummingbird observation as well as time lapse cameras, we quantify the number of visits for each hummingbird to each flower species.
 
-##Network analysis
-
-Visualize the interactions a quantative bipartite network.
-
-```{r network,fig.height=15}
-source(paste(gitpath,"Network.R",sep="")) 
-
-#Load from source:
-#load("Thesis/Maquipucuna_SantaLucia/Results/Network/NetworkData.Rdata")
-```
-
 ##Hummingbird Morphology
 
 To measure the bill lengths of each hummingbird species, as well as other foot and wing traits to associate with flower visitation and behavior.
@@ -118,39 +107,9 @@ To measure the bill lengths of each hummingbird species, as well as other foot a
 #load("Thesis/Maquipucuna_SantaLucia/Results/Morphology.Rdata")
 ```
 
-##Time Series
+##Hummingbird Elevation Range
 
 Plot hummingbird and flower distribution over space and time
-```{r time series,fig.height=11,fig.width=10}
+```{r time series,fig.height=9,fig.width=9}
 source(paste(gitpath,"TimeSeries.R",sep="")) 
-```
-
-##Phenotypic Matching 
-
-Does the correlation between corolla length and bill length explain hummingbird visitation?
-
-```{r,fig.height=10}
-source(paste(gitpath,"PhenotypicMatching.R",sep=""))
-#load("Thesis/Maquipucuna_SantaLucia/Results/PhenotypicMatching.Rdata")
-```
-
-##Null Models
-
-Network structure could be a function of the number of interactions, rather than an ecological characteristic. We can create random reorganizations of the network to measure the amount our observed data deviates from a randomization with respect to abundance of interactions.
-
-```{r}
-source(paste(gitpath,"NullModels.R",sep=""))
-```
-
-# Experimental Analysis
-
-##Topology:
-```{r}
-#source(paste(gitpath,"Topology.R",sep=""))
-```
-
-##Network Dissimilarity
-
-```{r}
-#source(paste(gitpath,"NetworkDiss.R",sep=""))
 ```

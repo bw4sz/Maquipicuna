@@ -14,6 +14,7 @@ require(maptools)
 require(taxize)
 require(picante)
 require(plyr)
+library(scales)
 
 #Set Dropbox Location
 #setwd to dropbox
