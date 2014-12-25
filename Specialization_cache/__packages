@@ -5,8 +5,6 @@ dplyr
 ggplot2
 knitr
 maptools
-mgcv
-nlme
 plotKML
 plyr
 reshape

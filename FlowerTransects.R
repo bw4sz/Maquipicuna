@@ -107,6 +107,9 @@ full.fl$Transect_R<-factor(paste(full.fl$Elevation.Begin,full.fl$Elevation.End,s
 #Flower Taxonomy
 ################
 
+#Fix any known ID mistakes
+levels(full.fl$Iplant_Double)[full.fl$Iplant_Double %in% "Heppiella ulmifolia"]<-"Glossoloma_oblongicalyx"
+
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
 #Repeat for species
 
@@ -139,9 +142,8 @@ for (x in 1:nrow(full.fl)){
   next
 }}
 
-#Fix any known ID mistakes
-full.fl[full.fl$Iplant_Double %in% "Heppiella_ulmifolia","Iplant_Double"]<-"Glossoloma_oblongicalyx"
 
+#One known date error
 #Remove levels that don'y have species names (see if they can be recovered)
 
 numQ<-sapply(full.fl$Iplant_Double,function(x){
@@ -247,7 +249,8 @@ head(full.fl[is.na(full.fl$month),])
 fl.totals<-aggregate(full.fl$Total_Flowers,list(full.fl$Transect_R,full.fl$month,full.fl$Date,full.fl$Year),sum,na.rm=TRUE)
 colnames(fl.totals)<-c("Elev","Month","Date","Year","TotalFlowers")
 
-#One date error
+
+
 #Write data to file
 write.csv(full.fl,"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/CleanedHolgerTransect.csv")
 
@@ -308,18 +311,18 @@ ggplot(fl.totals[!fl.totals$Month %in% c(6,7,8),],aes(x=as.factor(Month),TotalFl
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations_Holger.jpeg",dpi=1000,width=15)
 
 
-topf<-group_by(full.fl,Iplant_Double) %>% 
-  summarize(t=sum(Total_Flowers)) %>% 
-  arrange(desc(t)) %>% filter(t>3000) %>% 
-  select(Iplant_Double) %>% filter(!Iplant_Double=="Palicourea")
+topf<-dplyr::group_by(full.fl,Iplant_Double) %>% 
+  dplyr::summarize(t=sum(Total_Flowers)) %>% 
+  dplyr::arrange(desc(t)) %>% filter(t>3000) %>% 
+  dplyr::select(Iplant_Double) %>% filter(!Iplant_Double=="Palicourea")
   
 topff<-full.fl[full.fl$Iplant_Double %in% topf$Iplant_Double,]
 
-topff<-group_by(topff,Iplant_Double,month,Year)  %>%
-  summarize(Count=sum(Total_Flowers)) %>% 
-  group_by(Iplant_Double,Year) %>%
-  mutate(Index=round(Count/max(Count),2)) %>% 
-  mutate(monthA=month.abb[month]) 
+topff<-dplyr::group_by(topff,Iplant_Double,month,Year)  %>%
+  dplyr::summarize(Count=sum(Total_Flowers)) %>% 
+  dplyr::group_by(Iplant_Double,Year) %>%
+  dplyr::mutate(Index=round(Count/max(Count),2)) %>% 
+  dplyr::mutate(monthA=month.abb[month]) 
 
 topff$monthA<-factor(topff$monthA,levels=month.abb)
 

@@ -34,23 +34,24 @@ FB <- read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Data2013//csv/Flowe
 colnames(FB)<-c("Family","Genus","Species","TotalCorolla","Corolla.Width")
 head(dat<-rbind.fill(Nectar,imageJ))
 head(dat<-rbind.fill(dat,FB))
+
 ################
 #Flower Taxonomy
 ################
 
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
 #Repeat for genus species
-Species<-levels(factor(paste(Nectar$Genus,Nectar$Species,sep=" ")))
+Species<-levels(factor(paste(dat$Genus,dat$Species,sep=" ")))
 
 #look up online, skip the blank
 tax<-tnrs(query = Species[-1], source = "iPlant_TNRS")
 
 #Set the Species column
-for (x in 1:nrow(Nectar)){
-  y<-Nectar[x,]
+for (x in 1:nrow(dat)){
+  y<-dat[x,]
   toMatch<-paste(y$Genus,y$Species,sep=" ")
   if(toMatch %in% tax$submittedname){
-    Nectar[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"]   )
+    dat[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"]   )
   } else {
     next
   }}
@@ -59,17 +60,17 @@ for (x in 1:nrow(Nectar)){
 #Lots of cleaning left to do, but that's a start. 
 #Final levels
 
-print(paste("Final Flower Species:", levels(factor(Nectar$Iplant_Double))))
+print(paste("Final Flower Species:", levels(factor(dat$Iplant_Double))))
 
 #Write 
-write.csv(levels(factor(Nectar$Iplant_Double)),"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/Iplant_Names.txt")
+write.csv(levels(factor(dat$Iplant_Double)),"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/Iplant_Names.txt")
 
 #################################################################################
 
 #View morphological distance
 #Which morphologies do we want to visualize, include nectar later?
 #get the means?
-toPCA<-aggregate(Nectar[,c("TotalCorolla","EffectiveCorolla","Corolla.Width")],list(Nectar$Iplant_Double),mean,na.rm=TRUE)
+toPCA<-aggregate(dat[,c("TotalCorolla","EffectiveCorolla","Corolla.Width")],list(dat$Iplant_Double),mean,na.rm=TRUE)
 rownames(toPCA)<-toPCA$Group.1
 
 #Write morphology dataset to file

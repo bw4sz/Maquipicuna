@@ -71,7 +71,7 @@ Twice a month we census the number of available hummingbird floral resources alo
 * Mulitply number of stalks * inflorescences to estimate floral abundance
 * Aggregate statistics on flowers/elevation over time
 
-```{r}
+```{r,fig.height=10}
 source(paste(gitpath,"FlowerTransects.R",sep=""))   
 #Load from source:
 #load("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
@@ -110,6 +110,6 @@ To measure the bill lengths of each hummingbird species, as well as other foot a
 ##Hummingbird Elevation Range
 
 Plot hummingbird and flower distribution over space and time
-```{r time series,fig.height=9,fig.width=9}
+```{r time series,fig.height=8,fig.width=8}
 source(paste(gitpath,"TimeSeries.R",sep="")) 
 ```
