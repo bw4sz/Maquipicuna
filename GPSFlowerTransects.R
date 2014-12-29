@@ -18,6 +18,18 @@ droppath<-"C:/Users/Ben/Dropbox/"
 
 setwd(droppath)
 
+###############################################
+#Read in GPS Data from Summer 2013 Field Season for Karen
+###############################################
+
+f<-list.files("Thesis\\Maquipucuna_SantaLucia\\Data2013\\GPS",full.names=TRUE,pattern=".gpx",recursive=TRUE)
+
+gpxkaren<-list()
+for (x in 1:length(f)){
+  try(
+    gpxkaren[[x]]<-readGPX(f[x],waypoints=TRUE)$waypoints)
+}
+
 #################################################
 #Read in GPS Data from Holger Field Season
 #################################################
@@ -34,7 +46,7 @@ g<-capture.output(for (x in 1:length(g)){
 })
 
 #Bind into one dataframe
-gpx.dat<-rbind.fill(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]))
+gpx.dat<-rbind.fill(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),rbind.fill(gpxkaren[sapply(gpxkaren,class)=="data.frame"]))
 gpx.dat$name<-as.character(gpx.dat$name)
 
 #Combine gps types
@@ -52,7 +64,6 @@ gps$MonthID<-sapply(gps$time,function(x){
   return(as.numeric(format(as.POSIXlt(b),"%m")))
 })
 
-
 #Date column
 #Create month ID column in the GPS data
 gps$Date_F<-sapply(gps$time,function(x){
@@ -62,7 +73,6 @@ gps$Date_F<-sapply(gps$time,function(x){
   }
   return(format(as.POSIXlt(b),"%Y-%m-%d"))
 })
-
 
 #Create Year ID column in the GPS data
 gps$YearID<-sapply(gps$Date_F,function(b){
@@ -100,7 +110,7 @@ dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/CleanedHolg
 head(dat)
 
 #merge
-datg<-merge(dat,gps_noduplicate,by.x=c("GPS_ID","month","year"),by.y=c("GPS.ID","MonthID","YearID"))
+datg<-merge(dat,gps_noduplicate,by.x=c("GPS_ID","month","year"),by.y=c("GPS.ID","MonthID","YearID"),)
 
 
 #Flower elevation ranges
