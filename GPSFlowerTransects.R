@@ -74,9 +74,12 @@ gps$Date_F<-sapply(gps$time,function(x){
   return(format(as.POSIXlt(b),"%Y-%m-%d"))
 })
 
+#remove bad gps events
+gps<-gps[!gps$Date_F=="S",]
+
 #Create Year ID column in the GPS data
 gps$YearID<-sapply(gps$Date_F,function(b){
-  yr<-format(as.POSIXlt(b),"%Y")
+yr<-format(as.POSIXlt(b),"%Y")
   return(as.numeric(yr))
 })
 
@@ -130,3 +133,4 @@ print(ggplot(datkeep,aes(x=Iplant_order,y=ele,fill=Family)) + geom_boxplot() + t
 
 #Write camera data to file
 write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerTransectClean.csv")
+

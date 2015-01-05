@@ -19,7 +19,6 @@ This project can be cloned at github repo:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 library(knitr)
 library(scales)
-library(RSQLite)
 opts_chunk$set(fig.width=14,echo=FALSE,cache=TRUE,cache.path = 'Specialization_cache/', fig.path='figure/',warning=FALSE,message=FALSE, dpi=100)
 ```
 

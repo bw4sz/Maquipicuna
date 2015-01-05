@@ -30,14 +30,12 @@ setwd("C:/Users/Ben/Dropbox/")
 
 #Read in Ben's transect data
 Hum<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HummingbirdTransect.csv")
-head(Hum)
 
 #Transect IDs from Summer 2013 data
 TID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIID.csv")
 
 #Bring in holger's hummingbird datasheet.
 holger.hum<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/HolgerTransect_Hummingbirds.csv")
-head(holger.hum)
 
 #Bring in holger transect data
 holgerID<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/csv/TransectIIDHolger.csv")
@@ -81,15 +79,16 @@ holgerID$Month<-as.numeric(format(as.Date(holgerID$Date_F),"%m"))
 #Create ID columns
 holgerID$ID<-factor(paste(holgerID$Transect,holgerID$Date_F,sep="_"))
 holger.hum$ID<-factor(paste(holger.hum$Transect,holger.hum$Date_F,sep="_"))
-holgerID$ID[!holgerID$ID %in% holger.hum$ID]
 
 #How many dates are missing?
-levels(droplevels(holger.hum$ID[!holger.hum$ID %in% holgerID$ID]))
-holger.full<-merge(holger.hum,holgerID,"ID")
+dim(holger.hum)
+dim(holgerID)
+
+holger.full<-merge(holger.hum,holgerID)
+dim(holger.full)
 
 #Get all the rows in holger.hum that have species
 holger.full$Full<-paste(holger.full$Family,holger.full$Genus,holger.full$Species)
-#holgerInter<-holger.full[!holger.full$Full %in% "  " ,]
 
 #legacy change, keep all observations
 holgerInter<-holger.full
@@ -134,15 +133,8 @@ for (x in 1:nrow(holgerInter)){
     holgerInter[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])
   }}
 
-
-#Lots of cleaning left to do, but that's a start. 
-
 #Fix any known ID mistakes
-
 holgerInter[holgerInter$Iplant_Double %in% "Heppiella_ulmifolia","Iplant_Double"]<-"Glossoloma_oblongicalyx"
-
-#Final levels
-#print(paste("Final Flower Species:", levels(factor(holgerInter$Iplant_Double))))
 
 #get the desired columns
 colnames(holgerInter)
@@ -217,14 +209,10 @@ gps$GPS.ID<-sapply(gps$name,function(x){
   }
 })
 
-#################
 #Merge GPS info with transects
 
 #Merge all that fit the month and ID?
 HMatch<-merge(holgerInter,gps,by.x=c("Way.Point","Month"),by.y=c("GPS.ID","MonthID"),all.x=TRUE,all.y=FALSE)
-
-dim(HMatch)
-dim(holgerInter)
 
 #how many are missing?
 nrow(HMatch[is.na(HMatch$ele),])
@@ -269,9 +257,6 @@ hum.id<-merge(Hum,TID.f,by.x="ID",by.y="TransectID")
 hum.id$Date_F<-as.Date(as.character(hum.id$Date),"%m/%d/%Y")
 hum.id$Month<-as.numeric(format(as.Date(hum.id$Date_F),"%m"))
 hum.id$Transect_R<-paste(hum.id$Elevation.Begin,hum.id$Elevation.End,sep="_")
-
-#Take out empty rows?
-#hum.id<-hum.id[!is.na(hum.id$Plant.Species),]
 
 ############################
 ###Taxonomoy of plant names
@@ -369,7 +354,7 @@ head(HMatch)
 Brows<-BMatch[,colnames(BMatch) %in% c("GPS.ID","Iplant_Double","Hummingbird.Species","Month","Date_F","Transect_R","ID","altitude","lat","long")]
 
 colnames(HMatch)
-Hrows<-HMatch[,colnames(HMatch) %in% c("Way.Point" ,"Iplant_Double","Hummingbird.Species","Month","Date_F.y","Transect_R","ID","ele","lat","lon")]
+Hrows<-HMatch[,colnames(HMatch) %in% c("Way.Point" ,"Iplant_Double","Hummingbird.Species","Month","Date_F","Transect_R","ID","ele","lat","lon")]
 
 colnames(Hrows)
 colnames(Brows)[colnames(Brows) %in% c("altitude","long")]<-c("lon","ele")
@@ -387,3 +372,4 @@ write.csv(transectRows,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransec
 print("HummingbirdTransects")
 
 save.image("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
+
