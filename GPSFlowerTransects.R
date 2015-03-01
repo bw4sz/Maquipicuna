@@ -115,6 +115,8 @@ head(dat)
 #merge
 datg<-merge(dat,gps_noduplicate,by.x=c("GPS_ID","month","year"),by.y=c("GPS.ID","MonthID","YearID"),)
 
+#remove nonsensical elevations
+datg<-datg[datg$ele < 2600,]
 
 #Flower elevation ranges
 
@@ -129,7 +131,8 @@ ord<-dplyr::summarise(datkeep,mid=mean(ele,na.rm=TRUE)) %>% dplyr::arrange(mid) 
 
 datkeep$Iplant_order<-factor(datkeep$Iplant_Double,levels=droplevels(ord[[1]]))
 
-print(ggplot(datkeep,aes(x=Iplant_order,y=ele,fill=Family)) + geom_boxplot() + theme_bw() + coord_flip())
+p<-ggplot(datkeep,aes(x=Iplant_order,y=ele,fill=Iplant_Family)) + geom_boxplot() + theme_bw() + coord_flip() + labs(y="Elevation",x="Species",fill="Family")
+print(p)
 
 #Write camera data to file
 write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerTransectClean.csv")
