@@ -264,10 +264,9 @@ head(full.fl)
 
 ttotal<-group_by(full.fl,Year,month,Transect_R) %>% summarize(Date=length(unique(Date)))
 
-ggplot(ttotal,aes(x=as.factor(month),y=Date,shape=Year)) + geom_point(size=4) + facet_wrap(~Transect_R) + theme_bw()
 
 #Month without elevation
-p<-ggplot(fl.totals,aes(col=Elev,y=log(TotalFlowers),x=Month.a,shape=Year)) + geom_point(size=3) + theme_bw() + labs(col="Elevation") + facet_wrap(~Year,nrow=2) + stat_smooth(aes(group=1))
+p<-ggplot(fl.totals,aes(col=Elev,y=log(TotalFlowers),x=Month.a,shape=Year)) + geom_point(size=3) + theme_bw() + labs(col="Elevation") + facet_wrap(~Year,nrow=3) + stat_smooth(aes(group=1))
 p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylab("# of Hummingbird Visited Flowers") + xlab("Elevation Range (m)") #+ scale_color_brewer(palette="Paired") 
 p<-ggplot(fl.totals,aes(x=Elev,TotalFlowers,color=Year)) + geom_point(size=3)  + stat_smooth(aes(group=Year),method="loess",se=FALSE) + facet_wrap(~Month.a,nrow=2,scales="free_y") + theme_bw() + labs(col="Month")
 p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylab("# of Hummingbird Visited Flowers") + xlab("Elevation Range (m)")
@@ -278,7 +277,7 @@ ggplot(fl.totals,aes(x=Month.a,TotalFlowers,col=Year)) + geom_point(size=3) + th
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevations.jpeg",height=8,width=10,dpi=300)
 
 #Flowers at each elevation over time without Karen's data
-print(ggplot(fl.totals[,],aes(x=Month.a,log(TotalFlowers),shape=Year)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=1)) + ylab("Log Flowers") + xlab("Month") + facet_wrap(~Elev,scales="free_y"))
+print(ggplot(fl.totals[,],aes(x=Month.a,log(TotalFlowers),shape=Year)) + geom_point(size=3) + stat_smooth(aes(group=1),method="glm", family="quasipoisson", formula = y ~ ns(x, 3)) + theme_bw()  + ylab("Available Flowers") + xlab("Month") + facet_wrap(~Elev,scales="free_y") )
 ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerElevationsHolger.jpeg",height=8,width=14,dpi=300)
 
 #Write flower totals

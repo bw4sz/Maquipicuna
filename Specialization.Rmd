@@ -106,10 +106,12 @@ To measure the bill lengths of each hummingbird species, as well as other foot a
 #load("Thesis/Maquipucuna_SantaLucia/Results/Morphology.Rdata")
 ```
 
-
 ##Hummingbird Elevation Range
 
 Plot hummingbird and flower distribution over space and time
 ```{r time series,fig.height=8,fig.width=8}
 source(paste(gitpath,"TimeSeries.R",sep="")) 
 ```
+
+#Sampling effort - Cameras.
+```{r}

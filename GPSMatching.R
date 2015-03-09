@@ -141,7 +141,6 @@ colnames(dat)[11]<-"Pierce"
 datAuto<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/FlowerVideoAuto.csv")
 
 #Which flID are in the original, but not the automated
-
 datADD<-dat[!dat$ID %in% datAuto$ID,]
 
 #Combine with automated monitering
@@ -153,7 +152,6 @@ datg<-merge(datT,gps,by.x="ID",by.y="GPS.ID",all.x=TRUE)
 
 dim(datT)
 dim(datg)
-
 
 #find duplicates
 d<-data.frame(table(datT$ID),table(datg$ID))
@@ -171,7 +169,6 @@ gps[gps$ID %in% "NF009","GPS.ID"]<-"NF09"
 gps[gps$ID %in% "NF2","GPS.ID"]<-"NF02"
 gps[gps$ID %in% "NF003","GPS.ID"]<-"NF03"
 
-
 #remerge
 datg<-merge(datT,gps,by.x="ID",by.y="GPS.ID",all.x=TRUE)
 
@@ -180,8 +177,40 @@ dim(datg)
 
 paste("Missing Cameras GPS:",levels(factor(datg[is.na(datg$ele),]$ID)))
 
-###### Add in manual elev branches for missing levels?
+#looks like missing some data from nelly
+nelldat<-read.csv("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Data2013/CameraData Nelly Ultima version.csv")[-83,]
+dt<-str_detect(nelldat$Elevation..m,"(\\d+.\\d+) ft")
+ft<-str_match(nelldat$Elevation..m,"(\\d+.\\d+) ft")[,2]
+nelldat$Elevation..m<-as.character(nelldat$Elevation..m)
 
+nelldat[!dt,"ele.nelly"]<-as.character(nelldat$Elevation..m.[!dt])
+nelldat[dt,"ele.nelly"]<-as.numeric(na.omit(round(as.numeric(ft) * 0.304)))
+nelldat$GPSID<-as.character(nelldat$GPSID)
+
+#nelly added a 0 in front of numbers under 100
+a<-as.numeric(str_extract(nelldat$GPSID,"\\d+"))
+b<-a[a<100 & !is.na(a)]
+
+nelldat[as.numeric(str_extract(nelldat$GPSID,"\\d+"))<100,"GPSID"]<-paste("NF","0",b,sep="")
+
+#nelly added a 0 in front of numbers under 100
+a<-as.numeric(str_extract(nelldat$GPSID,"\\d+"))
+b<-a[a<10 & !is.na(a)& !a==2]
+nelldat[a <10 & !a==2,"GPSID"]<-paste("NF","00",b,sep="")
+
+#fix one individually
+nelldat[nelldat$GPSID=="NF02","GPSID"]<-"NF2"
+
+#which Ids are missing elevation?
+missingelev<-datg$ID[is.na(datg$ele)]
+nellele<-missingelev[missingelev %in% nelldat$GPSID]
+datg<-merge(datg,nelldat[,c("GPSID","ele.nelly")],by.x=c("ID"),by="GPSID",all.x=T)
+datg[!is.na(datg$ele.nelly),"ele"]<-datg$ele.nelly[!is.na(datg$ele.nelly)]
+
+#still missing some elevations
+unique(droplevels(datg$ID[is.na(datg$ele)]))
+
+###### Add in manual elev branches for missing levels?
 datg[datg$ID %in% "FL066","ele"]<-1350
 datg[datg$ID %in% "FL084","ele"]<-1850
 datg[datg$ID %in% "FL049","ele"]<-1350
@@ -192,6 +221,31 @@ datg[datg$ID %in% "FL054","ele"]<-1500
 #Still missing elevation information
 paste("Missing Cameras GPS:",levels(factor(datg[is.na(datg$ele),]$ID)))
 
+#Holger's missing cameras
+holgcam<-read.csv(file = "C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Data2013/csv/Camera_Protocol.csv")
+tomerge<-holgcam[holgcam$GPS.ID %in% stillmiss,c("GPS.ID","Elevation")]
+
+for (x in 1:nrow(tomerge)){
+  datg[datg$ID %in% tomerge$GPS.ID,"ele"]<-tomerge[x,"Elevation"]  
+}
+
+#Search for those names
+stillmiss<-levels(factor(datg[is.na(datg$ele),]$ID))
+
+#remerge missing
+#first correct them
+levels(datg$ID)[levels(datg$ID) %in% "FH_801"]<-"FH801"
+gps@data$GPS.ID[gps@data$GPS.ID %in% "fh1205"]<-"FH1205"
+levels(datg$ID)[levels(datg$ID) %in% "FH201HR"]<-"FH201"
+
+gps@data$GPS.ID[str_detect(gps@data$GPS.ID,"515")]
+
+datg[datg$ID %in% "",]
+gps@data[gps@data$GPS.ID == "KFL216",]
+
+#need to find more information about these cameras:
+#FH1211, FH216, FH515, FH531
+fianlmiss<-c()
 ################
 #Flower Taxonomy
 ################
