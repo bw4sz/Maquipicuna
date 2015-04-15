@@ -19,7 +19,7 @@ This project can be cloned at github repo:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 library(knitr)
 library(scales)
-opts_chunk$set(fig.width=14,echo=FALSE,cache=TRUE,cache.path = 'Specialization_cache/', fig.path='figure/',warning=FALSE,message=FALSE, dpi=100)
+opts_chunk$set(fig.width=10,fig.height=5,echo=FALSE,cache=TRUE,cache.path = 'Specialization_cache/', fig.path='figure/',warning=FALSE,message=FALSE, dpi=150)
 ```
 
 
@@ -41,7 +41,7 @@ Each hummingbird and plant sighting comes with a GPS tag for spatial mapping.
 * Remove duplicates
 * Each data point should have a time stamp and elevation.
 
-```{r,results='hide',fig.height=7}
+```{r,results='hide',fig.height=5}
 source(paste(gitpath,"GPSMatching.R",sep=""))      
 ```
 
@@ -70,32 +70,44 @@ Twice a month we census the number of available hummingbird floral resources alo
 * Mulitply number of stalks * inflorescences to estimate floral abundance
 * Aggregate statistics on flowers/elevation over time
 
-```{r,fig.height=10}
+```{r,fig.height=5}
 source(paste(gitpath,"FlowerTransects.R",sep=""))   
 #Load from source:
 #load("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 ```
 
-##Plant Elevation ranges
 
-* Match each observation with an observation
-* plot elevation ranges
-
-```{r elevation range plant,fig.height=12}
+```{r elevation range plant,fig.height=6,results='hide'}
+#Match flower transect GPS records
 source(paste(gitpath,"GPSFlowerTransects.R",sep=""))   
 ```
 
+##Plant Elevation ranges
+
+```{r}
+#Flower elevation ranges
+
+#######Flower Elevation Range for the most common species
+datg<-read.csv("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerTransectClean.csv")
+
+keep<-names(which(table(datg$Iplant_Double)>100))
+datkeep<-dplyr::group_by(datg,Iplant_Double) %>% dplyr::filter(Iplant_Double %in% keep)
+#get order
+ord<-dplyr::summarise(datkeep,mid=mean(ele,na.rm=TRUE)) %>% dplyr::arrange(mid) %>% dplyr::select(Iplant_Double)
+
+datkeep$Iplant_order<-factor(datkeep$Iplant_Double,levels=droplevels(ord[[1]]))
+
+p<-ggplot(datkeep,aes(x=Iplant_order,y=ele,fill=Iplant_Family)) + geom_boxplot() + theme_bw() + coord_flip() + labs(y="Elevation",x="Species",fill="Family")
+print(p)
+```
+
 #Hummingbird Transects
-We conduct six elevation transects twice a month to estimate hummingbird diversity and distribution.
+
+* Six elevation transects 2x/month to estimate hummingbird diversity and distribution
 
 ```{r Hummingbird transects,results='hide'}
 source(paste(gitpath,"HummingbirdTransect.R",sep="")) 
-#load("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransect.Rdata")
 ```
-
-#Hummingbird - Flower Interactions
-
-Using both the hummingbird observation as well as time lapse cameras, we quantify the number of visits for each hummingbird to each flower species.
 
 ##Hummingbird Morphology
 
@@ -109,9 +121,10 @@ To measure the bill lengths of each hummingbird species, as well as other foot a
 ##Hummingbird Elevation Range
 
 Plot hummingbird and flower distribution over space and time
+
 ```{r time series,fig.height=8,fig.width=8}
 source(paste(gitpath,"TimeSeries.R",sep="")) 
 ```
 
 #Sampling effort - Cameras.
-```{r}
+

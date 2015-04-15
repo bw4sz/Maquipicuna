@@ -14,7 +14,7 @@ require(plyr)
 require(plotKML)
 require(reshape)
 require(chron)
-
+library(taxize)
 #Set DropBox Working Directory
 setwd("C:/Users/Ben/Dropbox/")
 
@@ -84,7 +84,7 @@ holger.hum$ID<-factor(paste(holger.hum$Transect,holger.hum$Date_F,sep="_"))
 dim(holger.hum)
 dim(holgerID)
 
-holger.full<-merge(holger.hum,holgerID)
+holger.full<-merge(holger.hum,holgerID,by="ID")
 dim(holger.full)
 
 #Get all the rows in holger.hum that have species

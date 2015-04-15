@@ -128,15 +128,15 @@ missp<-h[!h %in% clades$English]
 paste("misspelled levels",missp)
 h[h %in% missp]
 
-spellC<-c("Booted Racket-tail","Green-crowned Woodnymph","Rufous-tailed Hummingbird","UKWN","UKWN","UKWN","Violet-tailed Sylph")
+spellC<-c("Booted Racket-tail","UKWN","UKWN","Violet-tailed Sylph")
 
 paste("Spelling Correction",spellC)
 
 h[h %in% missp]<-spellC
 
 head(clades)
-#can taxize do english names? 
 
+#can taxize do english names? 
 levels(dat$Hummingbird) <- h
 
 #Take our any bad data

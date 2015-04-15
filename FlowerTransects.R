@@ -298,10 +298,9 @@ topff<-dplyr::group_by(topff,Iplant_Double,month,Year)  %>%
 
 topff$monthA<-factor(topff$monthA,levels=month.abb)
 
-p<-ggplot(topff[!is.na(topff$Iplant_Double),],aes(x=monthA,y=Index,col=Iplant_Double)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Iplant_Double),method="glm",formula=y~ns(x,2),family="binomial")  + labs(x="Month") + facet_wrap(~Iplant_Double,ncol=3)
+p<-ggplot(topff[!is.na(topff$Iplant_Double),],aes(x=monthA,y=Index,col=Iplant_Double)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Iplant_Double),method="glm",formula=y~ns(x,3),family="poisson")  + labs(x="Month") + facet_wrap(~Iplant_Double,ncol=3)
 print(p+ggtitle("Phenology of Most Common Flowers"))
 
-ggplot(topff[!is.na(topff$Iplant_Double),],aes(x=monthA,y=Index,col=Iplant_Double))  + theme_bw()  + geom_smooth(aes(group=Iplant_Double),method="glm",formula=y~ns(x,2),family="binomial",se=F)  + labs(x="Month",col="Species") 
 
 
 #Write cleaned flower transect data

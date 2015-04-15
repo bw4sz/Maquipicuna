@@ -118,22 +118,6 @@ datg<-merge(dat,gps_noduplicate,by.x=c("GPS_ID","month","year"),by.y=c("GPS.ID",
 #remove nonsensical elevations
 datg<-datg[datg$ele < 2600,]
 
-#Flower elevation ranges
-
-#######Flower Elevation Range for the most common species
-
-keep<-names(which(table(datg$Iplant_Double)>50))
-
-datkeep<-dplyr::group_by(datg,Iplant_Double) %>% dplyr::filter(Iplant_Double %in% keep)
-
-#get order
-ord<-dplyr::summarise(datkeep,mid=mean(ele,na.rm=TRUE)) %>% dplyr::arrange(mid) %>% dplyr::select(Iplant_Double)
-
-datkeep$Iplant_order<-factor(datkeep$Iplant_Double,levels=droplevels(ord[[1]]))
-
-p<-ggplot(datkeep,aes(x=Iplant_order,y=ele,fill=Iplant_Family)) + geom_boxplot() + theme_bw() + coord_flip() + labs(y="Elevation",x="Species",fill="Family")
-print(p)
-
 #Write camera data to file
 write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerTransectClean.csv")
 

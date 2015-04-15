@@ -221,6 +221,9 @@ datg[datg$ID %in% "FL054","ele"]<-1500
 #Still missing elevation information
 paste("Missing Cameras GPS:",levels(factor(datg[is.na(datg$ele),]$ID)))
 
+#Search for those names
+stillmiss<-levels(factor(datg[is.na(datg$ele),]$ID))
+
 #Holger's missing cameras
 holgcam<-read.csv(file = "C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Data2013/csv/Camera_Protocol.csv")
 tomerge<-holgcam[holgcam$GPS.ID %in% stillmiss,c("GPS.ID","Elevation")]
@@ -229,8 +232,6 @@ for (x in 1:nrow(tomerge)){
   datg[datg$ID %in% tomerge$GPS.ID,"ele"]<-tomerge[x,"Elevation"]  
 }
 
-#Search for those names
-stillmiss<-levels(factor(datg[is.na(datg$ele),]$ID))
 
 #remerge missing
 #first correct them
@@ -283,12 +284,6 @@ for (x in 1:nrow(datg)){
   datg[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])
 }
 
-
-#sampling across cameras
-ord<-dplyr::group_by(datg,Iplant_Double) %>% dplyr::summarize(count=nlevels(droplevels(ID))) %>% dplyr::arrange(count)
-ord$Iplant_Double<-factor(ord$Iplant_Double,levels=ord$Iplant_Double)
-p<-ggplot(ord,aes(x=Iplant_Double,y=count)) + geom_bar(stat="identity") + coord_flip() + theme_bw() + labs(x="Species",y="# of Cameras")
-print(p)
 
 #Write camera data to file
 write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoClean.csv")
