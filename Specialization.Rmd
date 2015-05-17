@@ -73,7 +73,7 @@ Twice a month we census the number of available hummingbird floral resources alo
 ```{r,fig.height=5}
 source(paste(gitpath,"FlowerTransects.R",sep=""))   
 #Load from source:
-#load("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
+load("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 ```
 
 
