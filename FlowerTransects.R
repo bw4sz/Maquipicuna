@@ -284,8 +284,8 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerEle
 write.csv(fl.totals[,],"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerAvailability.csv")
 
 topf<-dplyr::group_by(full.fl,Iplant_Double) %>% 
-  dplyr::summarize(t=sum(Total_Flowers)) %>% 
-  dplyr::arrange(desc(t)) %>% filter(t>3000) %>% 
+  dplyr::summarize(t=sum(Total_Flowers,na.rm=T)) %>% 
+  dplyr::arrange(desc(t)) %>% filter(t>quantile(t,0.75,na.rm=T)) %>% 
   dplyr::select(Iplant_Double) %>% filter(!Iplant_Double=="Palicourea")
   
 topff<-full.fl[full.fl$Iplant_Double %in% topf$Iplant_Double,]
@@ -298,9 +298,10 @@ topff<-dplyr::group_by(topff,Iplant_Double,month,Year)  %>%
 
 topff$monthA<-factor(topff$monthA,levels=month.abb)
 
-p<-ggplot(topff[!is.na(topff$Iplant_Double),],aes(x=monthA,y=Index,col=Iplant_Double)) + geom_point(size=3) + theme_bw()  + geom_smooth(aes(group=Iplant_Double),method="glm",formula=y~ns(x,3),family="poisson")  + labs(x="Month") + facet_wrap(~Iplant_Double,ncol=3)
+p<-ggplot(topff[!is.na(topff$Iplant_Double),],aes(x=monthA,y=log(Count),col=Year)) + geom_point(size=3) + theme_bw() + facet_wrap(~Iplant_Double,ncol=4,scales="free_y")
+p+ geom_smooth(aes(group=Iplant_Double),se=F)  + labs(x="Month") 
 print(p+ggtitle("Phenology of Most Common Flowers"))
-
+ggsave("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Results/Phenology.svg",height=9,width=15)
 
 
 #Write cleaned flower transect data
