@@ -9,6 +9,8 @@ require(ggplot2)
 require(reshape)
 require(taxize)
 library(ggbiplot)
+library(stringr)
+library(dplyr)
 
 #############
 #setwd
@@ -44,14 +46,14 @@ head(dat<-rbind.fill(dat,FB))
 Species<-levels(factor(paste(dat$Genus,dat$Species,sep=" ")))
 
 #look up online, skip the blank
-tax<-tnrs(query = Species[-1], source = "iPlant_TNRS")
+tax<-gnr_resolve(names = Species,preferred_data_sources = c(3))
 
 #Set the Species column
 for (x in 1:nrow(dat)){
   y<-dat[x,]
   toMatch<-paste(y$Genus,y$Species,sep=" ")
   if(toMatch %in% tax$submittedname){
-    dat[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"]   )
+    dat[x,"Iplant_Double"]<-unique(tax$preferred[tax$preferred$submitted_name %in% toMatch,"matched_name"]   )
   } else {
     next
   }}
@@ -101,9 +103,24 @@ ggsave("Thesis/Maquipucuna_SantaLucia/Results/FloralPCA.svg",height=10,width=10,
 
 # #Some basic visualizations to check data clarity
 # #number of records per species
-m.Nectar<-melt(table(Nectar[!is.na(Nectar$Brix),]$Iplant_Double))
-ggplot(m.Nectar,aes(Var.1,value)) + geom_point(size=5)+ theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
-# 
+m.Nectar<-melt(table(dat[!is.na(Nectar$Brix),]$Iplant_Double))
+
+#remove species with just one name.
+dat<-dat[!is.na(dat$Iplant_Double),]
+
+dat<-dat[!sapply(dat$Iplant_Double,function(x){
+  length(str_split(x," ")[[1]])})==1,]
+
+#order by brix
+ord<-dat %>% group_by(Iplant_Double) %>% summarize(m=mean(Brix,na.rm=T)) %>% arrange(m) %>% select(Iplant_Double)
+
+dat$Iplant_Double<-factor(dat$Iplant_Double,levels=ord$Iplant_Double)
+
+#remove species without any records?
+ggplot(dat[!is.na(dat$Brix) & !dat$Iplant_Double %in% "Gasteranthus leopardus",],aes(Iplant_Double,Brix)) + geom_boxplot()+ theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(x="Plant Species",y=" Nectar Sucrose Concentration(%)")
+ggsave("C:/Users/Ben/Documents/Selectivity/Figures/NectarSpecies.jpeg",dpi=600)
+
+
 # #Sugar Concentration's of 0 to NA
 #No records should be 0
 Nectar[Nectar$Brix==0 & is.finite(Nectar$Brix),]
@@ -118,11 +135,11 @@ write.csv(nectar.mean,paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/nect
 # #tube column needs to have correct math.
 
 # as.numeric(Nectar$Tube.Type)/2 * 2*pi * Nectar$TubeLength
-# ggplot(m.Nectar,aes(x=Var.1,value)) + geom_bar() + coord_flip() + geom_text(aes(label=value),col="red",hjust=1) + theme_bw()
-# p<-ggplot(Nectar[!is.na(Nectar$Brix),],aes(x=Species,y=Brix)) + geom_point() + facet_wrap(~Family,scales="free_x")
-# p+ theme_bw() +theme(axis.text.x = element_text(angle = 90,size=10))
-# p<-ggplot(Nectar[!is.na(Nectar$TotalCorolla),],aes(x=Species,y=TotalCorolla)) + geom_point() + facet_wrap(~Family,scales="free_x")
-# p+ theme_bw() +theme(axis.text.x = element_text(angle = 90,size=10)) + geom_point()
+ ggplot(m.Nectar,aes(x=Var.1,value)) + geom_bar() + coord_flip() + geom_text(aes(label=value),col="red",hjust=1) + theme_bw()
+ p<-ggplot(Nectar[!is.na(Nectar$Brix),],aes(x=Species,y=Brix)) + geom_boxplot
+ p+ theme_bw() +theme(axis.text.x = element_text(angle = 90,size=10))
+ p<-ggplot(Nectar[!is.na(Nectar$TotalCorolla),],aes(x=Species,y=TotalCorolla)) + geom_point() + facet_wrap(~Family,scales="free_x")
+ p+ theme_bw() +theme(axis.text.x = element_text(angle = 90,size=10)) + geom_point()
 # 
 # ggplot(Nectar,aes(x=TotalCorolla,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm")
 # ggplot(Nectar,aes(x=EffectiveCorolla,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm") + geom_text(aes(label=Family),size=2)

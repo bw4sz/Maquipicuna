@@ -3,15 +3,16 @@
 #R script Ben Weinstein - Stony Brook University 7/7/2013
 #Under Git repository - Maquipucuna
 
-#Read in required libraries
-require(ggplot2)
-require(reshape2)
-require(maptools)
+#Read in libraryd libraries
+library(ggplot2)
+library(reshape2)
+library(maptools)
+library(stringr)
 library(dplyr)
-require(plotKML)
-require(reshape)
-require(chron)
-require(taxize)
+library(plotKML)
+library(reshape)
+library(chron)
+library(taxize)
 library(splines)
 
 #Set DropBox Working Directory
@@ -122,13 +123,14 @@ full.fl$Genus<-as.factor(full.fl$Genus)
 
 Families<-levels(factor(full.fl$Family))
 
-tax<-tnrs(query = Families, source = "iPlant_TNRS",splitby=60)
+tax<-gnr_resolve(names = Families,preferred_data_sources = c(3))
+head(tax$preferred)
 
 for (x in 1:nrow(full.fl)){
   y<-full.fl[x,]
   toMatch<-y$Family
-  if(!toMatch %in% tax$submittedname){next} else{
-  full.fl[x,"Iplant_Family"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])
+  if(!toMatch %in% tax$preferred$submitted_name){next} else{
+  full.fl[x,"Iplant_Family"]<-unique(tax$preferred[tax$preferred$submitted_name %in% toMatch,"matched_name"])
 }}
 
 
@@ -136,14 +138,16 @@ for (x in 1:nrow(full.fl)){
 Species<-levels(factor(paste(full.fl$Genus,full.fl$Species,sep=" ")))
 
 #look up online, skip the blank
-tax<-tnrs(query = Species[-1], source = "iPlant_TNRS",splitby=60)
+#remove species with just one word?
+
+tax<-gnr_resolve(names = Species[-1], splitby=30,highestscore = T)
 
 #Set the Species column
 for (x in 1:nrow(full.fl)){
   y<-full.fl[x,]
   toMatch<-paste(y$Genus,y$Species,sep=" ")
-  if(toMatch %in% tax$submittedname){
-  full.fl[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"]   )
+  if(toMatch %in% tax$results$submitted_name){
+  full.fl[x,"Iplant_Double"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name"]   )
 } else {
   next
 }}

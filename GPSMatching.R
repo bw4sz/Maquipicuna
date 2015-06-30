@@ -271,7 +271,7 @@ levels(datg$Flower)<-sapply(levels(datg$Flower),function(x){
 #Repeat for species
 SpeciesG<-levels(factor(datg$Flower))
 
-tax<-tnrs(query = unique(SpeciesG), source = "iPlant_TNRS")
+tax<-gnr_resolve(names = unique(SpeciesG),preferred_data_sources = c(3))
 
 #remove one troublesome
 datg<-datg[!datg$Flower %in% 'sp. ("ginger")',]
@@ -281,7 +281,7 @@ for (x in 1:nrow(datg)){
   print(x)
   y<-datg[x,]
   toMatch<-y$Flower
-  datg[x,"Iplant_Double"]<-unique(tax[tax$submittedname %in% toMatch,"acceptedname"])
+  datg[x,"Iplant_Double"]<-unique(tax$preferred[tax$preferred$submitted_name %in% toMatch,"matched_name"])
 }
 
 
