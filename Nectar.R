@@ -46,14 +46,14 @@ head(dat<-rbind.fill(dat,FB))
 Species<-levels(factor(paste(dat$Genus,dat$Species,sep=" ")))
 
 #look up online, skip the blank
-tax<-gnr_resolve(names = Species,preferred_data_sources = c(3))
+tax<-gnr_resolve(names = Species, splitby=30,highestscore = T,stripauthority = T)
 
 #Set the Species column
 for (x in 1:nrow(dat)){
   y<-dat[x,]
   toMatch<-paste(y$Genus,y$Species,sep=" ")
   if(toMatch %in% tax$submittedname){
-    dat[x,"Iplant_Double"]<-unique(tax$preferred[tax$preferred$submitted_name %in% toMatch,"matched_name"]   )
+    dat[x,"Iplant_Double"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name"]   )[1]
   } else {
     next
   }}
