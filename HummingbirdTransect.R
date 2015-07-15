@@ -118,12 +118,12 @@ for (x in 1:nrow(holgerInter)){
   y<-holgerInter[x,]
   toMatch<-y$Genus
   if(!toMatch %in% tax$results$submitted_name){next} else{
-    holgerInter[x,"Iplant_Genus"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name2"])[1]
+    holgerInter[x,"Iplant_Genus"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name"])[1]
   }}
 
 #Repeat for species double
 Species<-levels(factor(paste(holgerInter$Iplant_Genus,holgerInter$Species,sep=" ")))
-tax<-gnr_resolve(names= Species,results_data_sources = c(3))
+tax<-gnr_resolve(names = Species, splitby=30,highestscore = T,stripauthority = T)
 
 #Set the Species column
 for (x in 1:nrow(holgerInter)){

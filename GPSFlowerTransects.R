@@ -121,3 +121,24 @@ datg<-datg[datg$ele < 2600,]
 #Write camera data to file
 write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerTransectClean.csv")
 
+## Elevation ranges 
+
+#Elevation Ranges
+
+eleIndex<-dplyr::group_by(datg,Iplant_Double) %>% dplyr::summarize(Low=quantile(ele,0.2,na.rm=T),m=mean(ele,na.rm=T),High=quantile(ele,0.8,na.rm=T))
+
+#1 for low elevation, 2 for high elevation, 3 for both
+#high elevation
+eleIndex[eleIndex$Low > 1700,"Index"]<-2
+
+#low elevation
+eleIndex[eleIndex$High < 1700,"Index"]<-1
+
+#The result are both
+eleIndex[is.na(eleIndex$Index),"Index"]<-3
+
+#view result
+as.data.frame(eleIndex)
+
+write.csv(eleIndex,"C:/Users/Ben/Documents/Maquipicuna/OutData/PlantElevation.csv")
+

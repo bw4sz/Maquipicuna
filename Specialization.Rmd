@@ -126,5 +126,8 @@ Plot hummingbird and flower distribution over space and time
 source(paste(gitpath,"TimeSeries.R",sep="")) 
 ```
 
-#Sampling effort - Cameras.
+##Create interaction matrix
 
+```{r}
+source(paste(gitpath,"Interactions.R"))
+```

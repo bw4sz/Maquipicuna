@@ -306,6 +306,5 @@ p+ geom_smooth(aes(group=Iplant_Double),se=F)  + labs(x="Month")
 print(p+ggtitle("Phenology of Most Common Flowers"))
 ggsave("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Results/Phenology.svg",height=9,width=15)
 
-
 #Write cleaned flower transect data
 save.image("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")

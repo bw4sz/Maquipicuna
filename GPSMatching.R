@@ -278,7 +278,6 @@ datg<-datg[!datg$Flower %in% 'sp. ("ginger")',]
 
 #Set the Species column
 for (x in 1:nrow(datg)){
-  print(x)
   y<-datg[x,]
   toMatch<-y$Flower
   datg[x,"Iplant_Double"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name2"])[1]
