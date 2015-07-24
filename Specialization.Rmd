@@ -129,5 +129,5 @@ source(paste(gitpath,"TimeSeries.R",sep=""))
 ##Create interaction matrix
 
 ```{r}
-source(paste(gitpath,"Interactions.R"))
+source(paste(gitpath,"Interactions.R",sep=""))
 ```
