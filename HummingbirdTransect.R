@@ -267,7 +267,7 @@ plants<-levels(factor(hum.id$Plant.Species))
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
 
 Families<-levels(factor(plants))
-tax<-gnr_resolve(Families,results_data_sources = c(3))
+tax<-gnr_resolve(names = Families, splitby=30,highestscore = T,stripauthority = T)
 
 #Set the Family column
 for (x in 1:nrow(hum.id)){

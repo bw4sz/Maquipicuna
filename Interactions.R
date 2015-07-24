@@ -137,7 +137,7 @@ dat_e<-dat_e[!dat_e$Pierce %in% c("Yes","YES","y","Y"),]
 dat_e<-droplevels(dat_e)
 
 #Drop any observations without plants
-dat_e<-droplevels(dat_e[!dat_e$Iplant_Double %in% "",])
+dat_e<-droplevels(dat_e[!is.na(dat_e$Iplant_Double),])
 
 table(dat_e$Iplant_Double)
 sp_l<-levels(dat_e$Iplant_Double)
