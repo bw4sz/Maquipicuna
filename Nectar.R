@@ -46,6 +46,9 @@ head(dat<-rbind.fill(dat,FB))
 Species<-levels(factor(paste(dat$Genus,dat$Species,sep=" ")))
 
 #look up online, skip the blank
+#Doesn't like the unmanned species
+
+Species<-Species[!Species %in% c(" pink ms"," sp.")]
 tax<-gnr_resolve(names = Species, splitby=30,highestscore = T,stripauthority = T)
 
 #Set the Species column

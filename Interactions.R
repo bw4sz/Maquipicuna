@@ -58,7 +58,7 @@ dat$Month<-as.numeric(format(as.Date(dat$Date,"%m/%d/%Y"),"%m"))
 transect.FL<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv",row.names=1)
 
 #make the columns as similiar as possible to videodata
-colnames(transect.FL)<-c("GPS.ID","TransectID","Hummingbird","Date","Month","Transect_R","lat","lon","ele","Iplant_Double")
+colnames(transect.FL)<-c("GPS.ID","TransectID","Hummingbird","Date","Month","Transect_R","Iplant_Double","lat","lon","ele")
 
 transect.FL$Iplant_Double<-gsub("_"," ",transect.FL$Iplant_Double)
 
@@ -112,7 +112,7 @@ missp<-h[!h %in% clades$English]
 paste("misspelled levels",missp)
 h[h %in% missp]
 
-spellC<-c("Booted Racket-tail","Green-crowned Woodnymph","UKWN","UKWN","UKWN","Violet-tailed Sylph","White-lined Flowerpiercer","White-sided Flowerpiercer")
+spellC<-c("Booted Racket-tail","Green-crowned Woodnymph","Orange-crowned Euphonia","UKWN","UKWN","UKWN","Violet-tailed Sylph","White-lined Flowerpiercer","White-sided Flowerpiercer")
 
 paste("Spelling Correction",spellC)
 
