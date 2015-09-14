@@ -52,15 +52,18 @@ Species<-Species[!Species %in% c(" pink ms"," sp.")]
 tax<-gnr_resolve(names = Species, splitby=30,highestscore = T,stripauthority = T)
 
 #Set the Species column
+dat$Iplant_Double<-NA
 for (x in 1:nrow(dat)){
   y<-dat[x,]
   toMatch<-paste(y$Genus,y$Species,sep=" ")
-  if(toMatch %in% tax$submittedname){
-    dat[x,"Iplant_Double"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name"]   )[1]
+  if(toMatch %in% tax$submitted_name){
+    dat[x,"Iplant_Double"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name2"])[1]
   } else {
     next
   }}
 
+#for anything not found, need to reinset
+dat[dat$Species %in% tax$not_known, "Iplant_Double"]<-dat[dat$Species %in% tax$not_known, "Species"]
 
 #Lots of cleaning left to do, but that's a start. 
 #Final levels
