@@ -22,7 +22,7 @@ droppath<-"C:/Users/Ben/Dropbox/"
 setwd(droppath)
 
 #Bring in nectar data, there is the original and the cleaned
-Nectar <- read.csv(paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Nectar_cleaned2014.csv",sep=""))
+Nectar <- read.csv(  paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Nectar_cleaned2014.csv",sep=""))
 
 #Fix colnames that are ugly
 colnames(Nectar)[c(8,10,11,12,13)]<-c("Height","TubeLength","Brix","EffectiveCorolla","TotalCorolla")
@@ -56,14 +56,15 @@ dat$Iplant_Double<-NA
 for (x in 1:nrow(dat)){
   y<-dat[x,]
   toMatch<-paste(y$Genus,y$Species,sep=" ")
-  if(toMatch %in% tax$submitted_name){
+  if(toMatch %in% tax$results$submitted_name){
     dat[x,"Iplant_Double"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name2"])[1]
   } else {
     next
   }}
 
-#for anything not found, need to reinset
-dat[dat$Species %in% tax$not_known, "Iplant_Double"]<-dat[dat$Species %in% tax$not_known, "Species"]
+#for anything not found, need to reinsert
+toinsert<-dat[dat$Species %in% tax$not_known,c("Genus","Species")]
+dat[dat$Species %in% tax$not_known, "Iplant_Double"]<-paste(toinsert$Genus,toinsert$Species)  
 
 #Lots of cleaning left to do, but that's a start. 
 #Final levels
@@ -76,6 +77,7 @@ write.csv(levels(factor(dat$Iplant_Double)),"Thesis/Maquipucuna_SantaLucia/Resul
 #################################################################################
 
 #View morphological distance
+
 #Which morphologies do we want to visualize, include nectar later?
 #get the means?
 toPCA<-aggregate(dat[,c("TotalCorolla","EffectiveCorolla","Corolla.Width")],list(dat$Iplant_Double),mean,na.rm=TRUE)
