@@ -22,7 +22,7 @@ droppath<-"C:/Users/Ben/Dropbox/"
 setwd(droppath)
 
 #Bring in nectar data, there is the original and the cleaned
-Nectar <- read.csv(  paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Nectar_cleaned2014.csv",sep=""))
+Nectar <- read.csv( paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/Nectar_cleaned2014.csv",sep=""))
 
 #Fix colnames that are ugly
 colnames(Nectar)[c(8,10,11,12,13)]<-c("Height","TubeLength","Brix","EffectiveCorolla","TotalCorolla")
@@ -37,6 +37,13 @@ colnames(FB)<-c("Family","Genus","Species","TotalCorolla","Corolla.Width")
 head(dat<-rbind.fill(Nectar,imageJ))
 head(dat<-rbind.fill(dat,FB))
 
+#one additional misspelling
+#stromanthe stromathoides
+
+#make sure to cap correctly
+dat$Genus<-paste(toupper(substring(word(dat$Genus),1,1)),substring(word(dat$Genus),2),sep="")
+dat$Species<-tolower(dat$Species)
+
 ################
 #Flower Taxonomy
 ################
@@ -49,6 +56,10 @@ Species<-levels(factor(paste(dat$Genus,dat$Species,sep=" ")))
 #Doesn't like the unmanned species
 
 Species<-Species[!Species %in% c(" pink ms"," sp.")]
+
+
+properCap(st)
+
 tax<-gnr_resolve(names = Species, splitby=30,highestscore = T,stripauthority = T)
 
 #Set the Species column
@@ -135,19 +146,20 @@ Nectar[Nectar$Brix==0 & is.finite(Nectar$Brix),]
 
 
 #start with nectar quality
-nectar.mean<-aggregate(Nectar$Brix,list(Nectar$Iplant_Double),mean,na.rm=TRUE)
 
-colnames(nectar.mean)<-c("Iplant_Double","Brix")
-write.csv(nectar.mean,paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/nectarmean.csv",sep=""))
+#nectar.mean<-aggregate(Nectar$Brix,list(Nectar$Iplant_Double),mean,na.rm=TRUE)
+
+#colnames(nectar.mean)<-c("Iplant_Double","Brix")
+#write.csv(nectar.mean,paste(droppath,"Thesis/Maquipucuna_SantaLucia/Results/nectarmean.csv",sep=""))
 # #Is the tube given in diameter?
 # #tube column needs to have correct math.
 
 # as.numeric(Nectar$Tube.Type)/2 * 2*pi * Nectar$TubeLength
- ggplot(m.Nectar,aes(x=Var.1,value)) + geom_bar() + coord_flip() + geom_text(aes(label=value),col="red",hjust=1) + theme_bw()
- p<-ggplot(Nectar[!is.na(Nectar$Brix),],aes(x=Species,y=Brix)) + geom_boxplot
- p+ theme_bw() +theme(axis.text.x = element_text(angle = 90,size=10))
- p<-ggplot(Nectar[!is.na(Nectar$TotalCorolla),],aes(x=Species,y=TotalCorolla)) + geom_point() + facet_wrap(~Family,scales="free_x")
- p+ theme_bw() +theme(axis.text.x = element_text(angle = 90,size=10)) + geom_point()
+# ggplot(m.Nectar,aes(x=Var.1,value)) + geom_bar() + coord_flip() + geom_text(aes(label=value),col="red",hjust=1) + theme_bw()
+# p<-ggplot(Nectar[!is.na(Nectar$Brix),],aes(x=Species,y=Brix)) + geom_boxplot
+# p+ theme_bw() +theme(axis.text.x = element_text(angle = 90,size=10))
+# p<-ggplot(Nectar[!is.na(Nectar$TotalCorolla),],aes(x=Species,y=TotalCorolla)) + geom_point() + facet_wrap(~Family,scales="free_x")
+# p+ theme_bw() +theme(axis.text.x = element_text(angle = 90,size=10)) + geom_point()
 # 
 # ggplot(Nectar,aes(x=TotalCorolla,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm")
 # ggplot(Nectar,aes(x=EffectiveCorolla,y=Brix)) + geom_point(aes(color=Family)) + stat_smooth(method="lm") + geom_text(aes(label=Family),size=2)
