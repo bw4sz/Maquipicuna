@@ -136,7 +136,7 @@ eleIndex[is.na(eleIndex$Index),"Index"]<-3
 #view result
 as.data.frame(eleIndex)
 
-write.csv(eleIndex,"OutData/HummingbirdElevation.csv")
+write.csv(eleIndex,paste(gitpath,"OutData/HummingbirdElevation.csv",sep=""))
 
 
 # ############Bring in temperature

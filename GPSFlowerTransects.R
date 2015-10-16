@@ -7,7 +7,6 @@
 require(plotKML)
 require(reshape2)
 require(maptools)
-library(plyr)
 require(dplyr)
 require(stringr)
 require(taxize)
@@ -116,7 +115,8 @@ head(dat)
 datg<-merge(dat,gps_noduplicate,by.x=c("GPS_ID","month","year"),by.y=c("GPS.ID","MonthID","YearID"),)
 
 #remove nonsensical elevations
-datg<-datg[datg$ele < 2600,]
+datg$ele[datg$ele > 2600]<-NA
+datg$ele[datg$ele < 1200]<-NA
 
 #Write camera data to file
 write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerTransectClean.csv")

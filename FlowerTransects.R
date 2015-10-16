@@ -123,15 +123,19 @@ full.fl$Genus<-as.factor(full.fl$Genus)
 
 Families<-levels(factor(full.fl$Family))
 
-tax<-gnr_resolve(names = Families, splitby=30,highestscore = T,stripauthority = T)
+tax<-gnr_resolve(names = Families, splitby=30,best_match_only = T,canonical = T)
 
 for (x in 1:nrow(full.fl)){
   y<-full.fl[x,]
   toMatch<-y$Family
-  if(!toMatch %in% tax$results$submitted_name){next} else{
-  full.fl[x,"Iplant_Family"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name2"])
+  if(!toMatch %in% tax$submitted_name){next} else{
+  full.fl[x,"Iplant_Family"]<-tax[tax$submitted_name %in% toMatch,"matched_name2"]
 }}
 
+
+#make sure to cap correctly
+full.fl$Genus<-paste(toupper(substring(word(full.fl$Genus),1,1)),substring(word(full.fl$Genus),2),sep="")
+full.fl$Species<-tolower(full.fl$Species)
 
 #Repeat for genus species
 Species<-levels(factor(paste(full.fl$Genus,full.fl$Species,sep=" ")))
@@ -139,17 +143,22 @@ Species<-levels(factor(paste(full.fl$Genus,full.fl$Species,sep=" ")))
 #look up online, skip the blank
 #remove species with just one word?
 
-tax<-gnr_resolve(names = Species[-1], splitby=30,highestscore = T,stripauthority = T)
+tax<-gnr_resolve(names = Species[-1], splitby=30,best_match_only = T,canonical = T)
 
 #Set the Species column
 for (x in 1:nrow(full.fl)){
   y<-full.fl[x,]
   toMatch<-paste(y$Genus,y$Species,sep=" ")
-  if(toMatch %in% tax$results$submitted_name){
-  full.fl[x,"Iplant_Double"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name2"])[[1]]
+  if(toMatch %in% tax$submitted_name){
+  full.fl[x,"Iplant_Double"]<-tax[tax$submitted_name %in% toMatch,"matched_name2"]
 } else {
   next
 }}
+
+toinsert<-full.fl[is.na(full.fl$Iplant_Double),]
+toin <- gsub(" $","", paste(toinsert$Genus,toinsert$Species), perl=T)
+
+full.fl[is.na(full.fl$Iplant_Double), "Iplant_Double"]<-toin
 
 #One known date error
 #Remove levels that don'y have species names (see if they can be recovered)

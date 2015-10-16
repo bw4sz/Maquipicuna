@@ -37,9 +37,6 @@ colnames(FB)<-c("Family","Genus","Species","TotalCorolla","Corolla.Width")
 head(dat<-rbind.fill(Nectar,imageJ))
 head(dat<-rbind.fill(dat,FB))
 
-#one additional misspelling
-#stromanthe stromathoides
-
 #make sure to cap correctly
 dat$Genus<-paste(toupper(substring(word(dat$Genus),1,1)),substring(word(dat$Genus),2),sep="")
 dat$Species<-tolower(dat$Species)
@@ -54,28 +51,24 @@ Species<-levels(factor(paste(dat$Genus,dat$Species,sep=" ")))
 
 #look up online, skip the blank
 #Doesn't like the unmanned species
-
 Species<-Species[!Species %in% c(" pink ms"," sp.")]
 
-
-properCap(st)
-
-tax<-gnr_resolve(names = Species, splitby=30,highestscore = T,stripauthority = T)
+tax<-gnr_resolve(names = Species, splitby=30,best_match_only=T,canonical = T)
 
 #Set the Species column
 dat$Iplant_Double<-NA
 for (x in 1:nrow(dat)){
   y<-dat[x,]
   toMatch<-paste(y$Genus,y$Species,sep=" ")
-  if(toMatch %in% tax$results$submitted_name){
-    dat[x,"Iplant_Double"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name2"])[1]
+  if(toMatch %in% tax$submitted_name){
+    dat[x,"Iplant_Double"]<-unique(tax[tax$submitted_name %in% toMatch,"matched_name2"])[1]
   } else {
     next
   }}
 
 #for anything not found, need to reinsert
-toinsert<-dat[dat$Species %in% tax$not_known,c("Genus","Species")]
-dat[dat$Species %in% tax$not_known, "Iplant_Double"]<-paste(toinsert$Genus,toinsert$Species)  
+toinsert<-dat[is.na(dat$Iplant_Double),]
+dat[is.na(dat$Iplant_Double), "Iplant_Double"]<-paste(toinsert$Genus,toinsert$Species)  
 
 #Lots of cleaning left to do, but that's a start. 
 #Final levels

@@ -246,13 +246,12 @@ gps@data[gps@data$GPS.ID == "KFL216",]
 
 #need to find more information about these cameras:
 #FH1211, FH216, FH515, FH531
-fianlmiss<-c()
+
 ################
 #Flower Taxonomy
 ################
 
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
-
 datg[datg$Flower %in% "Columnea ","Flower"]<-"Columnea"
 
 #remove family names they just confuse the issue
@@ -271,7 +270,7 @@ levels(datg$Flower)<-sapply(levels(datg$Flower),function(x){
 #Repeat for species
 SpeciesG<-levels(factor(datg$Flower))
 
-tax<-gnr_resolve(names = SpeciesG, splitby=30,highestscore = T,stripauthority = T)
+tax<-gnr_resolve(names = SpeciesG, splitby=30,best_match_only = T,canonical = T)
 
 #remove one troublesome
 datg<-datg[!datg$Flower %in% 'sp. ("ginger")',]
@@ -280,9 +279,19 @@ datg<-datg[!datg$Flower %in% 'sp. ("ginger")',]
 for (x in 1:nrow(datg)){
   y<-datg[x,]
   toMatch<-y$Flower
-  datg[x,"Iplant_Double"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name2"])[1]
-}
+  if(tolower(toMatch) %in% tolower(tax$submitted_name)){
+  datg[x,"Iplant_Double"]<-tax[tolower(tax$submitted_name) %in% tolower(toMatch),"matched_name2"]
+  }}
 
+#Add in any not known
+#for anything not found, need to reinsert
+toinsert<-datg[is.na(datg$Iplant_Double),"Flower"]
+
+#make sure to cap correctly
+levels(toinsert)[levels(toinsert) %in% "fuschia macrostigma"]<-"fuchsia macrostigma"
+datg$Iplant_Double<-as.character(datg$Iplant_Double)
+
+datg[is.na(datg$Iplant_Double), "Iplant_Double"]<-as.character(toinsert)
 
 #Write camera data to file
 write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoClean.csv")

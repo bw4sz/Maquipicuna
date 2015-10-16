@@ -99,39 +99,41 @@ holgerInter<-holger.full
 
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
 Families<-levels(factor(holgerInter$Family))
-tax<-gnr_resolve(names = Families, splitby=30,highestscore = T,stripauthority = T)
+tax<-gnr_resolve(names = Families, splitby=30,best_match_only =T,canonical  = T)
 
 #Set the Family column
 for (x in 1:nrow(holgerInter)){
   y<-holgerInter[x,]
   toMatch<-y$Family
-  if(!toMatch %in% tax$results$submitted_name){next} else{
-    holgerInter[x,"Iplant_Family"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name2"])[1]
+  if(!toMatch %in% tax$submitted_name){next} else{
+    holgerInter[x,"Iplant_Family"]<-unique(tax[tax$submitted_name %in% toMatch,"matched_name2"])[1]
   }}
 
 #Repeat for genus
 Genus<-levels(factor(holgerInter$Genus))
-tax<-gnr_resolve(names = Genus,results_data_sources = c(3))
+tax<-gnr_resolve(names = Genus,results_data_sources = c(3),canonical = T,best_match_only = T)
 
 #Set the genus column
 for (x in 1:nrow(holgerInter)){
   y<-holgerInter[x,]
   toMatch<-y$Genus
-  if(!toMatch %in% tax$results$submitted_name){next} else{
-    holgerInter[x,"Iplant_Genus"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name"])[1]
+  if(!toMatch %in% tax$submitted_name){next} else{
+    holgerInter[x,"Iplant_Genus"]<-tax[tax$submitted_name %in% toMatch,"matched_name2"]
   }}
 
 #Repeat for species double
 Species<-levels(factor(paste(holgerInter$Iplant_Genus,holgerInter$Species,sep=" ")))
-tax<-gnr_resolve(names = Species, splitby=30,highestscore = T,stripauthority = T)
+tax<-gnr_resolve(names = Species, splitby=30,best_match_only = T,canonical = T)
 
 #Set the Species column
 for (x in 1:nrow(holgerInter)){
   y<-holgerInter[x,]
   toMatch<-factor(paste(y$Iplant_Genus,y$Species,sep=" "))
-  if(!toMatch %in% tax$results$submitted_name){next} else{
-    holgerInter[x,"Iplant_Double"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name2"])[1]
+  if(!toMatch %in% tax$submitted_name){next} else{
+    holgerInter[x,"Iplant_Double"]<-tax[tax$submitted_name %in% toMatch,"matched_name2"]
   }}
+
+#replace any missing names.
 
 #Fix any known ID mistakes
 holgerInter[holgerInter$Iplant_Double %in% "Heppiella_ulmifolia","Iplant_Double"]<-"Glossoloma_oblongicalyx"
@@ -267,14 +269,14 @@ plants<-levels(factor(hum.id$Plant.Species))
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
 
 Families<-levels(factor(plants))
-tax<-gnr_resolve(names = Families, splitby=30,highestscore = T,stripauthority = T)
+tax<-gnr_resolve(names = Families, splitby=30,best_match_only = T,canonical = T)
 
 #Set the Family column
 for (x in 1:nrow(hum.id)){
   y<-hum.id[x,]
   toMatch<-y$Plant.Species
-  if(!toMatch %in% tax$results$submitted_name){next} else{
-    hum.id[x,"Iplant_Double"]<-unique(tax$results[tax$results$submitted_name %in% toMatch,"matched_name2"])[1]
+  if(!toMatch %in% tax$submitted_name){next} else{
+    hum.id[x,"Iplant_Double"]<-tax[tax$submitted_name %in% toMatch,"matched_name2"]
   }}
 
 ###########################

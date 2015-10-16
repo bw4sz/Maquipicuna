@@ -110,28 +110,22 @@ h<-levels(dat$Hummingbird)
 missp<-h[!h %in% clades$English]
 
 paste("misspelled levels",missp)
-h[h %in% missp]
 
-spellC<-c("Booted Racket-tail","Green-crowned Woodnymph","Orange-crowned Euphonia","UKWN","UKWN","UKWN","Violet-tailed Sylph","White-lined Flowerpiercer","White-sided Flowerpiercer")
+#correct levels
+h[h %in% "Booted Racketail"]<-"Booted Racket-tail"
+h[h %in% "Booted Racketail"]<-"Green-crowned Woodnymph"
+h[h %in% "Violet-tailed Slyph"]<-"Violet-tailed Sylph"
+h[h %in% "Ukwn"]<-"UKWN"
 
-paste("Spelling Correction",spellC)
-
-h[h %in% missp]<-spellC
-
-head(clades)
-
-#can taxize do english names? 
 levels(dat$Hummingbird) <- h
 
 #Take our any bad data
-dat_e<-droplevels(dat[!dat$Hummingbird %in% c("","NANA","UKWN","Ukwn","Western Emerald"),])
+dat_e<-droplevels(dat[!dat$Hummingbird %in% c("","NANA","UKWN","Ukwn"),])
 
 #Remove out piercing events for now?
 table(dat$Pierce)
 datPierce<-dat_e[dat_e$Piercing %in% c("Yes","YES","y","Y"),]
 dat_e<-dat_e[!dat_e$Pierce %in% c("Yes","YES","y","Y"),]
-
-#remove species without double name
 
 #Drop any unused factors?
 dat_e<-droplevels(dat_e)
