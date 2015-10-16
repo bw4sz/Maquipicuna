@@ -3,17 +3,17 @@
 ###############################################################################
 #Ben Weinstein - Stony Brook University - Department of Ecology and Evolution
 
-require(chron)
-require(bipartite)
-require(ggplot2)
-require(ape)
-require(reshape)
-require(sna)
-require(stringr)
-require(maptools)
-require(taxize)
-require(picante)
-require(plyr)
+library(chron)
+library(bipartite)
+library(ggplot2)
+library(ape)
+library(reshape)
+library(sna)
+library(stringr)
+library(maptools)
+library(taxize)
+library(picante)
+library(dplyr)
 library(scales)
 
 #Set Dropbox Location
@@ -68,7 +68,6 @@ dat<-rbind.fill(dat,transect.FL)
 dat$Iplant_Double<-as.factor(dat$Iplant_Double)
 
 ############################################
-
 #Create Universal Date Stamp
 
 dat$DateP<-sapply(dat$Date,function(x){
@@ -131,10 +130,11 @@ dat_e<-dat_e[!dat_e$Pierce %in% c("Yes","YES","y","Y"),]
 dat_e<-droplevels(dat_e)
 
 #Drop any observations without plants
-dat_e<-droplevels(dat_e[!is.na(dat_e$Iplant_Double),])
+dat_e$Iplant_Double<-as.character(dat_e$Iplant_Double)
+datinter<-dat_e[!dat_e$Iplant_Double %in% "",]
 
-table(dat_e$Iplant_Double)
-sp_l<-levels(dat_e$Iplant_Double)
+
+sp_l<-unique(datinter$Iplant_Double)
 
 l<-sapply(sp_l,function(x){
   str2 <- gsub(' {2,}',' ',x)
@@ -143,16 +143,25 @@ l<-sapply(sp_l,function(x){
 
 sp_r<-names(which(l==1))
 
-dat_e<-droplevels(dat_e[!dat_e$Iplant_Double %in% sp_r,])
+
+datinter<-droplevels(datinter[!datinter$Iplant_Double %in% sp_r,])
 #################Data Cleaning Complete################
 
+#make sure capitalize
+Genus<-paste(toupper(substring(word(datinter$Iplant_Double),1,1)),substring(word(datinter$Iplant_Double),2),sep="")
+Species<-tolower(word(datinter$Iplant_Double,2))
+datinter$Iplant_Double<-paste(Genus,Species,sep=" ")
+
+#looks like one more error
+datinter[datinter$Iplant_Double %in% "Heliconia griggsianna","Iplant_Double"]<-"Heliconia griggsiana"
+
 #Final levels
-#print(paste("Final Flower Species:", levels(factor(dat_e$Iplant_Double))))
+print(paste("Final Flower Species:", levels(factor(datinter$Iplant_Double))))
 
 #How many Birds Species
-#print(paste("Number of Hummingbird Species:",nlevels(dat_e$Hummingbird)))
-#print(paste("Final Hummingbird Species:",levels(dat_e$Hummingbird)))
+#print(paste("Number of Hummingbird Species:",nlevels(datinter$Hummingbird)))
+#print(paste("Final Hummingbird Species:",levels(datinter$Hummingbird)))
 
-write.csv(dat_e,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
+write.csv(datinter,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
 #print("data cleaned")

@@ -10,7 +10,7 @@
 require(ggplot2)
 require(reshape2)
 require(maptools)
-require(plyr)
+require(dplyr)
 require(plotKML)
 require(reshape)
 require(chron)
@@ -49,10 +49,9 @@ for (x in 1:6){
 ####################################
 #Clean Holger's data, begins in 9/2013
 ###################################
-
 holgerID$Transect_R<-factor(paste(holgerID$Elevation.Begin,holgerID$Elevation.End,sep="_"))
 
-#This is causing a real headache, for now just take the last two chracters of the year
+#Format dates
 holgerID$Date_F<-sapply(holgerID$Date,function(x){
   #grab the year
   d<-strsplit(as.character(x),split="/")[[1]]
@@ -87,9 +86,6 @@ dim(holgerID)
 holger.full<-merge(holger.hum,holgerID,by="ID")
 dim(holger.full)
 
-#Get all the rows in holger.hum that have species
-holger.full$Full<-paste(holger.full$Family,holger.full$Genus,holger.full$Species)
-
 #legacy change, keep all observations
 holgerInter<-holger.full
 
@@ -106,51 +102,35 @@ for (x in 1:nrow(holgerInter)){
   y<-holgerInter[x,]
   toMatch<-y$Family
   if(!toMatch %in% tax$submitted_name){next} else{
-    holgerInter[x,"Iplant_Family"]<-unique(tax[tax$submitted_name %in% toMatch,"matched_name2"])[1]
+    holgerInter[x,"Iplant_Family"]<-tax[tax$submitted_name %in% toMatch,"matched_name2"]
   }}
 
-#Repeat for genus
-Genus<-levels(factor(holgerInter$Genus))
-tax<-gnr_resolve(names = Genus,results_data_sources = c(3),canonical = T,best_match_only = T)
+#Known id error:
+holgerInter$Genus<-as.character(holgerInter$Genus)
+holgerInter$Species<-as.character(holgerInter$Species)
 
-#Set the genus column
-for (x in 1:nrow(holgerInter)){
-  y<-holgerInter[x,]
-  toMatch<-y$Genus
-  if(!toMatch %in% tax$submitted_name){next} else{
-    holgerInter[x,"Iplant_Genus"]<-tax[tax$submitted_name %in% toMatch,"matched_name2"]
-  }}
+holgerInter$Genus[holgerInter$Genus %in%  "Hepiella"]<-"Glossoloma" 
+holgerInter$Species[holgerInter$Species %in%  "ulmifolia"]<-"oblongicalyx" 
 
 #Repeat for species double
-Species<-levels(factor(paste(holgerInter$Iplant_Genus,holgerInter$Species,sep=" ")))
+Species<-levels(factor(paste(holgerInter$Genus,holgerInter$Species,sep=" ")))
 tax<-gnr_resolve(names = Species, splitby=30,best_match_only = T,canonical = T)
 
 #Set the Species column
 for (x in 1:nrow(holgerInter)){
   y<-holgerInter[x,]
-  toMatch<-factor(paste(y$Iplant_Genus,y$Species,sep=" "))
+  toMatch<-factor(paste(y$Genus,y$Species,sep=" "))
   if(!toMatch %in% tax$submitted_name){next} else{
     holgerInter[x,"Iplant_Double"]<-tax[tax$submitted_name %in% toMatch,"matched_name2"]
   }}
 
 #replace any missing names.
-
-#Fix any known ID mistakes
-holgerInter[holgerInter$Iplant_Double %in% "Heppiella_ulmifolia","Iplant_Double"]<-"Glossoloma_oblongicalyx"
+toinsert<-holgerInter[is.na(holgerInter$Iplant_Double),]
+toin <- gsub(" $","", paste(toinsert$Genus,toinsert$Species), perl=T)
+holgerInter[is.na(holgerInter$Iplant_Double), "Iplant_Double"]<-toin
 
 #get the desired columns
-colnames(holgerInter)
-holgerInter<-holgerInter[,colnames(holgerInter) %in% c("ID","Hummingbird.Species","Iplant_Double","Way.Point","Month","Date_F.y","Transect_R")]
-
-monthInter<-melt(table(holgerInter$Hummingbird.Species,holgerInter$Iplant_Double,holgerInter$Month))
-colnames(monthInter)<-c("Hummingbird","Plant","Month","value")
-
-#visualize holger only data
-#remove no interactions
-monthInter<-monthInter[!monthInter$value==0,]
-p<-ggplot(monthInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
-p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-#print(p)
+holgerInter<-holgerInter[,colnames(holgerInter) %in% c("ID","Hummingbird.Species","Iplant_Double","Way.Point","Month","Date_F.y","Transect_R","Transect")]
 
 #########################
 ####Add GPS information
@@ -166,14 +146,9 @@ for (x in 1:length(g)){
     gpx2[[x]]<-readGPX(g[x],waypoints=TRUE)$waypoints)
 }
 
-#Need to remind nelly to upload her gps. 
-
 #Bind into one dataframe
 gpx.dat<-rbind.fill(rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]))
 gpx.dat$name<-as.character(gpx.dat$name)
-
-#Combine gps types
-colnames(gpx.dat)
 
 #create  spatial object
 gps<-SpatialPointsDataFrame(coords=cbind(gpx.dat$lon,gpx.dat$lat),gpx.dat)
@@ -211,11 +186,14 @@ gps$GPS.ID<-sapply(gps$name,function(x){
   }
 })
 
+#############################
 #Merge GPS info with transects
+#############################
 
 #Merge all that fit the month and ID?
 HMatch<-merge(holgerInter,gps,by.x=c("Way.Point","Month"),by.y=c("GPS.ID","MonthID"),all.x=TRUE,all.y=FALSE)
 
+ggplot(HMatch,aes(Transect_R,y=ele,col=Transect)) + geom_boxplot()
 #how many are missing?
 nrow(HMatch[is.na(HMatch$ele),])
 missingGPS<-HMatch[is.na(HMatch$ele),]$Way.Point
@@ -318,34 +296,6 @@ for (x in missingGPS){
 #round to the nearest 10m
 BMatch$altitude<-round(BMatch$altitude,-1)
 qplot(BMatch$altitude,"point")
-
-################################################
-#Interaction table for summer data
-################################################
-
-#Cap all species names
-levels(BMatch$Hummingbird.Species)<-sapply(levels(BMatch$Hummingbird.Species),function(x){.simpleCap(tolower(x))})
-humInter<-melt(table(BMatch$Hummingbird.Species,BMatch$Iplant_Double,BMatch$Month))
-colnames(humInter)<-c("Hummingbird","Plant","Month","value")
-
-#visualize summer only data
-#remove no interactions
-humInter<-humInter[!humInter$value==0,]
-p<-ggplot(humInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
-p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
-################################################
-#Combine Holger's transect data with summer data
-################################################
-fullInter<-rbind.fill(humInter,monthInter)
-
-p<-ggplot(fullInter,aes(Hummingbird,Plant,fill=value)) + geom_tile() + facet_wrap(~Month,nrow=2) + scale_fill_continuous(na.value="White",high="red") + theme_bw()
-p<- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HummingbirdTransectInteractions.jpeg",height=15,width=20)
-
-#write this matrix to file
-write.csv(fullInter,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectMatrix.csv")
-print("Matrix_Written")
 
 ##############################
 #Combine transect Rows

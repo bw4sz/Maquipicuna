@@ -115,7 +115,8 @@ full.fl$Transect_R<-factor(paste(full.fl$Elevation.Begin,full.fl$Elevation.End,s
 #Fix any known ID mistakes (this is ugly.)
 full.fl$Species<-as.character(full.fl$Species)
 full.fl$Genus<-as.character(full.fl$Genus)
-full.fl[full.fl$Genus %in%  "Hepiella" & full.fl$Species %in% "ulmifolia",c("Genus","Species")]<-c("Glossoloma","oblongicalyx")
+full.fl$Genus[full.fl$Genus %in%  "Hepiella"]<-"Glossoloma" 
+full.fl$Species[full.fl$Species %in%  "ulmifolia"]<-"oblongicalyx" 
 full.fl$Species<-as.factor(full.fl$Species)
 full.fl$Genus<-as.factor(full.fl$Genus)
 #Go through a series of data cleaning steps, at the end remove all rows that are undesired
@@ -186,7 +187,6 @@ ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/SpeciesCo
 ###########################
 #Flower counts
 ###########################
-
 
 #Create total flower column by multiplying the Flowers per stalk, by stalks and total inflorescens
 #For now, remove any rows that have no flowers
@@ -267,7 +267,6 @@ fl.totals$Month.a<-factor(month.abb[fl.totals$Month],month.abb[c(1:12)])
 #Make year factor column
 fl.totals$Year<-as.factor(fl.totals$Year)
 
-
 ####################
 ##Transect Counts
 ####################
@@ -275,7 +274,6 @@ fl.totals$Year<-as.factor(fl.totals$Year)
 head(full.fl)
 
 ttotal<-group_by(full.fl,Year,month,Transect_R) %>% summarize(Date=length(unique(Date)))
-
 
 #Month without elevation
 p<-ggplot(fl.totals,aes(col=Elev,y=log(TotalFlowers),x=Month.a,shape=Year)) + geom_point(size=3) + theme_bw() + labs(col="Elevation") + facet_wrap(~Year,nrow=3) + stat_smooth(aes(group=1))
