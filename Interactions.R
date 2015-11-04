@@ -152,8 +152,15 @@ Genus<-paste(toupper(substring(word(datinter$Iplant_Double),1,1)),substring(word
 Species<-tolower(word(datinter$Iplant_Double,2))
 datinter$Iplant_Double<-paste(Genus,Species,sep=" ")
 
-#looks like one more error
+#Taxonomic changes
 datinter[datinter$Iplant_Double %in% "Heliconia griggsianna","Iplant_Double"]<-"Heliconia griggsiana"
+
+datinter[datinter$Iplant_Double=="Alloplectus purpureus","Iplant_Double"]<-"Glossoloma purpureum"
+datinter[datinter$Iplant_Double=="Capanea affinis","Iplant_Double"]<-"Kohleria affinis"
+datinter[datinter$Iplant_Double=="Columnea cinerea","Iplant_Double"]<-"Columnea mastersonii"
+datinter[datinter$Iplant_Double=="Alloplectus teuscheri","Iplant_Double"]<-"Drymonia teuscheri"
+
+datinter$Hummingbird[datinter$Hummingbird %in% "Green-crowned Woodnymph"]<-"Crowned Woodnymph"
 
 #Final levels
 print(paste("Final Flower Species:", levels(factor(datinter$Iplant_Double))))
@@ -161,6 +168,8 @@ print(paste("Final Flower Species:", levels(factor(datinter$Iplant_Double))))
 #How many Birds Species
 #print(paste("Number of Hummingbird Species:",nlevels(datinter$Hummingbird)))
 #print(paste("Final Hummingbird Species:",levels(datinter$Hummingbird)))
+
+#Known taxnomic errors:
 
 write.csv(datinter,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 

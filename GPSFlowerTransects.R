@@ -44,15 +44,18 @@ g<-capture.output(for (x in 1:length(g)){
     gpx[[x]]<-readGPX(g[x],waypoints=TRUE)$waypoints)
 })
 
-#Bind into one dataframe
-gpx.dat<-rbind.fill(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),rbind.fill(gpxkaren[sapply(gpxkaren,class)=="data.frame"]))
+#Bind into one dataframe, bit ugly
+gpx.dat<-rbind_all(list(
+  rbind_all(gpx[sapply(gpx,class)=="data.frame"])
+  ,rbind_all(gpxkaren[sapply(gpxkaren,class)=="data.frame"])))
+
 gpx.dat$name<-as.character(gpx.dat$name)
 
 #Combine gps types
 colnames(gpx.dat)
 
 #create  spatial object
-gps<-SpatialPointsDataFrame(coords=cbind(gpx.dat$lon,gpx.dat$lat),gpx.dat)
+gps<-SpatialPointsDataFrame(coords=cbind(gpx.dat$lon,gpx.dat$lat),as.data.frame(gpx.dat))
 
 #Create month ID column in the GPS data
 gps$MonthID<-sapply(gps$time,function(x){

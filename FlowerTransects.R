@@ -21,10 +21,10 @@ setwd("C:/Users/Ben/Dropbox/")
 #Read in workspace if desired for quick access
 #load("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransect.Rdata")
 
-#Read in Flower Transect Data from summer field season
+#Read in Flower Transect Data from Karen's summer field season
 fl<-read.csv(file="Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerTransects.csv")
 
-#one known id error, genus Fuchsia was mispelled fuschia, can't be rectified!
+#one known id error, genus Fuchsia was mispelled fuschia
 
 levels(fl$Genus)[levels(fl$Genus)%in% 'fuschia']<-'fuchsia'
 
@@ -112,7 +112,7 @@ full.fl$Transect_R<-factor(paste(full.fl$Elevation.Begin,full.fl$Elevation.End,s
 #Flower Taxonomy
 ################
 
-#Fix any known ID mistakes (this is ugly.)
+#Fix any known ID mistake.
 full.fl$Species<-as.character(full.fl$Species)
 full.fl$Genus<-as.character(full.fl$Genus)
 full.fl$Genus[full.fl$Genus %in%  "Hepiella"]<-"Glossoloma" 
@@ -156,9 +156,9 @@ for (x in 1:nrow(full.fl)){
   next
 }}
 
+#insert any missing species
 toinsert<-full.fl[is.na(full.fl$Iplant_Double),]
 toin <- gsub(" $","", paste(toinsert$Genus,toinsert$Species), perl=T)
-
 full.fl[is.na(full.fl$Iplant_Double), "Iplant_Double"]<-toin
 
 #One known date error
