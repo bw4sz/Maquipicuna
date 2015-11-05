@@ -15,6 +15,7 @@ require(plotKML)
 require(reshape)
 require(chron)
 library(taxize)
+library(stringr)
 #Set DropBox Working Directory
 setwd("C:/Users/Ben/Dropbox/")
 
@@ -147,11 +148,11 @@ for (x in 1:length(g)){
 }
 
 #Bind into one dataframe
-gpx.dat<-rbind.fill(rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]))
+gpx.dat<-rbind_all(gpx2[sapply(gpx2,class)=="data.frame"])
 gpx.dat$name<-as.character(gpx.dat$name)
 
 #create  spatial object
-gps<-SpatialPointsDataFrame(coords=cbind(gpx.dat$lon,gpx.dat$lat),gpx.dat)
+gps<-SpatialPointsDataFrame(coords=cbind(gpx.dat$lon,gpx.dat$lat),as.data.frame(gpx.dat))
 
 #Create month ID column in the GPS data
 gps$MonthID<-sapply(gps$time,function(x){
@@ -193,7 +194,6 @@ gps$GPS.ID<-sapply(gps$name,function(x){
 #Merge all that fit the month and ID?
 HMatch<-merge(holgerInter,gps,by.x=c("Way.Point","Month"),by.y=c("GPS.ID","MonthID"),all.x=TRUE,all.y=FALSE)
 
-ggplot(HMatch,aes(Transect_R,y=ele,col=Transect)) + geom_boxplot()
 #how many are missing?
 nrow(HMatch[is.na(HMatch$ele),])
 missingGPS<-HMatch[is.na(HMatch$ele),]$Way.Point
@@ -314,9 +314,17 @@ colnames(Hrows)[colnames(Hrows) %in% c("Way.Point","Date_F.y")]<-c("GPS.ID","Dat
 
 class(Hrows$Date_F)
 Hrows$Date_F<-as.Date(Hrows$Date_F)
-transectRows<-rbind.fill(Brows,Hrows)
+Brows$ID<-as.character(Brows$ID)
 
-#en
+transectRows<-rbind_all(list(Brows,Hrows))
+
+#error on dateF for a handful of rows.
+resplit<-transectRows$ID[is.na(transectRows$Date_F)]
+redate<-sapply(resplit,function(x){
+  str_split(x,"_")[[1]][[2]]
+  })
+
+transectRows$Date_F[is.na(transectRows$Date_F)]<-redate
 
 write.csv(transectRows,"Thesis/Maquipucuna_SantaLucia/Results/HummingbirdTransects/HumTransectRows.csv")
 

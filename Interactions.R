@@ -63,7 +63,7 @@ colnames(transect.FL)<-c("GPS.ID","TransectID","Hummingbird","Date","Month","Tra
 transect.FL$Iplant_Double<-gsub("_"," ",transect.FL$Iplant_Double)
 
 #Bind in the transect rows to the bottom of dat?
-dat<-rbind.fill(dat,transect.FL)
+dat<-rbind_all(list(dat,transect.FL))
 
 dat$Iplant_Double<-as.factor(dat$Iplant_Double)
 
@@ -86,6 +86,11 @@ dat$DateP<-sapply(dat$Date,function(x){
     return(toR)
   }
 })
+
+#which are NA?
+#Known date errors
+dat[is.na(dat$DateP),]
+dat$DateP[is.na(dat$DateP) & dat$ID=="FL080"]<-c("2013-07-25")
 
 dat$DateP<-as.POSIXlt(dat$DateP)
 
@@ -160,6 +165,7 @@ datinter[datinter$Iplant_Double=="Capanea affinis","Iplant_Double"]<-"Kohleria a
 datinter[datinter$Iplant_Double=="Columnea cinerea","Iplant_Double"]<-"Columnea mastersonii"
 datinter[datinter$Iplant_Double=="Alloplectus teuscheri","Iplant_Double"]<-"Drymonia teuscheri"
 
+datinter$Hummingbird<-as.character(datinter$Hummingbird)
 datinter$Hummingbird[datinter$Hummingbird %in% "Green-crowned Woodnymph"]<-"Crowned Woodnymph"
 
 #Final levels
@@ -170,6 +176,8 @@ print(paste("Final Flower Species:", levels(factor(datinter$Iplant_Double))))
 #print(paste("Final Hummingbird Species:",levels(datinter$Hummingbird)))
 
 #Known taxnomic errors:
+datinter$Hummingbird[datinter$Hummingbird %in% "Green-crowned Woodnymph"]<-"Crowned Woodnymph"
+
 
 write.csv(datinter,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
