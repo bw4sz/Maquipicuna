@@ -67,6 +67,7 @@ dat<-rbind_all(list(dat,transect.FL))
 
 dat$Iplant_Double<-as.factor(dat$Iplant_Double)
 
+dat<-as.data.frame(dat)
 ############################################
 #Create Universal Date Stamp
 
@@ -95,6 +96,9 @@ dat$DateP[is.na(dat$DateP) & dat$ID=="FL080"]<-c("2013-07-25")
 dat$DateP<-as.POSIXlt(dat$DateP)
 
 head(dat)
+
+#Mistakenly labeled 2012
+dat[dat$Date %in% "6/4/2012","DateP"]<-"2013-06-04"
 
 ###########################
 #Hummingbird Data Cleaning 
