@@ -182,3 +182,47 @@ datinter$Hummingbird[datinter$Hummingbird %in% "Green-crowned Woodnymph"]<-"Crow
 write.csv(datinter,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
 #print("data cleaned")
+
+##Elevation Plots
+
+#Overall Month_Day and Elevation
+p<-ggplot(datinter,aes(y=ele,x=DateP)) + geom_point(size=3) + facet_wrap(~Hummingbird,scales="free")
+p<-p + scale_x_datetime(breaks = date_breaks("3 months"),labels = date_format("%b")) + scale_y_continuous(breaks=seq(1300,2500,200),labels=seq(1300,2500,200)) + xlab("Month") + ylab("Elevation(m)")
+p + stat_smooth()
+#ggsave("Thesis//Maquipucuna_SantaLucia/Results/DateElevation.jpeg",height=10,width=17,dpi=350)
+#ggsave("Thesis//Maquipucuna_SantaLucia/Results/DateElevation.svg",height=8,width=13,dpi=300)
+
+#
+#Boxplot of elevation ranges
+#add # of observations for each
+keep<-names(which(table(datinter$Hummingbird) > 5))
+
+datinter<-datinter[datinter$Hummingbird %in% keep,]
+
+obs<-as.data.frame.array(table(datinter$Hummingbird))
+
+#order 
+humord<-datinter%>% select(Hummingbird,ele)%>% group_by(Hummingbird) %>% summarize(m=mean(ele,na.rm=T)) %>% arrange(m) %>% select(Hummingbird) 
+datinter$Hummingbird<-factor(datinter$Hummingbird,levels=humord$Hummingbird)
+p<-ggplot(datinter,aes(y=ele,x=Hummingbird,fill=Hummingbird)) + ylim(1300,2600)
+p<-p + geom_boxplot(varwidth=TRUE) + coord_flip() + labs(y="Elevation(m)",x="") + scale_fill_discrete(guide='none') + theme_bw()
+print(p)
+ggsave("Thesis//Maquipucuna_SantaLucia/Results/ElevationRanges.jpg",dpi=600,height=7,width=10)
+
+#defined elevation groups for occupancy model
+eleIndex<-datinter[,!colnames(datinter) %in% c("Date_F","DateP")] %>% group_by(Hummingbird) %>% summarize(Low=quantile(ele,0.1,na.rm=T),m=mean(ele,na.rm=T),High=quantile(ele,0.9,na.rm=T))
+
+#1 for low elevation, 2 for high elevation, 3 for both
+#high elevation
+eleIndex[eleIndex$Low > 1700,"Index"]<-2
+
+#low elevation
+eleIndex[eleIndex$High < 1700,"Index"]<-1
+
+#The result are both
+eleIndex[is.na(eleIndex$Index),"Index"]<-3
+
+#view result
+as.data.frame(eleIndex)
+
+write.csv(eleIndex,paste(gitpath,"OutData/HummingbirdElevation.csv",sep=""))

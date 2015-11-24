@@ -116,12 +116,12 @@ print(p)
 ggsave("Thesis//Maquipucuna_SantaLucia/Results/ElevationRanges.jpg",dpi=600,height=7,width=10)
 
 #write hummingbird interactions and remove empty cells
-hdat<-hdat[!is.na(hdat$Iplant_Double),]
+hdat<-hdat[!is.na(hdat$Iplant_Double) & !hdat$Iplant_Double=="",]
 
 write.csv(hdat,"C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
 #defined elevation groups for occupancy model
-eleIndex<-hdat[,-18] %>% group_by(Hummingbird) %>% summarize(Low=quantile(ele,0.2,na.rm=T),m=mean(ele,na.rm=T),High=quantile(ele,0.8,na.rm=T))
+eleIndex<-hdat[,-18] %>% group_by(Hummingbird) %>% summarize(Low=quantile(ele,0.1,na.rm=T),m=mean(ele,na.rm=T),High=quantile(ele,0.9,na.rm=T))
 
 #1 for low elevation, 2 for high elevation, 3 for both
 #high elevation
