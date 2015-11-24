@@ -270,7 +270,7 @@ levels(datg$Flower)<-sapply(levels(datg$Flower),function(x){
 #Repeat for species
 SpeciesG<-levels(factor(datg$Flower))
 
-tax<-gnr_resolve(names = SpeciesG, splitby=30,best_match_only = T,canonical = T)
+tax<-gnr_resolve(names = SpeciesG[-1],best_match_only = T,canonical = T)
 
 #remove one troublesome
 datg<-datg[!datg$Flower %in% 'sp. ("ginger")',]
@@ -280,7 +280,7 @@ for (x in 1:nrow(datg)){
   y<-datg[x,]
   toMatch<-y$Flower
   if(tolower(toMatch) %in% tolower(tax$submitted_name)){
-  datg[x,"Iplant_Double"]<-tax[tolower(tax$submitted_name) %in% tolower(toMatch),"matched_name2"]
+  datg[x,"Iplant_Double"]<-unique(tax[tolower(tax$submitted_name) %in% tolower(toMatch),"matched_name"])
   }}
 
 #Add in any not known

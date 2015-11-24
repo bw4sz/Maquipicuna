@@ -124,13 +124,13 @@ full.fl$Genus<-as.factor(full.fl$Genus)
 
 Families<-levels(factor(full.fl$Family))
 
-tax<-gnr_resolve(names = Families, splitby=30,best_match_only = T,canonical = T)
+tax<-gnr_resolve(names = Families)
 
 for (x in 1:nrow(full.fl)){
   y<-full.fl[x,]
   toMatch<-y$Family
   if(!toMatch %in% tax$submitted_name){next} else{
-  full.fl[x,"Iplant_Family"]<-tax[tax$submitted_name %in% toMatch,"matched_name2"]
+  full.fl[x,"Iplant_Family"]<-tax[tax$submitted_name %in% toMatch,"matched_name"]
 }}
 
 
@@ -144,14 +144,14 @@ Species<-levels(factor(paste(full.fl$Genus,full.fl$Species,sep=" ")))
 #look up online, skip the blank
 #remove species with just one word?
 
-tax<-gnr_resolve(names = Species[-1], splitby=30,best_match_only = T,canonical = T)
+tax<-gnr_resolve(names = Species[-1])
 
 #Set the Species column
 for (x in 1:nrow(full.fl)){
   y<-full.fl[x,]
   toMatch<-paste(y$Genus,y$Species,sep=" ")
   if(toMatch %in% tax$submitted_name){
-  full.fl[x,"Iplant_Double"]<-tax[tax$submitted_name %in% toMatch,"matched_name2"]
+  full.fl[x,"Iplant_Double"]<-tax[tax$submitted_name %in% toMatch,"matched_name"]
 } else {
   next
 }}
