@@ -123,7 +123,7 @@ To measure the bill lengths of each hummingbird species, as well as other foot a
 Plot hummingbird and flower distribution over space and time
 
 ```{r time series,fig.height=8,fig.width=8}
-source(paste(gitpath,"TimeSeries.R",sep="")) 
+#source(paste(gitpath,"TimeSeries.R",sep="")) 
 ```
 
 ##Create interaction matrix

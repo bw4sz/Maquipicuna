@@ -178,7 +178,7 @@ dim(datg)
 paste("Missing Cameras GPS:",levels(factor(datg[is.na(datg$ele),]$ID)))
 
 #looks like missing some data from nelly
-nelldat<-read.csv("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Data2013/CameraData Nelly Ultima version.csv")[-83,]
+nelldat<-read.csv("C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Data2013/csv/CameraData Nelly Ultima version 2015.csv")
 dt<-str_detect(nelldat$Elevation..m,"(\\d+.\\d+) ft")
 ft<-str_match(nelldat$Elevation..m,"(\\d+.\\d+) ft")[,2]
 nelldat$Elevation..m<-as.character(nelldat$Elevation..m)
@@ -217,6 +217,25 @@ datg[datg$ID %in% "FL049","ele"]<-1350
 datg[datg$ID %in% "FL050","ele"]<-1600
 datg[datg$ID %in% "FL053","ele"]<-1550
 datg[datg$ID %in% "FL054","ele"]<-1500
+
+#appprox inferred from the protocol dates
+datg[datg$ID %in% "FH201","ele"]<-2260
+datg[datg$ID %in% "NF089","ele"]<-1400
+
+datg[datg$ID %in% "NF089","ele"]<-1400
+datg[datg$ID %in% "NF090","ele"]<-1400
+datg[datg$ID %in% "NF092","ele"]<-1400
+datg[datg$ID %in% "NF096","ele"]<-1400
+datg[datg$ID %in% "NF099","ele"]<-1400
+datg[datg$ID %in% "NF100","ele"]<-1400
+datg[datg$ID %in% "NF101","ele"]<-1400
+datg[datg$ID %in% "NF102","ele"]<-1400
+datg[datg$ID %in% "NF108","ele"]<-1400
+datg[datg$ID %in% "NF108A","ele"]<-1400
+datg[datg$ID %in% "NF137","ele"]<-1400
+
+#mysteriouis elevation error, refill from holger table
+datg$ele[datg$ele==231]<-NA
 
 #Still missing elevation information
 paste("Missing Cameras GPS:",levels(factor(datg[is.na(datg$ele),]$ID)))
@@ -280,7 +299,7 @@ for (x in 1:nrow(datg)){
   y<-datg[x,]
   toMatch<-y$Flower
   if(tolower(toMatch) %in% tolower(tax$submitted_name)){
-  datg[x,"Iplant_Double"]<-unique(tax[tolower(tax$submitted_name) %in% tolower(toMatch),"matched_name"])
+  datg[x,"Iplant_Double"]<-unique(tax[tolower(tax$submitted_name) %in% tolower(toMatch),"matched_name2"])
   }}
 
 #Add in any not known

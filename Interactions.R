@@ -206,7 +206,7 @@ datinter<-datinter[datinter$Hummingbird %in% keep,]
 obs<-as.data.frame.array(table(datinter$Hummingbird))
 
 #order 
-humord<-datinter%>% select(Hummingbird,ele)%>% group_by(Hummingbird) %>% summarize(m=mean(ele,na.rm=T)) %>% arrange(m) %>% select(Hummingbird) 
+humord<-datinter%>% dplyr::select(Hummingbird,ele)%>% group_by(Hummingbird) %>% dplyr::summarize(m=mean(ele,na.rm=T)) %>% arrange(m) %>% select(Hummingbird) 
 datinter$Hummingbird<-factor(datinter$Hummingbird,levels=humord$Hummingbird)
 p<-ggplot(datinter,aes(y=ele,x=Hummingbird,fill=Hummingbird)) + ylim(1300,2600)
 p<-p + geom_boxplot(varwidth=TRUE) + coord_flip() + labs(y="Elevation(m)",x="") + scale_fill_discrete(guide='none') + theme_bw()
