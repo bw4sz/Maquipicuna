@@ -53,7 +53,7 @@ Species<-levels(factor(paste(dat$Genus,dat$Species,sep=" ")))
 #Doesn't like the unmanned species
 Species<-Species[!Species %in% c(" pink ms"," sp.")]
 
-tax<-gnr_resolve(names = Species, splitby=30,best_match_only=T,canonical = T)
+tax<-gnr_resolve(names = Species,best_match_only=T,canonical = T)
 
 #Set the Species column
 dat$Iplant_Double<-NA

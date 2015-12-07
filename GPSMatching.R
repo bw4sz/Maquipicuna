@@ -237,9 +237,6 @@ datg[datg$ID %in% "NF137","ele"]<-1400
 #mysteriouis elevation error, refill from holger table
 datg$ele[datg$ele==231]<-NA
 
-#Still missing elevation information
-paste("Missing Cameras GPS:",levels(factor(datg[is.na(datg$ele),]$ID)))
-
 #Search for those names
 stillmiss<-levels(factor(datg[is.na(datg$ele),]$ID))
 
@@ -248,9 +245,8 @@ holgcam<-read.csv(file = "C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Dat
 tomerge<-holgcam[holgcam$GPS.ID %in% stillmiss,c("GPS.ID","Elevation")]
 
 for (x in 1:nrow(tomerge)){
-  datg[datg$ID %in% tomerge$GPS.ID,"ele"]<-tomerge[x,"Elevation"]  
+  datg[datg$ID %in% tomerge$GPS.ID[x],"ele"]<-tomerge[x,"Elevation"]  
 }
-
 
 #remerge missing
 #first correct them
@@ -265,6 +261,9 @@ gps@data[gps@data$GPS.ID == "KFL216",]
 
 #need to find more information about these cameras:
 #FH1211, FH216, FH515, FH531
+
+#Still missing elevation information
+paste("Missing Cameras GPS:",levels(factor(datg[is.na(datg$ele),]$ID)))
 
 ################
 #Flower Taxonomy
