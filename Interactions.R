@@ -121,9 +121,12 @@ paste("misspelled levels",missp)
 
 #correct levels
 h[h %in% "Booted Racketail"]<-"Booted Racket-tail"
-h[h %in% "Booted Racketail"]<-"Green-crowned Woodnymph"
 h[h %in% "Violet-tailed Slyph"]<-"Violet-tailed Sylph"
+h[h %in% "VIolet-tailed Slyph"]<-"Violet-tailed Sylph"
+
 h[h %in% "Ukwn"]<-"UKWN"
+h[h %in% "Green-crowned Woodnymph"]<-"Crowned Woodnymph"
+
 
 levels(dat$Hummingbird) <- h
 
@@ -218,14 +221,16 @@ eleIndex<-datinter[,!colnames(datinter) %in% c("Date_F","DateP")] %>% group_by(H
 
 #1 for low elevation, 2 for high elevation, 3 for both
 #high elevation
-eleIndex[eleIndex$Low > 1700,"Index"]<-2
+eleIndex[eleIndex$Low > 1800,"Index"]<-2
 
 #low elevation
-eleIndex[eleIndex$High < 1700,"Index"]<-1
+eleIndex[eleIndex$High < 1800,"Index"]<-1
 
 #The result are both
 eleIndex[is.na(eleIndex$Index),"Index"]<-3
 
+#Crowned woodnymph have a few wanders, but are certainly low elevation
+eleIndex[eleIndex$Hummingbird %in% "Crowned Woodnymph","Index"]<-1
 #view result
 as.data.frame(eleIndex)
 

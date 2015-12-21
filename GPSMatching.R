@@ -235,8 +235,10 @@ datg[datg$ID %in% "NF108A","ele"]<-1400
 datg[datg$ID %in% "NF137","ele"]<-1400
 
 #mysteriouis elevation error, refill from holger table
-datg$ele[datg$ele==231]<-NA
+datg$ele[datg$ele < 1000]<-NA
 
+#
+datg$ele<-as.numeric(datg$ele)
 #Search for those names
 stillmiss<-levels(factor(datg[is.na(datg$ele),]$ID))
 
@@ -245,7 +247,7 @@ holgcam<-read.csv(file = "C:/Users/Ben/Dropbox/Thesis/Maquipucuna_SantaLucia/Dat
 tomerge<-holgcam[holgcam$GPS.ID %in% stillmiss,c("GPS.ID","Elevation")]
 
 for (x in 1:nrow(tomerge)){
-  datg[datg$ID %in% tomerge$GPS.ID[x],"ele"]<-tomerge[x,"Elevation"]  
+  datg[datg$ID %in% tomerge$GPS.ID[x],"ele"]<-as.numeric(as.character(tomerge[x,"Elevation"] ))
 }
 
 #remerge missing
@@ -253,6 +255,8 @@ for (x in 1:nrow(tomerge)){
 levels(datg$ID)[levels(datg$ID) %in% "FH_801"]<-"FH801"
 gps@data$GPS.ID[gps@data$GPS.ID %in% "fh1205"]<-"FH1205"
 levels(datg$ID)[levels(datg$ID) %in% "FH201HR"]<-"FH201"
+datg[datg$ID %in% "FH201","ele"]<-2262
+datg[datg$ID %in% "NF197","ele"]<-1400
 
 gps@data$GPS.ID[str_detect(gps@data$GPS.ID,"515")]
 
@@ -260,7 +264,7 @@ datg[datg$ID %in% "",]
 gps@data[gps@data$GPS.ID == "KFL216",]
 
 #need to find more information about these cameras:
-#FH1211, FH216, FH515, FH531
+datg[datg$ele<1000,]
 
 #Still missing elevation information
 paste("Missing Cameras GPS:",levels(factor(datg[is.na(datg$ele),]$ID)))
