@@ -182,7 +182,7 @@ print(paste("Final Flower Species:", levels(factor(datinter$Iplant_Double))))
 #print(paste("Number of Hummingbird Species:",nlevels(datinter$Hummingbird)))
 #print(paste("Final Hummingbird Species:",levels(datinter$Hummingbird)))
 
-#Known taxnomic errors:
+#Known elevation ranges
 datinter$Hummingbird[datinter$Hummingbird %in% "Green-crowned Woodnymph"]<-"Crowned Woodnymph"
 
 
@@ -229,8 +229,10 @@ eleIndex[eleIndex$High < 1800,"Index"]<-1
 #The result are both
 eleIndex[is.na(eleIndex$Index),"Index"]<-3
 
-#Crowned woodnymph have a few wanders, but are certainly low elevation
+#Crowned woodnymph have a few wanders, but are certainly low elevation, opposite with Buff-tailed Coronet
 eleIndex[eleIndex$Hummingbird %in% "Crowned Woodnymph","Index"]<-1
+eleIndex[eleIndex$Hummingbird %in% "Buff-tailed Coronet","Index"]<-2
+
 #view result
 as.data.frame(eleIndex)
 
