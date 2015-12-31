@@ -126,17 +126,18 @@ h[h %in% "VIolet-tailed Slyph"]<-"Violet-tailed Sylph"
 
 h[h %in% "Ukwn"]<-"UKWN"
 h[h %in% "Green-crowned Woodnymph"]<-"Crowned Woodnymph"
-
+h[h %in% "Western Emerald"]<-"Crowned Woodnymph"
 
 levels(dat$Hummingbird) <- h
+dat<-droplevels(dat)
 
 #Take our any bad data
 dat_e<-droplevels(dat[!dat$Hummingbird %in% c("","NANA","UKWN","Ukwn"),])
 
 #Remove out piercing events for now?
-table(dat$Pierce)
-datPierce<-dat_e[dat_e$Piercing %in% c("Yes","YES","y","Y"),]
-dat_e<-dat_e[!dat_e$Pierce %in% c("Yes","YES","y","Y"),]
+#table(dat$Pierce)
+#datPierce<-dat_e[dat_e$Piercing %in% c("Yes","YES","y","Y"),]
+#dat_e<-dat_e[!dat_e$Pierce %in% c("Yes","YES","y","Y"),]
 
 #Drop any unused factors?
 dat_e<-droplevels(dat_e)
