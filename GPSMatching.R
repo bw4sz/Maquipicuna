@@ -129,6 +129,8 @@ gps[which(substring(gps$name,1,1) %in% "N"),"GPS.ID"]<-newname
 #create shapefile
 writePointsShape(gps,"Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSshape.shp")
 
+#remove literally identical rows
+gps<-gps[!duplicated(gps@data),]
 ############################################
 ##############Merge GPS Info with Data######
 ############################################
@@ -153,17 +155,28 @@ datg<-merge(datT,gps,by.x="ID",by.y="GPS.ID",all.x=TRUE)
 dim(datT)
 dim(datg)
 
-#find duplicates
+
+#find duplicates with different elevations
 d<-data.frame(table(datT$ID),table(datg$ID))
 
 dups<-d[which(!d$Freq == d$Freq.1),]$Var1
 
 #Repeat merge at elim duplicates
 dup.g<-gps[gps$GPS.ID %in% dups,]
-dup.g[order(dup.g$GPS.ID),]
+dup.g[order(dup.g$GPS.ID),]@data
 
-#additional hardcoded duplicates or hand errors
-gps<-gps[-c(5198,663),]
+#how many of those name duplicates are identical?
+
+#hardcoded errors, multiple gps points, same name.
+gps<-gps[!(gps$name=="FH1108" & gps$ele %in% 1810),]
+gps<-gps[!(gps$name=="FH1306" & gps$ele %in% 2240),]
+gps<-gps[!(gps$name=="FH316" & gps$ele %in% 2280),]
+gps<-gps[!(gps$name=="FH620" & gps$ele %in% 2280),]
+gps<-gps[!(gps$name=="FH625" & gps$ele %in% 2160),]
+gps<-gps[!(gps$name=="FH629" & gps$ele %in% 2270),]
+gps<-gps[!(gps$name=="FL061" & gps$ele %in% 1290),]
+gps<-gps[!(gps$name=="FL064" & gps$ele %in% 1600),]
+gps<-gps[!(gps$name=="N13" & gps$ele %in% 1610),]
 
 gps[gps$ID %in% "NF009","GPS.ID"]<-"NF09"
 gps[gps$ID %in% "NF2","GPS.ID"]<-"NF02"
@@ -314,6 +327,11 @@ levels(toinsert)[levels(toinsert) %in% "fuschia macrostigma"]<-"fuchsia macrosti
 datg$Iplant_Double<-as.character(datg$Iplant_Double)
 
 datg[is.na(datg$Iplant_Double), "Iplant_Double"]<-as.character(toinsert)
+
+
+#Duplicate GPS points. Two were taken with the same name. Check for sample bird, same camera, same time.
+a<-datg %>% select(Hummingbird,Iplant_Double,Time)
+table(a$Time)
 
 #Write camera data to file
 write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoClean.csv")

@@ -105,6 +105,8 @@ gps_noduplicate<-gps[-duplicated(gps@data),]
 #create shapefile
 writePointsShape(gps,"Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSshapeFlowerTransects.shp")
 
+gps<-gps[!duplicated(gps@data),]
+
 ############################################
 ##############Merge GPS Info with Data######
 ############################################
