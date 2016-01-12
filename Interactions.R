@@ -186,7 +186,19 @@ print(paste("Final Flower Species:", levels(factor(datinter$Iplant_Double))))
 #Known elevation ranges
 datinter$Hummingbird[datinter$Hummingbird %in% "Green-crowned Woodnymph"]<-"Crowned Woodnymph"
 
+#A couple cameras have duplicate names, probably karen and I putting cameras up the same day.
+datinter$ID<-as.character(datinter$ID)
+datinter %>% select(-DateP) %>% group_by(ID) %>% dplyr::summarize(l=length(unique(Iplant_Double)))%>% arrange(desc(l))
+datinter$ID<-as.character(datinter$ID)
 
+datinter[datinter$ID %in% "FL078" & datinter$DateP =="2013-07-25","ID"]<-"FL078A"
+datinter[datinter$ID %in% "FL094"& datinter$Iplant_Double =="Besleria solanoides","ID"]<-"FL094A"
+datinter[datinter$ID %in% "NF027" & datinter$Iplant_Double =="Columnea mastersonii","ID"]<-"NF027A"
+datinter[datinter$ID %in% "NF2" & datinter$DateP %in% '2013-11-06',"ID"]<-"NF2A"
+datinter[datinter$ID %in% "NF126"& datinter$DateP %in% '2014-09-21',"ID"]<-"NF126A"
+
+
+#Write to file.
 write.csv(datinter,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 
 #print("data cleaned")
