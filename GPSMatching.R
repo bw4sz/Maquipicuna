@@ -4,12 +4,11 @@
 
 #Load GPS
 #Read and convert gpx points to a single dataframe and save it as a shapefile
-require(plotKML)
-require(reshape2)
-require(maptools)
-require(plyr)
-require(stringr)
-require(taxize)
+library(plotKML)
+library(reshape2)
+library(maptools)
+library(stringr)
+library(taxize)
 library(dplyr)
 library(ggplot2)
 #Set working directory
@@ -58,7 +57,7 @@ for (x in 1:length(g)){
 }
 
 #Bind into one dataframe
-gpx.dat<-rbind.fill(rbind.fill(gpx[sapply(gpx,class)=="data.frame"]),rbind.fill(gpx2[sapply(gpx2,class)=="data.frame"]),rbind.fill(gpx3[sapply(gpx3,class)=="data.frame"]))
+gpx.dat<-rbind_all(list(rbind_all(gpx[sapply(gpx,class)=="data.frame"]),rbind_all(gpx2[sapply(gpx2,class)=="data.frame"]),rbind_all(gpx3[sapply(gpx3,class)=="data.frame"])))
 gpx.dat$name<-as.character(gpx.dat$name)
 
 #Combine gps types
@@ -68,7 +67,9 @@ tomatch<-formerGPS[,colnames(formerGPS) %in% c("lat" ,"long","altitude","ident")
 colnames(tomatch)<-c("name","lat","lon","ele")
 
 tomatch$name<-as.character(tomatch$name)
-gpx.all<-rbind.fill(gpx.dat,tomatch)
+gpx.dat$ele<-as.numeric(gpx.dat$ele)
+
+gpx.all<-as.data.frame(rbind_all(list(gpx.dat,tomatch)))
 
 #create  spatial object
 gps<-SpatialPointsDataFrame(coords=cbind(gpx.all$lon,gpx.all$lat),gpx.all)
@@ -126,11 +127,13 @@ newname<-paste("NF0",solution,sep="")
 #replace name
 gps[which(substring(gps$name,1,1) %in% "N"),"GPS.ID"]<-newname
 
-#create shapefile
-writePointsShape(gps,"Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSshape.shp")
 
 #remove literally identical rows
 gps<-gps[!duplicated(gps@data),]
+
+#create shapefile
+writePointsShape(gps,"Thesis\\Maquipucuna_SantaLucia\\Data2013\\Shapefiles\\GPSshape.shp")
+
 ############################################
 ##############Merge GPS Info with Data######
 ############################################
@@ -146,7 +149,7 @@ datAuto<-read.csv("Thesis/Maquipucuna_SantaLucia/Data2013/FlowerVideoAuto.csv")
 datADD<-dat[!dat$ID %in% datAuto$ID,]
 
 #Combine with automated monitering
-datT<-rbind.fill(datAuto,datADD)
+datT<-rbind_all(list(datAuto,datADD))
 
 #error rows
 #merge
@@ -220,9 +223,6 @@ nellele<-missingelev[missingelev %in% nelldat$GPSID]
 datg<-merge(datg,nelldat[,c("GPSID","ele.nelly")],by.x=c("ID"),by="GPSID",all.x=T)
 datg[!is.na(datg$ele.nelly),"ele"]<-datg$ele.nelly[!is.na(datg$ele.nelly)]
 
-#still missing some elevations
-unique(droplevels(datg$ID[is.na(datg$ele)]))
-
 ###### Add in manual elev branches for missing levels?
 datg[datg$ID %in% "FL066","ele"]<-1350
 datg[datg$ID %in% "FL084","ele"]<-1850
@@ -270,14 +270,6 @@ gps@data$GPS.ID[gps@data$GPS.ID %in% "fh1205"]<-"FH1205"
 levels(datg$ID)[levels(datg$ID) %in% "FH201HR"]<-"FH201"
 datg[datg$ID %in% "FH201","ele"]<-2262
 datg[datg$ID %in% "NF197","ele"]<-1400
-
-gps@data$GPS.ID[str_detect(gps@data$GPS.ID,"515")]
-
-datg[datg$ID %in% "",]
-gps@data[gps@data$GPS.ID == "KFL216",]
-
-#need to find more information about these cameras:
-datg[datg$ele<1000,]
 
 #Still missing elevation information
 paste("Missing Cameras GPS:",levels(factor(datg[is.na(datg$ele),]$ID)))
@@ -328,10 +320,6 @@ datg$Iplant_Double<-as.character(datg$Iplant_Double)
 
 datg[is.na(datg$Iplant_Double), "Iplant_Double"]<-as.character(toinsert)
 
-
-#Duplicate GPS points. Two were taken with the same name. Check for sample bird, same camera, same time.
-a<-datg %>% select(Hummingbird,Iplant_Double,Time)
-table(a$Time)
 
 #Write camera data to file
 write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Data2013/csv/FlowerVideoClean.csv")

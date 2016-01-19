@@ -84,9 +84,11 @@ holger.hum$ID<-factor(paste(holger.hum$Transect,holger.hum$Date_F,sep="_"))
 dim(holger.hum)
 dim(holgerID)
 
-holger.full<-merge(holger.hum,holgerID,by="ID")
+holger.full<-merge(holger.hum,holgerID,by=c("ID","Date_F"))
 dim(holger.full)
 
+#Needs a year column
+holger.full$Year<-years(holger.full$Date_F)
 #legacy change, keep all observations
 holgerInter<-holger.full
 
@@ -131,7 +133,7 @@ toin <- gsub(" $","", paste(toinsert$Genus,toinsert$Species), perl=T)
 holgerInter[is.na(holgerInter$Iplant_Double), "Iplant_Double"]<-toin
 
 #get the desired columns
-holgerInter<-holgerInter[,colnames(holgerInter) %in% c("ID","Hummingbird.Species","Iplant_Double","Way.Point","Month","Date_F.y","Transect_R","Transect")]
+holgerInter<-holgerInter[,colnames(holgerInter) %in% c("ID","Hummingbird.Species","Iplant_Double","Way.Point","Month","Date_F","Transect_R","Transect","Year")]
 
 #########################
 ####Add GPS information
@@ -187,14 +189,22 @@ gps$GPS.ID<-sapply(gps$name,function(x){
   }
 })
 
+gps$Year<-years(gps$Date_F)
+
+#remove literally identical rows
+gps<-gps[!duplicated(gps@data),]
+
 #############################
 #Merge GPS info with transects
 #############################
 
-#Merge all that fit the month and ID?
-HMatch<-merge(holgerInter,gps,by.x=c("Way.Point","Month"),by.y=c("GPS.ID","MonthID"),all.x=TRUE,all.y=FALSE)
+#Merge all that fit the month year and ID
+HMatch<-merge(holgerInter,gps,by.x=c("Way.Point","Month","Year"),by.y=c("GPS.ID","MonthID","Year"),all.x=T)
 
-#how many are missing?
+#just want the date from the input data.
+HMatch<-HMatch[,!colnames(HMatch) %in% "Date_F.y"]
+colnames(HMatch)[colnames(HMatch) %in% "Date_F.x"]<-"Date_F"
+
 nrow(HMatch[is.na(HMatch$ele),])
 missingGPS<-HMatch[is.na(HMatch$ele),]$Way.Point
 
@@ -312,7 +322,6 @@ colnames(Hrows)
 colnames(Brows)[colnames(Brows) %in% c("altitude","long")]<-c("lon","ele")
 colnames(Hrows)[colnames(Hrows) %in% c("Way.Point","Date_F.y")]<-c("GPS.ID","Date_F")
 
-class(Hrows$Date_F)
 Hrows$Date_F<-as.Date(Hrows$Date_F)
 Brows$ID<-as.character(Brows$ID)
 
