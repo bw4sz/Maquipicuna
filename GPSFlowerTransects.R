@@ -117,11 +117,23 @@ dat<-read.csv("Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/CleanedHolg
 head(dat)
 
 #merge
-datg<-merge(dat,gps_noduplicate,by.x=c("GPS_ID","month","year"),by.y=c("GPS.ID","MonthID","YearID"),)
+datg<-merge(dat,gps_noduplicate,by.x=c("GPS_ID","month","year"),by.y=c("GPS.ID","MonthID","YearID"))
 
 #remove nonsensical elevations
 datg$ele[datg$ele > 2600]<-NA
 datg$ele[datg$ele < 1200]<-NA
+
+#There are few dates that don't match, by 1 day.
+datg[datg$month==10 & datg$year==2014 & datg$Transect_R=='1900_2100' & datg$Date_F=="2014-10-23","Date_F"]<-"2014-10-22"
+datg[datg$month==10 & datg$year==2014 & datg$Transect_R=='1500_1700' & datg$Date_F=="2014-10-22","Date_F"]<-"2014-10-27"
+datg[datg$month==8 & datg$year==2013 & datg$Transect_R=='2300_2500' & datg$Date_F=="2013-08-07","Date_F"]<-"2013-08-03"
+datg[datg$month==8 & datg$year==2013 & datg$Transect_R=='2100_2300' & datg$Date_F=="2013-08-03", "Date_F"]<-"2013-08-02"
+datg[datg$month==8 & datg$year==2013 & datg$Transect_R=='1700_1900' & datg$Date_F=="2013-08-03", "Date_F"]<-"2013-08-02"
+datg[datg$month==7 & datg$year==2014 & datg$Transect_R=='1700_1900' & datg$Date_F=="2014-07-03","Date_F"]<-"2014-07-22"
+datg[datg$month==7 & datg$year==2014 & datg$Transect_R=='1300_1500' & datg$Date_F=="2014-07-02","Date_F"]<-"2014-07-16"
+datg[datg$month==7 & datg$year==2013 & datg$Transect_R=='2100_2300' & datg$Date_F=="2013-07-26","Date_F"]<-"2013-07-25"
+datg[datg$month==7 & datg$year==2013 & datg$Transect_R=='1700_1900' & datg$Date_F=="2013-07-26","Date_F"]<-"2013-07-27"
+datg[datg$month==7 & datg$year==2013 & datg$Transect_R=='1500_1700' & datg$Date_F=="2014-07-25","Date_F"]<-"2013-07-19"
 
 #Write camera data to file
 write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerTransectClean.csv")
