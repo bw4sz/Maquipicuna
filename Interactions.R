@@ -198,6 +198,10 @@ datinter[datinter$ID %in% "NF2" & datinter$DateP %in% '2013-11-06',"ID"]<-"NF2A"
 datinter[datinter$ID %in% "NF126"& datinter$DateP %in% '2014-09-21',"ID"]<-"NF126A"
 
 
+#Checking the original data, one interaction Booted Racket-tail and Guzmania amplectens is labeled 'heard only' and seems extremely unlikely, removed.
+datinter<-datinter[!(datinter$Hummingbird %in% "Booted Racket-tail" & datinter$Iplant_Double %in% "Guzmania amplectens"),]
+
+
 #Write to file.
 write.csv(datinter,"Thesis/Maquipucuna_SantaLucia/Results/Network/HummingbirdInteractions.csv")
 

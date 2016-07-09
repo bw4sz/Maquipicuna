@@ -178,8 +178,8 @@ error_rows<-full.fl[full.fl$Iplant_Double %in% "",]
 #Family Genus Species, in future, create abreviations
 fl.all<-melt(table(full.fl$Iplant_Double))
 names(fl.all)<-c("Species","Count")
-ggplot(fl.all,aes(Species,Count)) + geom_bar() + coord_flip() + theme_bw()
-ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/SpeciesCount.jpeg",height=15,width=8)
+#ggplot(fl.all,aes(Species,Count)) + geom_bar() + coord_flip() + theme_bw()
+#ggsave(filename="Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/SpeciesCount.jpeg",height=15,width=8)
 
 #Taxonomy Check Complete
 ###########################

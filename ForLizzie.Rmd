@@ -1,0 +1,52 @@
+---
+title: "For Lizzie"
+output: html_document
+---
+```{r}
+library(ggplot2)
+library(dplyr)
+library(chron)
+library(reshape2)
+```
+
+#Read in the data
+
+These are vistitation data we have from three years of camera and transects at Maqui and Santa Lucia
+
+```{r}
+dat<-read.csv("C:/Users/Ben/Documents/Occupy/InputData/HummingbirdInteractions.csv")
+```
+
+The raw data looks like this.
+
+```{r}
+head(dat)
+```
+
+## Filter by Plant Species
+
+```{r}
+sp<-c("Centropogon solanifolius", "Mezobromelia capituligera", "Fuchsia macrostigma", "Kohleria affinis")
+
+datsp<-dat %>% filter(Iplant_Double %in% sp)
+datsp<-droplevels(datsp)
+```
+
+# Visitation matrix
+
+Which birds visit which flowers?
+
+```{r}
+int<-melt(table(datsp$Iplant_Double,datsp$Hummingbird))
+colnames(int)<-c("Flower","Hummingbird","Visits")
+ggplot(int,aes(x=Hummingbird,y=Flower,fill=Visits)) + geom_tile() + scale_fill_continuous(low='white',high='black')+ theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+# Time patterns
+
+Regardless of flower
+
+```{r}
+datsp$ft<-chron(times.=datsp$Time)
+datsp$ft[datsp$ft<chron(06:00:00)]
+ggplot(datsp)

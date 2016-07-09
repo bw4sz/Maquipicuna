@@ -8,9 +8,8 @@
 require(ggplot2)
 require(reshape)
 require(taxize)
-library(ggbiplot)
 library(stringr)
-library(dplyr)
+library(plyr)
 
 #############
 #setwd
@@ -110,8 +109,8 @@ biplot(pcA)
 genera<-sapply(as.character(rownames(zscore)),function(x){
   strsplit(x,"_")[[1]][1]
 })
-ggbiplot(pcA,groups=genera) 
-ggsave("Thesis/Maquipucuna_SantaLucia/Results/FloralPCA.svg",height=10,width=10,dpi=300)
+#ggbiplot(pcA,groups=genera) 
+#ggsave("Thesis/Maquipucuna_SantaLucia/Results/FloralPCA.svg",height=10,width=10,dpi=300)
 
 # #Some basic visualizations to check data clarity
 # #number of records per species
