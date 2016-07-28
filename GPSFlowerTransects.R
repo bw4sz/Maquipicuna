@@ -135,6 +135,16 @@ datg[datg$month==7 & datg$year==2013 & datg$Transect_R=='2100_2300' & datg$Date_
 datg[datg$month==7 & datg$year==2013 & datg$Transect_R=='1700_1900' & datg$Date_F=="2013-07-26","Date_F"]<-"2013-07-27"
 datg[datg$month==7 & datg$year==2013 & datg$Transect_R=='1500_1700' & datg$Date_F=="2014-07-25","Date_F"]<-"2013-07-19"
 
+
+#known taxonomic changes
+
+#Correct known taxonomic errors
+datg[datg$Iplant_Double %in% "Alloplectus purpureus","Iplant_Double"]<-"Glossoloma purpureum"
+datg[datg$Iplant_Double %in% "Capanea affinis","Iplant_Double"]<-"Kohleria affinis"
+datg[datg$Iplant_Double %in% "Alloplectus teuscheri","Iplant_Double"]<-"Drymonia teuscheri"
+datg[datg$Iplant_Double %in% "Columnea cinerea","Iplant_Double"]<-"Columnea mastersonii"
+datg[datg$Iplant_Double %in% "Alloplectus tenuis","Iplant_Double"]<-"Drymonia tenuis"
+
 #Write camera data to file
 write.csv(datg,"Thesis/Maquipucuna_SantaLucia/Results/FlowerTransects/FlowerTransectClean.csv")
 
